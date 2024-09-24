@@ -1,0 +1,19 @@
+.ag-theme-alpine .ag-body-viewport .ag-row {
+    border-bottom: 1px solid #e0e0e0; /* Optional: horizontal lines between rows */
+  }
+  
+  .ag-theme-alpine .ag-body-viewport .ag-cell {
+    border-right: 1px solid #e0e0e0; /* Vertical lines between columns */
+  }
+  
+  .ag-theme-alpine .ag-body-viewport .ag-cell:last-child {
+    border-right: none; /* Remove the border on the last column */
+  }
+  .cell-border {
+    border-right: 1px solid #e0e0e0; /* Vertical lines between columns */
+  }
+  
+  .cell-border:last-child {
+    border-right: none; /* Remove the border on the last column */
+  }
+    
