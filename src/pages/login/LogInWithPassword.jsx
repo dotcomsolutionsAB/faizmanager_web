@@ -371,7 +371,7 @@ import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
+// import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
@@ -381,7 +381,6 @@ import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import ForgotPassword from './ForgotPassword';
 import AppTheme from '../../components/login/AppTheme';
-// import ColorModeSelect from '../../components/ColorModeSelect';
 import fmbLogo1 from '../../assets/fmbLogo1.png';
 import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
@@ -396,6 +395,10 @@ const Card = styled(MuiCard)(({ theme }) => ({
   margin: 'auto',
   [theme.breakpoints.up('sm')]: {
     maxWidth: '450px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    alignSelf: 'flex-start',
+    margin: '0',
   },
   boxShadow:
     'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
@@ -494,7 +497,6 @@ export default function LogInWithPassword(props) {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <SignInContainer direction="column" justifyContent="space-between">
-        {/* <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} /> */}
         <Card variant="outlined">
           <Box
             component="img"
@@ -562,6 +564,7 @@ export default function LogInWithPassword(props) {
                 color={passwordError ? 'error' : 'primary'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                
                 InputProps={{
                   sx: {
                     // Set a fixed height for the input box
@@ -576,14 +579,14 @@ export default function LogInWithPassword(props) {
               <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
                 label="Remember me"
-                sx={{ flexGrow: 1, m: 0 }}
+                sx={{ flexGrow: 1, m: 0, fontSize: { xs: '0.8rem', sm: '1rem' }, }}
               />
               <Link
                 component="button"
                 type="button"
                 onClick={handleClickOpen}
                 variant="body2"
-                sx={{ alignSelf: 'center', mt: 0 }}
+                sx={{ alignSelf: 'center', mt: 0, fontSize: { xs: '0.8rem', sm: '1rem' },}}
               >
                 Forgot your password?
               </Link>
@@ -594,6 +597,7 @@ export default function LogInWithPassword(props) {
               fullWidth
               variant="contained"
               onClick={validateInputs}
+              sx = {{fontSize: { xs: '0.8rem', sm: '1rem' }}}
             >
               Sign in
             </Button>
@@ -605,6 +609,7 @@ export default function LogInWithPassword(props) {
               variant="outlined"
               color='primary'
               onClick={handleOtpClick}
+              sx = {{fontSize: { xs: '0.8rem', sm: '1rem' }}}
             >
               Sign in with OTP
             </Button>

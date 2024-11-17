@@ -7,7 +7,7 @@ import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+// import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import Snackbar from '@mui/material/Snackbar';
@@ -31,6 +31,10 @@ const Card = styled(MuiCard)(({ theme }) => ({
   margin: 'auto',
   [theme.breakpoints.up('sm')]: {
     maxWidth: '450px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    alignSelf: 'flex-start',
+    margin: '0',
   },
   boxShadow:
     'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
@@ -117,19 +121,26 @@ export default function LogInWithPassword(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (validateInputs()) {
-      setShowOtpInput(true);
-      setSnackbarMessage('OTP sent successfully');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-
-      // Focus on the first OTP input field
-      setTimeout(() => {
-        if (inputRefs.current[0]) {
-          inputRefs.current[0].focus();
-        }
-      }, 0);
+      handleSendOtp();
     }
   };
+
+  // const handleSubmit = (event) => {
+  //   event.preventDefault();
+  //   if (validateInputs()) {
+  //     setShowOtpInput(true);
+  //     setSnackbarMessage('OTP sent successfully');
+  //     setSnackbarSeverity('success');
+  //     setSnackbarOpen(true);
+
+  //     // Focus on the first OTP input field
+  //     setTimeout(() => {
+  //       if (inputRefs.current[0]) {
+  //         inputRefs.current[0].focus();
+  //       }
+  //     }, 0);
+  //   }
+  // };
 
   const handleSendOtp = async () => {
     try {
@@ -141,12 +152,19 @@ export default function LogInWithPassword(props) {
         body: JSON.stringify({ username: userName }),
       });
       const data = await response.json();
-      if (data.message === 'Otp send successfully!') {
-        // setShowOtpInput(true);
-        // setSnackbarMessage(data.message);
-        // setSnackbarSeverity('success');
-        // setSnackbarOpen(true);
-        // setTimeout(() => inputRefs.current[0]?.focus(), 0);
+      if (data.message === 'User has not registered!') {
+        setUserNameError(true);
+        setUserNameErrorMessage('Invalid username');
+        setSnackbarMessage('Invalid username');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+        setShowOtpInput(false); // Do not show OTP input
+      } else if (data.message === 'Otp send successfully!') {
+        setShowOtpInput(true);
+        setSnackbarMessage(data.message);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        setTimeout(() => inputRefs.current[0]?.focus(), 0);
       } else {
         throw new Error('Failed to send OTP');
       }
@@ -172,15 +190,25 @@ export default function LogInWithPassword(props) {
         },
         body: JSON.stringify({ username: userName }),
       });
+  
       const data = await response.json();
       if (data.success) {
+        const token = data.data.token; // Extract the Bearer token from the response
+  
+        // Save the token and user data in localStorage
+        localStorage.setItem('user', JSON.stringify(data.data));
+        localStorage.setItem('token', token); // Save the Bearer token separately
+        console.log(token)
+        console.log('Token saved in localStorage:', localStorage.getItem('token'));
+        // Update UserContext with the token and user details
+        updateUser({ ...data.data, token });
+        // window.location.reload();
+  
         setSnackbarMessage(data.message);
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-        localStorage.setItem('user', JSON.stringify(data.data));
-        updateUser(data.data); // Update UserContext 
-        console.log(data.data.name)
-        // Navigate to dashboard or any other page
+  
+        // Navigate to dashboard or another page
         navigate('/dashboard', { state: { username: data.data.name } });
       } else {
         throw new Error('Invalid OTP');
@@ -191,6 +219,7 @@ export default function LogInWithPassword(props) {
       setSnackbarOpen(true);
     }
   };
+  
 
 
   const validateInputs = () => {
@@ -271,6 +300,8 @@ export default function LogInWithPassword(props) {
                         inputRef={(el) => (inputRefs.current[index] = el)}
                         inputProps={{
                           maxLength: 1,
+                          inputMode: 'numeric', // Show numeric keyboard on mobile
+                          pattern: '[0-9]*', 
                           sx: {
                             width: '3rem',
                             textAlign: 'center',
@@ -296,7 +327,7 @@ export default function LogInWithPassword(props) {
                 type="submit"
                 fullWidth
                 variant="contained"
-                onClick={() => validateInputs() && handleSendOtp()}
+                onClick={() => validateInputs()}
               >
                 Send OTP
               </Button>

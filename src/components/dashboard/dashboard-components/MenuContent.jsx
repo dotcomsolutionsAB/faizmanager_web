@@ -45,7 +45,7 @@ export default function MenuContent({ open }) {
               <ListItemIcon
                 sx={{
                   minWidth: 0, // Remove default padding around icon
-                  mr: open ? 2 : 'auto', // Add spacing only when open
+                  mr: open ? '2' : '2', // Add spacing only when open
                   justifyContent: 'center',
                   fontSize: open ? 'default' : '1.5rem', // Larger icon when closed
                 }}

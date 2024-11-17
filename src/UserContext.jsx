@@ -1,38 +1,65 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
-// Create UserContext
 const UserContext = createContext();
 
-// Custom hook to use the UserContext
 export const useUser = () => {
   return useContext(UserContext);
 };
 
-// Provider component
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on initial render
   useEffect(() => {
+    console.log('useEffect triggered in UserContext');
+
     const storedUser = JSON.parse(localStorage.getItem('user'));
+    const storedToken = localStorage.getItem('token');
+  
+    console.log('Stored User:', storedUser);
+    console.log('Stored Token:', storedToken);
+
     if (storedUser) {
       setUser(storedUser);
     }
-  }, []);
+    if (storedToken) {
+      setToken(storedToken);
+    } else if (storedUser?.token) {
+      setToken(storedUser.token);
+      localStorage.setItem('token', storedUser.token); // Save token in localStorage
+    }
+    setLoading(false);
+    console.log("Sending token to MumeneenTable : ", token);
+  }, [token]);
+  
 
-  // Update localStorage when user changes
-  const updateUser = (newUser) => {
+  const updateUser = (newUser, newToken) => {
     setUser(newUser);
+    setToken(newToken);
     if (newUser) {
       localStorage.setItem('user', JSON.stringify(newUser));
     } else {
-      localStorage.removeItem('user'); // Remove on logout
+      localStorage.removeItem('user');
+    }
+    if (newToken) {
+      localStorage.setItem('token', newToken);
+    } else {
+      localStorage.removeItem('token');
     }
   };
 
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+  };
+
+
   return (
-    <UserContext.Provider value={{ user, updateUser }}>
-      {children}
+    <UserContext.Provider value={{ user, token, updateUser, logout }}>
+      {loading ? null : children}
     </UserContext.Provider>
   );
 }

@@ -23,6 +23,7 @@ function AppTheme({ children, disableCustomTheme, themeComponents }) {
           typography,
           shadows,
           shape,
+          
           components: {
             ...inputsCustomizations,
             ...dataDisplayCustomizations,
