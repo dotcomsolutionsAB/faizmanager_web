@@ -1,368 +1,3 @@
-// import React, { useState, useRef, useEffect } from 'react';
-// import { Box, Typography, TextField, Button, Grid, Snackbar, Alert, Checkbox, FormControlLabel, Divider } from '@mui/material';
-// import fmbLogo from '../assets/fmbLogo.png';
-// import bg from '../assets/bg.png';
-
-// const LogInWithOtp = () => {
-//   const [userName, setuserName] = useState('');
-//   const [otp, setOtp] = useState(new Array(4).fill(''));
-//   const [isOtpSent, setIsOtpSent] = useState(false);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [showSnackbar, setShowSnackbar] = useState({ open: false, message: '', severity: 'info' });
-//   const otpInputRefs = useRef([]);
-
-//   useEffect(() => {
-//     if (isOtpSent && otpInputRefs.current[0]) {
-//       otpInputRefs.current[0].focus();
-//     }
-//   }, [isOtpSent]);
-
-//   const handleOtpChange = (e, index) => {
-//     const { value } = e.target;
-//     const newOtp = [...otp];
-
-//     if (/^\d?$/.test(value)) {
-//       newOtp[index] = value.slice(-1);
-//       setOtp(newOtp);
-
-//       if (value && index < otp.length - 1) {
-//         otpInputRefs.current[index + 1].focus();
-//       }
-//     }
-
-//     if (!value && e.nativeEvent.inputType === 'deleteContentBackward' && index > 0) {
-//       otpInputRefs.current[index - 1].focus();
-//     }
-//   };
-
-//   const handleSendOtp = () => {
-//     if (!/^(\+?\d{1,3}[- ]?)?\d{10}$/.test(userName)) {
-//       setShowSnackbar({ open: true, message: 'Please enter a valid user name', severity: 'error' });
-//       return;
-//     }
-//     setIsLoading(true);
-//     setTimeout(() => {
-//       setIsOtpSent(true);
-//       setIsLoading(false);
-//       setShowSnackbar({ open: true, message: 'OTP sent successfully', severity: 'success' });
-//     }, 1000);
-//   };
-
-//   const handleVerifyOtp = () => {
-//     if (otp.join('').length !== 4) {
-//       setShowSnackbar({ open: true, message: 'Please enter the 4-digit OTP', severity: 'error' });
-//       return;
-//     }
-
-//     setIsLoading(true);
-//     setTimeout(() => {
-//       setIsLoading(false);
-//       setShowSnackbar({ open: true, message: 'Successfully logged in!', severity: 'success' });
-//       setOtp(new Array(4).fill(''));
-//     }, 1000);
-//   };
-
-//   const handleCloseSnackbar = () => {
-//     setShowSnackbar({ ...showSnackbar, open: false });
-//   };
-
-//   return (
-//     <Box
-//       minHeight="100vh"
-//       display="flex"
-//       alignItems="center"
-//       justifyContent="center"
-//       sx={{
-//         backgroundColor: '#f0f0f0',
-//         p: 2,
-//       }}
-//     >
-//       <Box
-//         sx={{
-//           width: { xs: '90%', sm: '70%', md: '60%' },
-//           maxWidth: '450px',
-//           height: { xs: 'auto', md: '80vh' },
-//           backgroundImage: `url(${bg})`,
-//           backgroundSize: 'cover',
-//           backgroundPosition: 'center',
-//           borderRadius: '20px',
-//           boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.2)',
-//           display: 'flex',
-//           alignItems: 'center',
-//           justifyContent: 'center',
-//           position: 'relative',
-//           padding: 4,
-//           overflow: 'hidden',
-//         }}
-//       >
-//         <Box
-//           sx={{
-//             backgroundColor: 'rgba(255, 255, 255, 0.9)',
-//             borderRadius: '16px',
-//             p: 3,
-//             boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-//           }}
-//         >
-//           {/* Logo */}
-//           <Box display="flex" justifyContent="center" mb={2}>
-//             <img src={fmbLogo} alt="Logo" style={{ width: '100px', height: 'auto' }} />
-//           </Box>
-
-//           {/* Header */}
-//           <Typography
-//             variant="h5"
-//             gutterBottom
-//             fontWeight="bold"
-//             color="primary"
-//             align="center"
-//             sx={{ fontSize: { xs: '1rem', md: '1.5 rem' } }}
-//           >
-//             Log In
-//           </Typography>
-
-//           {/* User name Input */}
-//           <TextField
-//             label="Username"
-//             variant="outlined"
-//             fullWidth
-//             value={userName}
-//             onChange={(e) => {
-//               const value = e.target.value;
-//               if (/^\d{0,10}$/.test(value)) {
-//                 setuserName(value);
-//               }
-//             }}
-//             disabled={isOtpSent}
-//             error={!/^(\+?\d{1,3}[- ]?)?\d{10}$/.test(userName) && userName !== ''}
-//             helperText={
-//               !/^(\+?\d{1,3}[- ]?)?\d{10}$/.test(userName) && userName !== ''
-//                 ? 'Enter a valid 10-digit user name'
-//                 : ''
-//             }
-//             inputProps={{
-//               maxLength: 10,
-//             }}
-//             sx={{ mb: 3 }}
-//           />
-
-//           {/* Remember Me Checkbox */}
-//           <FormControlLabel
-//             control={<Checkbox />}
-//             label="Remember me"
-//             sx={{ mb: 2 }}
-//           />
-
-//           <Button
-//             variant="contained"
-//             color="primary"
-//             fullWidth
-//             onClick={handleSendOtp}
-//             disabled={isLoading || isOtpSent}
-//             sx={{ mb: 2 }}
-//           >
-//             {isLoading ? 'Sending...' : 'Send OTP'}
-//           </Button>
-
-//           {/* OTP Input Fields */}
-//           {isOtpSent && (
-//             <>
-//               <Typography
-//                 variant="body2"
-//                 color="textSecondary"
-//                 mb={1}
-//                 align="center"
-//                 sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}
-//               >
-//                 Enter OTP
-//               </Typography>
-//               <Grid container spacing={1} justifyContent="center" sx={{ mb: 3 }}>
-//                 {otp.map((data, index) => (
-//                   <Grid item key={index}>
-//                     <TextField
-//                       type="text"
-//                       value={data}
-//                       onChange={(e) => handleOtpChange(e, index)}
-//                       inputProps={{
-//                         maxLength: 1,
-//                         style: { textAlign: 'center', fontSize: '1.5rem' },
-//                       }}
-//                       inputRef={(el) => (otpInputRefs.current[index] = el)}
-//                       sx={{
-//                         width: { xs: '35px', md: '50px' },
-//                         '& .MuiOutlinedInput-root': {
-//                           borderRadius: '8px',
-//                           bgcolor: 'white',
-//                         },
-//                       }}
-//                     />
-//                   </Grid>
-//                 ))}
-//               </Grid>
-//               <Button
-//                 variant="contained"
-//                 color="primary"
-//                 fullWidth
-//                 onClick={handleVerifyOtp}
-//                 disabled={isLoading}
-//                 sx={{ mb: 2 }}
-//               >
-//                 {isLoading ? 'Verifying...' : 'Verify & Sign In'}
-//               </Button>
-//             </>
-//           )}
-
-//           {/* Horizontal Line */}
-//           <Divider sx={{ mb: 2 }} />
-
-//           {/* Footer Links */}
-//           <Box display="flex" justifyContent="space-between">
-//             {isOtpSent && (
-//               <Button
-//                 variant="text"
-//                 style={{
-//                   cursor: 'pointer',
-//                   color: '#3366FF',
-//                   fontSize: '14px',
-//                   fontWeight: 'normal',
-//                   textTransform: 'none',
-//                 }}
-//                 onClick={handleSendOtp}
-//               >
-//                 Resend OTP
-//               </Button>
-//             )}
-//             <Button
-//               variant="text"
-//               style={{
-//                 cursor: 'pointer',
-//                 color: '#3366FF',
-//                 fontSize: '14px',
-//                 fontWeight: 'normal',
-//                 textTransform: 'none',
-//               }}
-//             >
-//               Change Number
-//             </Button>
-//             <Button
-//               variant="text"
-//               style={{
-//                 cursor: 'pointer',
-//                 color: '#3366FF',
-//                 fontSize: '14px',
-//                 fontWeight: 'normal',
-//                 textTransform: 'none',
-//               }}
-//             >
-//               Forgot Password
-//             </Button>
-//           </Box>
-//         </Box>
-//       </Box>
-
-//       {/* Snackbar for Notifications */}
-//       <Snackbar
-//         open={showSnackbar.open}
-//         autoHideDuration={3000}
-//         onClose={handleCloseSnackbar}
-//         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-//       >
-//         <Alert onClose={handleCloseSnackbar} severity={showSnackbar.severity} sx={{ width: '100%' }}>
-//           {showSnackbar.message}
-//         </Alert>
-//       </Snackbar>
-//     </Box>
-//   );
-// };
-
-// export default LogInWithOtp;
-
-// import React from 'react';
-// import {
-//   Box,
-//   Button,
-//   Checkbox,
-//   Container,
-//   FormControlLabel,
-//   TextField,
-//   Typography,
-//   Link,
-//   Paper
-// } from '@mui/material';
-
-// function Login() {
-//   return (
-//     <Container component="main" maxWidth="xs">
-//       <Paper elevation={3} sx={{ padding: 4, textAlign: 'center', mt: 5 }}>
-//         <Box sx={{ mb: 2 }}>
-//           <img
-//             src="../assets/fmbLogo.png"
-//             alt="Logo"
-//             style={{ width: '100px', marginBottom: '10px' }}
-//           />
-//           <Typography variant="h5" fontWeight="bold">
-//             Faiz Ul Mawaid Il Burhaniyah <br /> Kolkata
-//           </Typography>
-//         </Box>
-
-//         <Typography variant="h6" sx={{ mb: 2 }}>
-//           Login
-//         </Typography>
-
-//         <TextField
-//           variant="outlined"
-//           margin="normal"
-//           required
-//           fullWidth
-//           id="mobileNumber"
-//           label="Mobile Number"
-//           name="mobileNumber"
-//           type="tel"
-//           placeholder="+911234567890"
-//           sx={{ mb: 2 }}
-//         />
-
-//         <TextField
-//           variant="outlined"
-//           margin="normal"
-//           required
-//           fullWidth
-//           name="password"
-//           label="Password"
-//           type="password"
-//           id="password"
-//           sx={{ mb: 2 }}
-//         />
-
-//         <FormControlLabel
-//           control={<Checkbox value="remember" color="primary" />}
-//           label="Remember me"
-//         />
-
-//         <Button
-//           type="submit"
-//           fullWidth
-//           variant="contained"
-//           sx={{ mt: 3, mb: 2 }}
-//         >
-//           Login →
-//         </Button>
-
-//         <Box display="flex" justifyContent="space-between">
-//           <Link href="#" variant="body2">
-//             Forgot Password
-//           </Link>
-//           <Link href="#" variant="body2">
-//             Sign Up
-//           </Link>
-//         </Box>
-//       </Paper>
-//     </Container>
-//   );
-// }
-
-// export default Login;
-
-
 import * as React from 'react';
 import { useState } from 'react';
 import Box from '@mui/material/Box';
@@ -371,27 +6,33 @@ import Checkbox from '@mui/material/Checkbox';
 import CssBaseline from '@mui/material/CssBaseline';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Divider from '@mui/material/Divider';
-// import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
-// import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
-import { styled } from '@mui/material/styles';
+import { styled, useTheme } from '@mui/material/styles';
 import ForgotPassword from './ForgotPassword';
-import AppTheme from '../../components/login/AppTheme';
+import AppTheme from '../../styles/AppTheme';
 import fmbLogo1 from '../../assets/fmbLogo1.png';
 import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
+import Typography from '@mui/material/Typography';
+import { useMediaQuery } from '@mui/material';
+import { yellow, brown } from '../../styles/ThemePrimitives';
+import { Visibility, VisibilityOff } from '@mui/icons-material'; // Import Visibility icons
+import { InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
+import { useUser } from '../../UserContext';
+import fmb52 from '../../assets/fmb52.png';
+
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignSelf: 'center',
   width: '100%',
-  padding: theme.spacing(4),
-  gap: theme.spacing(2),
+  padding: theme.spacing(3),
+  gap: theme.spacing(1),
   margin: 'auto',
   [theme.breakpoints.up('sm')]: {
     maxWidth: '450px',
@@ -402,10 +43,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
   },
   boxShadow:
     'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
-  ...theme.applyStyles('dark', {
-    boxShadow:
-      'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
-  }),
+  backgroundColor: yellow[50],
 }));
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
@@ -416,6 +54,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
+  fontFamily: theme.typography.fontFamily, // Applying Poppins font
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(4),
   },
@@ -428,22 +67,119 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     backgroundImage:
       'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
     backgroundRepeat: 'no-repeat',
-    ...theme.applyStyles('dark', {
-      backgroundImage:
-        'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
-    }),
   },
 }));
 
 export default function LogInWithPassword(props) {
+  // const theme = useTheme();
+  // const [userName, setUserName] = useState('');
+  // const [password, setPassword] = useState('');
+  // const [userNameError, setUserNameError] = useState(false);
+  // const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
+  // const [passwordError, setPasswordError] = useState(false);
+  // const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+  // const [open, setOpen] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+  // const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar open state
+  // const [snackbarMessage, setSnackbarMessage] = useState(''); // Snackbar message
+  // const [isEmailVerified, setIsEmailVerified] = useState(false);
+  // const navigate = useNavigate();
+
+  // const handleOtpClick = () => {
+  //   navigate('/login-with-otp', { state: { userName } });
+  // };
+
+  // const handleClickOpen = () => {
+  //   setOpen(true);
+  // };
+
+  // const handleClose = () => {
+  //   setOpen(false);
+  // };
+
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault();
+  //   if (validateInputs()) {
+  //     const data = new FormData(event.currentTarget);
+  //     const response = await loginUser(data.get('userName'), data.get('password')); // Replace with actual API call
+  //     if (response.success) {
+  //       setSnackbarMessage('User logged in successfully!');
+  //       setSnackbarOpen(true);
+  //       // After successful login, navigate to the dashboard
+  //       navigate('/dashboard'); // Navigate to dashboard after login
+  //     } else {
+  //       setSnackbarMessage('Login failed. Please check your credentials.');
+  //       setSnackbarOpen(true);
+  //     }
+  //   }
+  // };
+
+
+  // const validateInputs = () => {
+  //   let isValid = true;
+
+  //   if (!userName || !/\S+@\S+\.\S+/.test(userName)) {
+  //     setUserNameError(true);
+  //     setUserNameErrorMessage('Please enter a valid username.');
+  //     isValid = false;
+  //   } else {
+  //     setUserNameError(false);
+  //     setUserNameErrorMessage('');
+  //   }
+
+  //   if (!password || password.length < 6) {
+  //     setPasswordError(true);
+  //     setPasswordErrorMessage('Password must be at least 6 characters long.');
+  //     isValid = false;
+  //   } else {
+  //     setPasswordError(false);
+  //     setPasswordErrorMessage('');
+  //   }
+
+  //   return isValid;
+  // };
+
+  // const loginUser = async (username, password) => {
+  //   try {
+  //     const response = await fetch('https://api.fmb52.com/api/login', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ username, password }),
+  //     });
+
+  //     const responseData = await response.json();
+  //     return responseData;
+  //   } catch (error) {
+  //     console.error('Error during login:', error);
+  //     return { success: false };
+  //   }
+  // };
+
+  // const handleSignUpClick = () => {
+  //   navigate('/sign-up');
+  // };
+
+  // const handleTogglePasswordVisibility = () => {
+  //   setShowPassword(!showPassword); // Toggle the password visibility
+  // };
+
+  // For small screen media query
+  // const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const theme = useTheme();
+  const { updateUser } = useUser(); // To update UserContext
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [userNameError, setUserNameError] = useState(false);
   const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
+
   const navigate = useNavigate();
 
   const handleOtpClick = () => {
@@ -458,21 +194,22 @@ export default function LogInWithPassword(props) {
     setOpen(false);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (validateInputs()) {
-      const data = new FormData(event.currentTarget);
-      console.log({
-        userName: data.get('userName'),
-        password: data.get('password'),
-      });
-    }
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  const handleSignUpClick = () => {
+    navigate('/sign-up');
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword); // Toggle the password visibility
   };
 
   const validateInputs = () => {
     let isValid = true;
 
-    if (!userName || !/\S+@\S+\.\S+/.test(userName)) {
+    if (!userName) {
       setUserNameError(true);
       setUserNameErrorMessage('Please enter a valid username.');
       isValid = false;
@@ -493,21 +230,76 @@ export default function LogInWithPassword(props) {
     return isValid;
   };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (validateInputs()) {
+      try {
+        const response = await fetch('https://api.fmb52.com/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username: userName, password }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const { token, photo, currency, jamiat_id, ...userDetails } = data.data;
+
+          // Save the token and user data in localStorage
+          localStorage.setItem('user', JSON.stringify(data.data));
+          localStorage.setItem('token', token); // Save the Bearer token separately
+          localStorage.setItem('currency', JSON.stringify(currency)); // Save currency in localStorage
+          localStorage.setItem('jamiat_id', jamiat_id);
+          // console.log('Token saved in localStorage:', localStorage.getItem('token'));
+
+          // Update UserContext with the token and user details
+          updateUser(
+            {
+              ...userDetails,
+              photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
+              jamiat_id, 
+            },
+            token,
+            currency // Include currency in the UserContext
+          );
+        
+
+          setSnackbarMessage('Login successful!');
+          setSnackbarSeverity('success');
+          setSnackbarOpen(true);
+
+          // Navigate to dashboard or another page
+          navigate('/dashboard', { state: { username: data.data.name } });
+        } else {
+          throw new Error(data.message || 'Login failed');
+        }
+      } catch (error) {
+        setSnackbarMessage(error.message);
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    }
+  };
+
   return (
     <AppTheme {...props}>
-      <CssBaseline enableColorScheme />
+      <CssBaseline />
       <SignInContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
           <Box
             component="img"
-            src={fmbLogo1}
+            src={fmb52}
             alt="Logo"
             sx={{
-              width: 190,
-              height: 80,
-              margin: '0 auto',
+              width: 'auto',
+              height: 130,
+              margin: '0 auto'
             }}
           />
+
           <Box
             component="form"
             onSubmit={handleSubmit}
@@ -519,14 +311,16 @@ export default function LogInWithPassword(props) {
               gap: 2,
             }}
           >
-            <FormControl variant='outlined'>
+                            <Typography variant="h5" sx={{color: 'brown', textAlign: 'center'}}>
+        FAIZ-UL-MAWAID-IL-BURHANIYAH
+      </Typography>
+            <FormControl variant="outlined">
               <TextField
                 error={userNameError}
                 helperText={userNameErrorMessage}
                 id="userName-basic"
                 type="text"
                 name="userName"
-                // placeholder="Username"
                 autoComplete="userName"
                 autoFocus
                 required
@@ -538,7 +332,6 @@ export default function LogInWithPassword(props) {
                 onChange={(e) => setUserName(e.target.value)}
                 InputProps={{
                   sx: {
-                    // Set a fixed height for the input box
                     height: '56px',
                     display: 'flex',
                     alignItems: 'center',
@@ -547,14 +340,11 @@ export default function LogInWithPassword(props) {
               />
             </FormControl>
             <FormControl>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              </Box>
               <TextField
                 error={passwordError}
                 helperText={passwordErrorMessage}
                 name="password"
-                // placeholder="••••••"
-                type="password"
+                type={showPassword ? 'text' : 'password'} // Toggle password visibility
                 id="password"
                 label="Password"
                 autoComplete="current-password"
@@ -564,40 +354,86 @@ export default function LogInWithPassword(props) {
                 color={passwordError ? 'error' : 'primary'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                
                 InputProps={{
                   sx: {
-                    // Set a fixed height for the input box
                     height: '56px',
                     display: 'flex',
                     alignItems: 'center',
                   },
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleTogglePasswordVisibility}
+                        sx={{
+                          padding: 0, // Removes padding
+                          border: 'none', // Removes border
+                          background: 'none', // Removes background
+                          color: yellow[200], // Set the color based on the theme
+                        }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
                 }}
               />
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
+                control={<Checkbox value="remember" color="primary" sx={{
+                  transform: 'scale(0.8)',  // Scale down the checkbox size
+                  [theme.breakpoints.down('sm')]: {
+                    transform: 'scale(0.65)',  // Further scale down the checkbox on small screens
+                  },
+                }} />}
                 label="Remember me"
-                sx={{ flexGrow: 1, m: 0, fontSize: { xs: '0.8rem', sm: '1rem' }, }}
+                sx={{
+                  flexGrow: 1,
+                  m: 0,
+                  fontSize: '0.9rem',  // Default font size
+                  [theme.breakpoints.down('sm')]: {  // For small screens (mobile)
+                    '& .MuiTypography-root': {  // Target Typography component for label
+                      fontSize: '0.7rem ',  // Smaller font size with !important for small screens
+                    },
+                  },
+
+                }}
               />
               <Link
                 component="button"
                 type="button"
-                onClick={handleClickOpen}
+                onClick={() => navigate('/forgotpassword')}
                 variant="body2"
-                sx={{ alignSelf: 'center', mt: 0, fontSize: { xs: '0.8rem', sm: '1rem' },}}
+                sx={{
+                  alignSelf: 'center',
+                  mt: 0,
+                  fontSize: '0.9rem', // Default font size for larger screens
+                  [theme.breakpoints.down('sm')]: {  // For small screens (mobile)
+                    fontSize: '0.7rem', // Smaller font size for smaller screens
+                  },
+                  color: yellow[300], // Use yellow color from theme
+                  '&:hover': {
+                    color: yellow[400], // Hover color from theme
+                  },
+                }}
               >
                 Forgot your password?
               </Link>
             </Box>
-            <ForgotPassword open={open} handleClose={handleClose} />
+            {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               onClick={validateInputs}
-              sx = {{fontSize: { xs: '0.8rem', sm: '1rem' }}}
+              sx={{
+                fontSize: '0.9rem',
+                backgroundColor: yellow[400], // Apply yellow theme color
+                '&:hover': {
+                  backgroundColor: yellow[100], // Hover effect color
+                  color: '#000',
+                },
+              }}
             >
               Sign in
             </Button>
@@ -607,15 +443,85 @@ export default function LogInWithPassword(props) {
             <Button
               fullWidth
               variant="outlined"
-              color='primary'
+              color="primary"
               onClick={handleOtpClick}
-              sx = {{fontSize: { xs: '0.8rem', sm: '1rem' }}}
+              sx={{
+                fontSize: '0.9rem',
+                color: yellow[300], // Access primary color from theme
+                borderColor: yellow[300], // Access primary color from theme
+                '&:hover': {
+                  backgroundColor: yellow[200], // Hover color from theme
+                  borderColor: '#e0d4b0', // Border color from theme
+                  color: '#000',
+                },
+              }}
             >
               Sign in with OTP
             </Button>
+            <Typography sx={{ textAlign: 'center' }}>
+              Don&apos;t have an account?{' '}
+              <Link
+                component="button"
+                onClick={handleSignUpClick}
+                variant="body2"
+                sx={{
+                  alignSelf: 'center',
+                  color: yellow[300], // Apply yellow color from theme
+                  '&:hover': {
+                    color: yellow[400], // Hover effect for yellow
+                  },
+                }}
+              >
+                Sign up
+              </Link>
+            </Typography>
           </Box>
+           {/* Add the links section */}
+  <Typography
+    sx={{
+      textAlign: 'center',
+      color: theme.palette.text.secondary,
+      fontSize: '0.5rem',
+      mt: 2, // Add spacing from above content
+      lineHeight: 1.5,
+    }}
+  >
+    <Link href="/privacy-policy" sx={{ color: 'inherit', textDecoration: 'none' }}>
+      Privacy Policy
+    </Link>{' '}
+    |{' '}
+    <Link href="/cookies-policy" sx={{ color: 'inherit', textDecoration: 'none' }}>
+      Cookies Policy
+    </Link>{' '}
+    |{' '}
+    <Link href="/sms-in-out-policy" sx={{ color: 'inherit', textDecoration: 'none' }}>
+      SMS In/Out Policy
+    </Link>{' '}
+    |{' '}
+    <Link href="/mobile-license-agreement" sx={{ color: 'inherit', textDecoration: 'none' }}>
+      Mobile License Agreement
+    </Link>{' '}
+    |{' '}
+    <Link href="/terms-and-conditions" sx={{ color: 'inherit', textDecoration: 'none' }}>
+      Terms & Conditions
+    </Link>
+  </Typography>
         </Card>
       </SignInContainer>
+      <Snackbar
+  open={snackbarOpen}
+  autoHideDuration={6000}
+  onClose={handleSnackbarClose}
+  anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+>
+  <Alert
+    onClose={handleSnackbarClose}
+    severity={snackbarSeverity}
+    sx={{ width: '100%' }}
+  >
+    {snackbarMessage}
+  </Alert>
+</Snackbar>
     </AppTheme>
   );
 }

@@ -7,27 +7,31 @@ import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
-// import Typography from '@mui/material/Typography';
+import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import { styled } from '@mui/material/styles';
-import AppTheme from '../../components/login/AppTheme';
+import AppTheme from '../../styles/AppTheme';
 import fmbLogo1 from '../../assets/fmbLogo1.png';
 import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 // import Dashboard from '../dashboard/index';
 import { useUser } from '../../UserContext';
+import { useTheme } from '@mui/material/styles';
+import { yellow } from '../../styles/ThemePrimitives';
+import fmb52 from '../../assets/fmb52.png';
+
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignSelf: 'center',
   width: '100%',
-  padding: theme.spacing(4),
-  gap: theme.spacing(2),
+  padding: theme.spacing(3),
+  gap: theme.spacing(1),
   margin: 'auto',
   [theme.breakpoints.up('sm')]: {
     maxWidth: '450px',
@@ -38,6 +42,8 @@ const Card = styled(MuiCard)(({ theme }) => ({
   },
   boxShadow:
     'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
+  backgroundColor: yellow[50],
+
 }));
 
 const SignInContainer = styled(Stack)(({ theme }) => ({
@@ -48,6 +54,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
+  fontFamily: theme.typography.fontFamily,
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(4),
   },
@@ -67,13 +74,14 @@ const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function LogInWithPassword(props) {
+export default function LogInWithOtp(props) {
+  const theme = useTheme();
   const { updateUser } = useUser();
   const [userName, setUserName] = useState('');
   const [userNameError, setUserNameError] = useState(false);
   const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
-  const [otp, setOtp] = useState(Array(4).fill('')); // Array to store OTP digits
+  const [otp, setOtp] = useState(Array(6).fill('')); // Array to store OTP digits
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
@@ -144,7 +152,7 @@ export default function LogInWithPassword(props) {
 
   const handleSendOtp = async () => {
     try {
-      const response = await fetch('https://faiz.dotcombusiness.in/api/get_otp', {
+      const response = await fetch('https://api.fmb52.com/api/get_otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +167,7 @@ export default function LogInWithPassword(props) {
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
         setShowOtpInput(false); // Do not show OTP input
-      } else if (data.message === 'Otp send successfully!') {
+      } else if (data.message === 'Otp send successfully!'  || response.status === 200) {
         setShowOtpInput(true);
         setSnackbarMessage(data.message);
         setSnackbarSeverity('success');
@@ -183,7 +191,7 @@ export default function LogInWithPassword(props) {
   const handleVerifyOtp = async () => {
     try {
       const otpCode = otp.join('');
-      const response = await fetch(`https://faiz.dotcombusiness.in/api/login/${otpCode}`, {
+      const response = await fetch(`https://api.fmb52.com/api/login/${otpCode}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +209,12 @@ export default function LogInWithPassword(props) {
         console.log(token)
         console.log('Token saved in localStorage:', localStorage.getItem('token'));
         // Update UserContext with the token and user details
-        updateUser({ ...data.data, token });
+        updateUser({
+          ...data.data,
+          token,
+          photo: data.data.photo || '/static/images/avatar-placeholder.png', // Default photo if null
+          currency: data.data.currency, // Include currency data
+        });
         // window.location.reload();
   
         setSnackbarMessage(data.message);
@@ -241,11 +254,11 @@ export default function LogInWithPassword(props) {
         <Card variant="outlined">
           <Box
             component="img"
-            src={fmbLogo1}
+            src={fmb52}
             alt="Logo"
             sx={{
-              width: 190,
-              height: 80,
+              width: 'auto',
+              height: 130,
               margin: '0 auto',
             }}
           />
@@ -258,13 +271,18 @@ export default function LogInWithPassword(props) {
               flexDirection: 'column',
               width: '100%',
               gap: 2,
+              fontFamily: theme.typography.fontFamily,
             }}
           >
+            
+            <Typography variant="h5" sx={{color: 'brown', textAlign: 'center'}}>
+        FAIZ-UL-MAWAID-IL-BURHANIYAH
+      </Typography>
             <FormControl>
               <TextField
                 error={userNameError}
                 helperText={userNameErrorMessage}
-                id="userName"
+                id="userName-basic"
                 type="text"
                 name="userName"
                 label="Username"
@@ -311,13 +329,34 @@ export default function LogInWithPassword(props) {
                     ))}
                   </Box>
                 </FormControl>
-                <Button fullWidth variant="contained" onClick={handleVerifyOtp}>
+                <Button fullWidth variant="contained" onClick={handleVerifyOtp}                 sx={{
+                  fontSize: '0.9rem',
+                  backgroundColor: yellow[400], // Access primary color from theme
+                  '&:hover': {
+                    backgroundColor: yellow[100], // Hover color from theme
+                    color: '#000',
+                  },
+                }}>
                   Verify OTP
                 </Button>
-                <Button fullWidth variant="outlined" onClick={handleResendOtp}>
+                <Button fullWidth variant="contained" onClick={handleResendOtp}                 sx={{
+                  fontSize: '0.9rem',
+                  backgroundColor: yellow[400], // Access primary color from theme
+                  '&:hover': {
+                    backgroundColor: yellow[100], // Hover color from theme
+                    color: '#000',
+                  },
+                }}>
                   Resend OTP
                 </Button>
-                <Button fullWidth variant="outlined" onClick={handleResendOtp}>
+                <Button fullWidth variant="contained" onClick={handleResendOtp}                 sx={{
+                  fontSize: '0.9rem',
+                  backgroundColor: yellow[400], // Access primary color from theme
+                  '&:hover': {
+                    backgroundColor: yellow[100], // Hover color from theme
+                    color: '#000',
+                  },
+                }}>
                   Change Username
                 </Button>
               </>
@@ -328,6 +367,14 @@ export default function LogInWithPassword(props) {
                 fullWidth
                 variant="contained"
                 onClick={() => validateInputs()}
+                sx={{
+                  fontSize: '0.9rem',
+                  backgroundColor: yellow[400], // Access primary color from theme
+                  '&:hover': {
+                    backgroundColor: yellow[100], // Hover color from theme
+                    color: '#000',
+                  },
+                }}
               >
                 Send OTP
               </Button>
@@ -339,6 +386,16 @@ export default function LogInWithPassword(props) {
               fullWidth
               variant="outlined"
               onClick={handlePasswordClick}
+              sx={{
+                fontSize: '0.97rem',
+
+                alignSelf: 'center',
+                fontFamily: theme.typography.fontFamily, // Use theme font family
+                color: yellow[300], // Access primary color from theme
+                '&:hover': {
+                  color: yellow[400], // Hover color from theme
+                },
+              }}
             >
               Back to sign in with password
             </Button>
