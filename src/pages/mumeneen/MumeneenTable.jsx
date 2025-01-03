@@ -24,9 +24,10 @@ function MumeneenTable() {
   const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
   const { token, loading, currency } = useUser();
 
-  const year = selectedYear.length ? selectedYear[0] : "1445-1446";
+  const year = selectedYear.length ? selectedYear[0] : "";
   const sector = selectedSector.length ? selectedSector : ["all"];
   const subSector = selectedSubSector.length ? selectedSubSector : ["all"];
+
 
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
@@ -528,15 +529,25 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
   open={editHubDialogOpen}
   onClose={() => setEditHubDialogOpen(false)}
   row={selectedRow} // Pass the selected row
-  onSave={(updatedHubAmount) => {
-    console.log('New Hub Amount:', updatedHubAmount);
-    setRows((prevRows) =>
-      prevRows.map((r) =>
-        r.its === selectedRow.its ? { ...r, hub_amount: updatedHubAmount } : r
-      )
-    );
-  }}
+  onSave={(updatedData) => {
+    console.log('Updated Data from API:', updatedData);
+
+    if (updatedData && updatedData.hub_amount !== undefined) {
+        const newHubAmount = updatedData.hub_amount;
+        console.log('New Hub Amount:', newHubAmount);
+
+        setRows((prevRows) =>
+            prevRows.map((r) =>
+                r.its === selectedRow.its ? { ...r, hub_amount: newHubAmount } : r
+            )
+        );
+    } else {
+        console.error('Invalid updated data:', updatedData);
+    }
+}}
+
   formatCurrency={formatCurrency}
+  year={year}
 />
 
 <AddReceiptDialog

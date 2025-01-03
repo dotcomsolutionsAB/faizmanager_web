@@ -169,6 +169,7 @@ export default function LogInWithPassword(props) {
   const { updateUser } = useUser(); // To update UserContext
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false); 
   const [userNameError, setUserNameError] = useState(false);
   const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
   const [passwordError, setPasswordError] = useState(false);
@@ -181,6 +182,17 @@ export default function LogInWithPassword(props) {
   const [open, setOpen] = useState(false);
 
   const navigate = useNavigate();
+
+  // Load credentials from localStorage if "Remember Me" was checked
+  React.useEffect(() => {
+    const savedUserName = localStorage.getItem('rememberedUserName');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    if (savedUserName && savedPassword) {
+      setUserName(savedUserName);
+      setPassword(savedPassword);
+      setRememberMe(true); // Automatically check Remember Me
+    }
+  }, []);
 
   const handleOtpClick = () => {
     navigate('/login-with-otp', { state: { userName } });
@@ -201,6 +213,33 @@ export default function LogInWithPassword(props) {
   const handleSignUpClick = () => {
     navigate('/sign-up');
   };
+
+  const handleUserNameChange = (e) => {
+    const value = e.target.value.trim();
+    setUserName(value);
+    // Dynamically validate the username
+  if (!value) {
+    setUserNameError(true);
+    setUserNameErrorMessage('Please enter a valid username.');
+  } else {
+    setUserNameError(false);
+    setUserNameErrorMessage('');
+  }
+};
+
+const handlePasswordChange = (e) => {
+  const value = e.target.value.trim();
+  setPassword(value);
+
+  // Dynamically validate the password
+  if (!value || value.length < 6) {
+    setPasswordError(true);
+    setPasswordErrorMessage('Password must be at least 6 characters long.');
+  } else {
+    setPasswordError(false);
+    setPasswordErrorMessage('');
+  }
+};
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword); // Toggle the password visibility
@@ -246,14 +285,31 @@ export default function LogInWithPassword(props) {
         const data = await response.json();
 
         if (data.success) {
-          const { token, photo, currency, jamiat_id, ...userDetails } = data.data;
+          const { token, photo, currency, jamiat_id,  role,
+            permissions,
+            hof_count, ...userDetails } = data.data;
+
+            console.log("Login", hof_count);
+            console.log("Login", role)
 
           // Save the token and user data in localStorage
           localStorage.setItem('user', JSON.stringify(data.data));
           localStorage.setItem('token', token); // Save the Bearer token separately
           localStorage.setItem('currency', JSON.stringify(currency)); // Save currency in localStorage
           localStorage.setItem('jamiat_id', jamiat_id);
+          localStorage.setItem('role', role); // Save role
+          localStorage.setItem('permissions', JSON.stringify(permissions)); // Save permissions
+          localStorage.setItem('hof_count', hof_count); // Save hof_count
           // console.log('Token saved in localStorage:', localStorage.getItem('token'));
+
+           // Remember Me logic
+           if (rememberMe) {
+            localStorage.setItem('rememberedUserName', userName);
+            localStorage.setItem('rememberedPassword', password);
+          } else {
+            localStorage.removeItem('rememberedUserName');
+            localStorage.removeItem('rememberedPassword');
+          }
 
           // Update UserContext with the token and user details
           updateUser(
@@ -261,9 +317,17 @@ export default function LogInWithPassword(props) {
               ...userDetails,
               photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
               jamiat_id, 
+              role,
+              permissions,
+              hof_count,
             },
             token,
-            currency // Include currency in the UserContext
+            currency,
+            jamiat_id,
+            role,
+            permissions,
+            hof_count 
+            // Include currency in the UserContext
           );
         
 
@@ -282,6 +346,10 @@ export default function LogInWithPassword(props) {
         setSnackbarOpen(true);
       }
     }
+  };
+
+  const handleRememberMeChange = (event) => {
+    setRememberMe(event.target.checked);
   };
 
   return (
@@ -329,7 +397,7 @@ export default function LogInWithPassword(props) {
                 variant="outlined"
                 color={userNameError ? 'error' : 'primary'}
                 value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                onChange={handleUserNameChange}
                 InputProps={{
                   sx: {
                     height: '56px',
@@ -353,7 +421,7 @@ export default function LogInWithPassword(props) {
                 variant="outlined"
                 color={passwordError ? 'error' : 'primary'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 InputProps={{
                   sx: {
                     height: '56px',
@@ -380,7 +448,8 @@ export default function LogInWithPassword(props) {
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <FormControlLabel
-                control={<Checkbox value="remember" color="primary" sx={{
+                control={<Checkbox checked={rememberMe}
+                onChange={handleRememberMeChange} value="remember" color="primary" sx={{
                   transform: 'scale(0.8)',  // Scale down the checkbox size
                   [theme.breakpoints.down('sm')]: {
                     transform: 'scale(0.65)',  // Further scale down the checkbox on small screens
@@ -512,7 +581,7 @@ export default function LogInWithPassword(props) {
   open={snackbarOpen}
   autoHideDuration={6000}
   onClose={handleSnackbarClose}
-  anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
 >
   <Alert
     onClose={handleSnackbarClose}

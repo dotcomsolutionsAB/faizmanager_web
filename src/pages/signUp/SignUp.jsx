@@ -536,6 +536,10 @@ const Card = styled(Box)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[4],
   margin: 'auto',
+  [theme.breakpoints.down('sm')]: {
+    alignSelf: 'flex-start',
+    margin: '0',
+  },
 }));
 
 const SignUpContainer = styled(Stack)(({ theme }) => ({
@@ -619,18 +623,22 @@ export default function SignUp(props) {
   };
 
   const handleMobileNumberChange = (event) => {
-    const value = event.target.value.replace(/\D/g, '');
+    const value = event.target.value.replace(/\D/g, ''); // Remove non-numeric characters
     if (value.length <= selectedCountry.maxLength) {
       setMobileNumber(value);
+      setMobileError(value.trim() === '' || value.length !== selectedCountry.maxLength); // Clear the error if the value is valid
     }
   };
+  
 
   const handleEmailChange = (event) => {
     const emailValue = event.target.value;
     setEmail(emailValue);
-    setIsEmailValid(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue));
-    setIsEmailVerified(false);
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue); // Check if email is valid
+    setEmailError(!isValid); // Clear the error if the email is valid
+    setIsEmailValid(isValid);
   };
+  
 
   const handleOtpChange = (e, index) => {
     const value = e.target.value.replace(/\D/g, ''); // Allow only numeric input
@@ -663,11 +671,17 @@ export default function SignUp(props) {
 
       if (response.ok) {
         const data = await response.json(); // Parse the response
-        setServerOtp(data.code);
-        setIsOtpSent(true);
-        setSnackbarMessage('OTP sent successfully!');
-        setResendTimer(30); // Set the timer for 30 seconds
-        setIsEmailVerified(false);
+        if (data.status) {
+          // Status is true
+          setServerOtp(data.code);
+          setIsOtpSent(true);
+          setSnackbarMessage('OTP sent successfully!');
+          setResendTimer(30); // Set the timer for 30 seconds
+          setIsEmailVerified(false);
+        }  else {
+          // Status is false
+          setSnackbarMessage(data.message);
+        }
       } else {
         throw new Error('Failed to send OTP');
       }
@@ -678,6 +692,7 @@ export default function SignUp(props) {
     }
     setSnackbarOpen(true);
   };
+
 
   // const handleVerifyOtp = () => {
   //   const enteredOtp = otpFields.join('');
@@ -875,6 +890,19 @@ export default function SignUp(props) {
   //   }
   // };
 
+  const handleCityChange = (e) => {
+    const value = e.target.value;
+    setCityName(value);
+    setCityError(value.trim() === ''); // Clear the error if the field is not empty
+  };
+  
+  const handleFullNameChange = (e) => {
+    const value = e.target.value;
+    setFullName(value);
+    setFullNameError(value.trim() === ''); // Clear the error if the field is not empty
+  };
+  
+
   const handleSignUpClick = async () => {
     // Validate input fields
     const isCityValid = cityName.trim();
@@ -912,11 +940,13 @@ export default function SignUp(props) {
         // Mark email as verified
         setIsEmailVerified(true);
       }
+      const mobileWithCountryCode = `${selectedCountry.code}${mobileNumber}`;
 
       // Proceed to signup after OTP verification
       const requestBody = {
+        admin_name: fullName,
         name: cityName,
-        mobile: mobileNumber,
+        mobile: mobileWithCountryCode,
         email: email,
         currency_id: parseInt(selectedCurrency, 10), // Ensure currency_id is an integer
       };
@@ -1008,7 +1038,7 @@ export default function SignUp(props) {
                     fullWidth
                     label="City Name"
                     value={cityName}
-                    onChange={(e) => setCityName(e.target.value)}
+                    onChange={handleCityChange}
                     variant="outlined"
                     error={cityError}
                     helperText={cityError ? 'City name is required' : ''}
@@ -1026,7 +1056,7 @@ export default function SignUp(props) {
                     fullWidth
                     label="Admin Full Name"
                     value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    onChange={handleFullNameChange}
                     variant="outlined"
                     error={fullNameError}
                     helperText={fullNameError ? 'Full name is required' : ''}

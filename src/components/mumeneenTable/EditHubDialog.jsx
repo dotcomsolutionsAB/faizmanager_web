@@ -13,15 +13,27 @@ import {
     Grid,
     Paper,
     TextField,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import { useUser } from '../../UserContext'; // Assuming this is the context for user info
 import divider from '../../assets/divider.png';
 
-const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency }) => {
+const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => {
+    // console.log("Year in edit", year);
+    // year = "1445-1446";
     const [hubAmount, setHubAmount] = useState('');
     const [image, setImage] = useState(null); // State to store the uploaded image file
-    const { currency } = useUser(); // Get currency info from context
+    const { token, currency } = useUser(); // Get currency info from context
     const currencySymbol = currency?.currency_symbol || '₹';
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: '' });
+
+    const handleSnackbarClose = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
+
+    console.log("token in edit", token);
 
     React.useEffect(() => {
         if (row) {
@@ -36,59 +48,97 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency }) => {
 
     const numberToWords = (num, currencySymbol) => {
         if (num === 0) return 'Zero';
-
+    
         const a = [
             '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
             'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen',
         ];
         const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-        const c = ['Hundred', 'Thousand', 'Lakh', 'Crore'];
-
-        let result = '';
-
-        const getHundreds = (n) => {
+        const c = ['', 'Thousand', 'Lakh', 'Crore'];
+    
+        const numberToWordsHelper = (n) => {
             let str = '';
             if (n > 99) {
-                str += a[Math.floor(n / 100)] + ' ' + c[0] + ' ';
+                str += a[Math.floor(n / 100)] + ' Hundred ';
                 n %= 100;
             }
             if (n > 19) {
-                str += b[Math.floor(n / 10)] + ' ' + a[n % 10] + ' ';
-            } else if (n > 0) {
+                str += b[Math.floor(n / 10)] + ' ';
+                n %= 10;
+            }
+            if (n > 0) {
                 str += a[n] + ' ';
             }
             return str.trim();
         };
-
-        const numStr = num.toString();
-        const n = numStr.split('').reverse().join('');
-        const chunks = n.match(/.{1,2}/g).map((chunk) => chunk.split('').reverse().join('')).reverse();
-
-        for (let i = 0; i < chunks.length; i++) {
-            if (chunks[i] > 0) {
-                result += getHundreds(parseInt(chunks[i], 10)) + ' ' + (c[i + 1] || '') + ' ';
-            }
+    
+        let result = '';
+        let crore = Math.floor(num / 10000000);
+        num %= 10000000;
+    
+        let lakh = Math.floor(num / 100000);
+        num %= 100000;
+    
+        let thousand = Math.floor(num / 1000);
+        num %= 1000;
+    
+        let hundreds = num;
+    
+        if (crore > 0) {
+            result += numberToWordsHelper(crore) + ' Crore ';
         }
-
-        // Add the currency symbol and terms
-        result = `${currencySymbol === '₹' ? 'Rupees' : ''} ${result.trim()}`;
-        return result.trim();
+        if (lakh > 0) {
+            result += numberToWordsHelper(lakh) + ' Lakh ';
+        }
+        if (thousand > 0) {
+            result += numberToWordsHelper(thousand) + ' Thousand ';
+        }
+        if (hundreds > 0) {
+            result += numberToWordsHelper(hundreds);
+        }
+    
+        result = result.trim();
+        return `${currencySymbol === '₹' ? 'Rupees' : ''} ${result}`;
     };
-
+    
     const handleFileChange = (event) => {
         setImage(event.target.files[0]); // Store the selected file in state
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        // Create a JSON payload instead of FormData
         const payload = {
-            hubAmount,
-            image, // Include the optional image in the payload
+            year: year, // Pass the year
+            hub_amount: hubAmount, // Pass the selected hub amount
         };
-        onSave(payload);
-        onClose();
+    
+        console.log(JSON.stringify(payload))
+        try {
+            const response = await fetch(`https://api.fmb52.com/api/hub/update/${row.family_id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Include the token
+                    'Content-Type': 'application/json', // Set Content-Type to JSON
+                },
+                body: JSON.stringify(payload), // Convert the payload to JSON
+            });
+    
+            if (response.ok) {
+                const result = await response.json();
+                console.log('API Response:', result); // Log the response for debugging
+                onSave(result.data); // Pass updated data back to the parent
+                onClose(); // Close the dialog
+            } else {
+                console.error('Failed to update hub amount:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error during API call:', error);
+        }
     };
+    
 
     return (
+        <>
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
             <DialogTitle>Edit Hub Amount</DialogTitle>
             <Box
@@ -154,7 +204,7 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency }) => {
                             <Typography variant="body2" color="textSecondary" gutterBottom>
                                 <strong>Year</strong>
                             </Typography>
-                            <Typography variant="h6">{row.year || 'N/A'}</Typography>
+                            <Typography variant="h6">{year || 'N/A'}</Typography>
                         </Grid>
                     </Grid>
 
@@ -198,14 +248,25 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency }) => {
                 </Box>
             </DialogContent>
             <DialogActions sx={{ p: 3 }}>
-                <Button onClick={onClose} color="secondary" variant="outlined">
+                <Button onClick={onClose} color="primary" variant="outlined">
                     Cancel
                 </Button>
-                <Button onClick={handleSave} color="primary" variant="outlined">
+                <Button onClick={handleSave} color="primary" variant="contained">
                     Save
                 </Button>
             </DialogActions>
         </Dialog>
+         <Snackbar
+         open={snackbar.open}
+         autoHideDuration={3000}
+         onClose={handleSnackbarClose}
+         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+     >
+         <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+             {snackbar.message}
+         </Alert>
+     </Snackbar>
+     </>
     );
 };
 

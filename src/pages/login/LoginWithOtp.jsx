@@ -23,6 +23,8 @@ import { useUser } from '../../UserContext';
 import { useTheme } from '@mui/material/styles';
 import { yellow } from '../../styles/ThemePrimitives';
 import fmb52 from '../../assets/fmb52.png';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -82,9 +84,12 @@ export default function LogInWithOtp(props) {
   const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState(Array(6).fill('')); // Array to store OTP digits
+  const [resendTimer, setResendTimer] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [loading, setLoading] = useState(false); // Loading state for OTP
+
   const inputRefs = useRef([]); // Ref array for OTP input fields
   const navigate = useNavigate();
   const location = useLocation();
@@ -95,12 +100,35 @@ export default function LogInWithOtp(props) {
     }
   }, [location.state?.userName]);
 
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => {
+        setResendTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+      return () => clearTimeout(timer); // Cleanup the timer
+    }
+  }, [resendTimer]);
+
   const handlePasswordClick = () => {
     navigate('/', { state: { userName } });
   };
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
+  };
+
+  const handleUserNameChange = (e) => {
+    const value = e.target.value.trim();
+    setUserName(value);
+
+    // Dynamically validate the username
+    if (!value) {
+      setUserNameError(true);
+      setUserNameErrorMessage('Please enter a valid username.');
+    } else {
+      setUserNameError(false);
+      setUserNameErrorMessage('');
+    }
   };
 
   const handleOtpChange = (value, index) => {
@@ -113,6 +141,11 @@ export default function LogInWithOtp(props) {
         inputRefs.current[index + 1].focus();
       } else if (!value && index > 0) {
         inputRefs.current[index - 1].focus();
+      } else {
+        // You can add an error state if needed for invalid input
+        setSnackbarMessage('Please enter numeric values only.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
       }
     }
   };
@@ -151,6 +184,7 @@ export default function LogInWithOtp(props) {
   // };
 
   const handleSendOtp = async () => {
+    setLoading(true);
     try {
       const response = await fetch('https://api.fmb52.com/api/get_otp', {
         method: 'POST',
@@ -160,6 +194,7 @@ export default function LogInWithOtp(props) {
         body: JSON.stringify({ username: userName }),
       });
       const data = await response.json();
+      setLoading(false);
       if (data.message === 'User has not registered!') {
         setUserNameError(true);
         setUserNameErrorMessage('Invalid username');
@@ -167,25 +202,27 @@ export default function LogInWithOtp(props) {
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
         setShowOtpInput(false); // Do not show OTP input
-      } else if (data.message === 'Otp send successfully!'  || response.status === 200) {
+      } else if (data.message === 'Otp send successfully!' || response.status === 200) {
         setShowOtpInput(true);
         setSnackbarMessage(data.message);
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
+        setResendTimer(30);
         setTimeout(() => inputRefs.current[0]?.focus(), 0);
       } else {
         throw new Error('Failed to send OTP');
       }
     } catch (error) {
+      setLoading(false);
       setSnackbarMessage(error.message);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   };
   const handleResendOtp = () => {
-    setSnackbarMessage('OTP resent successfully');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
+    if (resendTimer === 0) {
+      handleSendOtp();
+    }
   };
 
   const handleVerifyOtp = async () => {
@@ -198,11 +235,11 @@ export default function LogInWithOtp(props) {
         },
         body: JSON.stringify({ username: userName }),
       });
-  
+
       const data = await response.json();
       if (data.success) {
         const token = data.data.token; // Extract the Bearer token from the response
-  
+
         // Save the token and user data in localStorage
         localStorage.setItem('user', JSON.stringify(data.data));
         localStorage.setItem('token', token); // Save the Bearer token separately
@@ -216,11 +253,11 @@ export default function LogInWithOtp(props) {
           currency: data.data.currency, // Include currency data
         });
         // window.location.reload();
-  
+
         setSnackbarMessage(data.message);
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-  
+
         // Navigate to dashboard or another page
         navigate('/dashboard', { state: { username: data.data.name } });
       } else {
@@ -232,7 +269,7 @@ export default function LogInWithOtp(props) {
       setSnackbarOpen(true);
     }
   };
-  
+
 
 
   const validateInputs = () => {
@@ -246,7 +283,7 @@ export default function LogInWithOtp(props) {
     return true;
   };
 
-  
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
@@ -274,10 +311,10 @@ export default function LogInWithOtp(props) {
               fontFamily: theme.typography.fontFamily,
             }}
           >
-            
-            <Typography variant="h5" sx={{color: 'brown', textAlign: 'center'}}>
-        FAIZ-UL-MAWAID-IL-BURHANIYAH
-      </Typography>
+
+            <Typography variant="h5" sx={{ color: 'brown', textAlign: 'center' }}>
+              FAIZ-UL-MAWAID-IL-BURHANIYAH
+            </Typography>
             <FormControl>
               <TextField
                 error={userNameError}
@@ -293,7 +330,7 @@ export default function LogInWithOtp(props) {
                 variant="outlined"
                 color={userNameError ? 'error' : 'primary'}
                 value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                onChange={handleUserNameChange}
                 InputProps={{
                   sx: {
                     height: '56px',
@@ -306,6 +343,9 @@ export default function LogInWithOtp(props) {
             {showOtpInput && (
               <>
                 <FormControl>
+                  <Typography variant="body2" sx={{ color: 'green', fontWeight: 'bold', textAlign: 'center', mb: 2 }}>
+                    The OTP has been sent!
+                  </Typography>
                   <FormLabel htmlFor="otp">Enter OTP</FormLabel>
                   <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                     {otp.map((digit, index) => (
@@ -319,7 +359,7 @@ export default function LogInWithOtp(props) {
                         inputProps={{
                           maxLength: 1,
                           inputMode: 'numeric', // Show numeric keyboard on mobile
-                          pattern: '[0-9]*', 
+                          pattern: '[0-9]*',
                           sx: {
                             width: '3rem',
                             textAlign: 'center',
@@ -329,7 +369,7 @@ export default function LogInWithOtp(props) {
                     ))}
                   </Box>
                 </FormControl>
-                <Button fullWidth variant="contained" onClick={handleVerifyOtp}                 sx={{
+                <Button fullWidth variant="contained" onClick={handleVerifyOtp} sx={{
                   fontSize: '0.9rem',
                   backgroundColor: yellow[400], // Access primary color from theme
                   '&:hover': {
@@ -339,17 +379,23 @@ export default function LogInWithOtp(props) {
                 }}>
                   Verify OTP
                 </Button>
-                <Button fullWidth variant="contained" onClick={handleResendOtp}                 sx={{
-                  fontSize: '0.9rem',
-                  backgroundColor: yellow[400], // Access primary color from theme
-                  '&:hover': {
-                    backgroundColor: yellow[100], // Hover color from theme
-                    color: '#000',
-                  },
-                }}>
-                  Resend OTP
+                <Button
+                  fullWidth
+                  variant={resendTimer === 0 ? "contained" : "outlined"}
+                  onClick={handleResendOtp}
+                  disabled={resendTimer > 0}
+                  sx={{
+                    fontSize: '0.9rem',
+                    backgroundColor: resendTimer === 0 ? yellow[400] : yellow[200], // Change color based on timer
+                    '&:hover': {
+                      backgroundColor: resendTimer === 0 ? yellow[100] : yellow[200], color: "#000", // No hover effect when disabled
+                    },
+                  }}>
+                  <span style={{ color: resendTimer > 0 ? 'brown' : 'inherit' }}>
+                    {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                  </span>
                 </Button>
-                <Button fullWidth variant="contained" onClick={handleResendOtp}                 sx={{
+                <Button fullWidth variant="contained" onClick={handleResendOtp} sx={{
                   fontSize: '0.9rem',
                   backgroundColor: yellow[400], // Access primary color from theme
                   '&:hover': {
@@ -365,19 +411,26 @@ export default function LogInWithOtp(props) {
               <Button
                 type="submit"
                 fullWidth
-                variant="contained"
-                onClick={() => validateInputs()}
+                variant={!loading ? "contained" : "outlined"}
+                disabled={loading} // Disable the button when loading
+                onClick={() => validateInputs() && handleSendOtp()}
                 sx={{
                   fontSize: '0.9rem',
-                  backgroundColor: yellow[400], // Access primary color from theme
+                  backgroundColor: loading ? yellow[100] : yellow[200], // Dim color when loading
                   '&:hover': {
-                    backgroundColor: yellow[100], // Hover color from theme
-                    color: '#000',
+                    backgroundColor: loading ? yellow[100] : yellow[200], color: "#000", // No hover effect when loading
                   },
                 }}
               >
-                Send OTP
+                {loading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress size={20} sx={{ color: yellow[400], marginRight: 1 }} /> Sending...
+                  </Box>
+                ) : (
+                  'Send OTP'
+                )}
               </Button>
+
             )}
           </Box>
           <Divider>or</Divider>
@@ -387,13 +440,13 @@ export default function LogInWithOtp(props) {
               variant="outlined"
               onClick={handlePasswordClick}
               sx={{
-                fontSize: '0.97rem',
-
-                alignSelf: 'center',
-                fontFamily: theme.typography.fontFamily, // Use theme font family
+                fontSize: '0.9rem',
                 color: yellow[300], // Access primary color from theme
+                borderColor: yellow[300], // Access primary color from theme
                 '&:hover': {
-                  color: yellow[400], // Hover color from theme
+                  backgroundColor: yellow[200], // Hover color from theme
+                  borderColor: '#e0d4b0', // Border color from theme
+                  color: '#000',
                 },
               }}
             >
@@ -406,7 +459,7 @@ export default function LogInWithOtp(props) {
           autoHideDuration={3000}
           onClose={handleSnackbarClose}
         >
-          <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
             {snackbarMessage}
           </Alert>
         </Snackbar>

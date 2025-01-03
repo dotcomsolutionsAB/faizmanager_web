@@ -25,6 +25,8 @@ import UserAccess from './pages/userManagement/UserAccess'
 import SignUp from './pages/signUp/SignUp';
 import Roles from './pages/userManagement/Roles';
 import ForgotPassword from './pages/login/ForgotPassword';
+import JamaatTable from './pages/jamaat/Jamaat';
+import Niyaz from './pages/niyaz/Niyaz';
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -80,6 +82,8 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/roles" element={<Roles />} />
             <Route path="/user_access" element={<UserAccess />} />
+            <Route path="/jamaat" element={<JamaatTable />} />
+            <Route path="/niyaz" element={<Niyaz />} />
           </Route>
           {/* Optional: Catch-all for unknown routes */}
           {/* <Route path="*" element={<NotFound />} /> */}

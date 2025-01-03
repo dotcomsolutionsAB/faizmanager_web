@@ -85,6 +85,7 @@ import { useUser } from '../../UserContext';
 import { useTheme } from '@mui/material/styles';
 import { yellow } from '../../styles/ThemePrimitives';
 import fmb52 from '../../assets/fmb52.png';
+import { CircularProgress } from '@mui/material';
 
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -142,20 +143,46 @@ export default function ForgotPassword(props) {
   const [emailError, setEmailError] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (validateEmail()) {
-      setSnackbarMessage('Password reset link sent!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      setLoading(true);
+      try {
+        const response = await fetch(`https://api.fmb52.com/api/forgot_password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({ username: email }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status) {
+          setSnackbarMessage(data.message);
+          setSnackbarSeverity("success");
+          setSuccessMessage(data.message);
+        } else {
+          setSnackbarMessage(data.message || "Something went wrong. Please try again.");
+          setSnackbarSeverity("error");
+        }
+      } catch (error) {
+        setSnackbarMessage("Unable to process your request. Please try again later.");
+        setSnackbarSeverity("error");
+      } finally {
+        setSnackbarOpen(true);
+        setLoading(false);  
+      }
     }
   };
 
@@ -214,7 +241,20 @@ export default function ForgotPassword(props) {
       <FormControl>
               <TextField
                 error={emailError}
-                helperText={emailErrorMessage}
+                helperText={
+                  successMessage || emailError ? (
+                    emailError
+                      ? emailErrorMessage
+                      : successMessage && (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: theme.palette.success.main }}
+                          >
+                            {successMessage}
+                          </Typography>
+                        )
+                  ) : null
+                }
                 id="email-basic"
                 type="email"
                 name="email"
@@ -238,18 +278,25 @@ export default function ForgotPassword(props) {
             </FormControl>
             <Button
               type="submit"
+              disabled={loading} 
+              onSubmit={handleSubmit}
               fullWidth
-              variant="contained"
+              variant={!loading ? "contained" : "outlined"}
               sx={{
                 fontSize: '0.9rem',
-                backgroundColor: yellow[400], // Access primary color from theme
-                '&:hover': {
-                  backgroundColor: yellow[100], // Hover color from theme
-                  color: '#000',
-                },
+               backgroundColor: loading ? yellow[100] : yellow[200], // Dim color when loading
+                                 '&:hover': {
+                                   backgroundColor: loading ? yellow[100] : yellow[200], color: "#000", // No hover effect when loading
+                                 },
               }}
             >
-              Send Password
+              {loading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CircularProgress size={20} sx={{ color: yellow[400], marginRight: 1 }} /> Sending...
+                  </Box>
+                ) : (
+                  'Send Password'
+                )}
             </Button>
           </Box>
           <Divider>or</Divider>
@@ -259,12 +306,15 @@ export default function ForgotPassword(props) {
               variant="outlined"
               onClick={() => navigate('/')}
               sx={{
-                fontSize: '0.97rem',
+                fontSize: '0.9rem',
                 alignSelf: 'center',
                 fontFamily: 'inherit',
-                color: yellow[300],
+                color: yellow[300], // Access primary color from theme
+                borderColor: yellow[300], // Access primary color from theme
                 '&:hover': {
-                  color: yellow[400],
+                  backgroundColor: yellow[200], // Hover color from theme
+                  borderColor: '#e0d4b0', // Border color from theme
+                  color: '#000',
                 },
               }}
             >
@@ -276,6 +326,7 @@ export default function ForgotPassword(props) {
           open={snackbarOpen}
           autoHideDuration={3000}
           onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
           <Alert
             onClose={handleSnackbarClose}

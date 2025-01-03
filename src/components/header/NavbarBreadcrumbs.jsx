@@ -39,6 +39,7 @@ export default function NavbarBreadcrumbs() {
     '/settings': 'Settings',
     '/roles': 'Roles',
     '/user_access': 'User Access',
+    '/niyaz': 'Niyaz',
     // Add more paths and labels as needed
   };
 

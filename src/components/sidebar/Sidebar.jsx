@@ -13,10 +13,13 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { yellow } from '../../styles/ThemePrimitives';
-import MenuContent from './MenuContent';
 import { useAppStore } from '../../appStore';
 import { useNavigate } from 'react-router-dom';
 import AppTheme from '../../styles/AppTheme';
+import MenuContentJamiatAdmin from "./MenuContentJamiatAdmin";
+import MenuContentSuperAdmin from "./MenuContentSuperAdmin";
+import MenuContentMumeneen from "./MenuContentMumeneen";
+import { useUser } from '../../UserContext';
 
 
 const drawerWidth = 240;
@@ -87,6 +90,20 @@ export default function Sidebar() {
 //   const [open, setOpen] = React.useState(true);
 //   const updateOpen = useAppStore((state) => state.uodateOpen);
   const open = useAppStore((state) => state.dopen);
+  const { role } = useUser();
+
+  // Function to dynamically render the correct menu content based on the user's role
+  const renderMenuContent = () => {
+    if (role === "jamiat_admin") {
+      return <MenuContentJamiatAdmin open={open} />;
+    } else if (role === "superadmin") {
+      return <MenuContentSuperAdmin open={open} />;
+    } else if (role === "mumeneen") {
+      return <MenuContentMumeneen open={open} />;
+    } else {
+      return null; // Render nothing for unsupported roles
+    }
+  };
  
 
 
@@ -253,9 +270,10 @@ export default function Sidebar() {
               backgroundColor: yellow[300], // Darker color when the thumb is hovered
             },
           }}>
-          <MenuContent open={open} />
+          {renderMenuContent()}
         </Box>
       </Drawer>
+      
       {/* <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <DrawerHeader /> */}
         {/* <Typography sx={{ marginBottom: 2 }}>
