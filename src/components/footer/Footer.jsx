@@ -32,7 +32,7 @@ export default function Footer(props) {
       >
         {'Copyright © '} Proudly Powered by 
         <Link color="inherit" href="https://www.dotcomsolutions.biz \" sx={{ml: 0.5}}>
-          Dotcom
+          Dot Com Solutions
         </Link>{' '}
         {new Date().getFullYear()}
         {'.'}
