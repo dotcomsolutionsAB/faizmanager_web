@@ -22,13 +22,18 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import divider from '../../assets/divider.png';
+import { useEffect } from "react";
+import { useUser } from "../../UserContext";
 
 const NiyazForm = () => {
+    const { token, currency } = useUser();
     const [collapsed, setCollapsed] = useState(false); // Collapse state
     const [niyazType, setNiyazType] = useState("");
     const [entries, setEntries] = useState([{ name: "", hub: "" }]); // Repeater state
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-    const nameOptions = ["Option 1", "Option 2", "Option 3"];
+    const [nameOptions, setNameOptions] = useState([]);
+    const [nameList, setNameList] = useState([]); 
+    const [niyazTypeId, setNiyazTypeId] = useState(null);
     const [date, setDate] = useState("");
 
 
@@ -49,11 +54,56 @@ const NiyazForm = () => {
     const handleEntryChange = (index, field, value) => {
         const updatedEntries = [...entries];
         updatedEntries[index][field] = value;
-        setEntries(updatedEntries);
+
+        if (field === "name") {
+            const selectedUser = nameList.find((user) => user.name === value);
+            if (selectedUser) {
+                updatedEntries[index].hub = selectedUser.hub_amount; // Automatically populate hub amount
+            }
+        
+            setEntries(updatedEntries);
+        }
     };
 
+    const handleNiyazTypeChange = async (e) => {
+        const selectedId = e.target.value;
+        setNiyazTypeId(selectedId); // Save the selected Niyaz Type ID
+        setNiyazType(nameOptions.find((option) => option.id === selectedId)?.name || "");
+
+        // Fetch the list of names based on the selected Niyaz Type ID
+        try {
+            const response = await fetch(`https://api.fmb52.com/api/users-by-slab/${selectedId}`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const data = await response.json();
+            console.log(data,data)
+            if (data.success) {
+                setNameList(data.data); // Populate the Name dropdown
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: "Failed to fetch names for the selected Niyaz Type.",
+                    severity: "error",
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching names:", error);
+            setSnackbar({
+                open: true,
+                message: "Error fetching names. Please try again.",
+                severity: "error",
+            });
+        }
+    };
+
+
     const handleSubmit = async () => {
-        if (!niyazType || entries.some((entry) => !entry.name || !entry.hub)) {
+        if (!niyazTypeId || entries.some((entry) => !entry.name || !entry.hub)) {
             setSnackbar({
                 open: true,
                 message: "Please fill all the fields before submitting.",
@@ -61,41 +111,103 @@ const NiyazForm = () => {
             });
             return;
         }
-
+    
+        // Extract family IDs from the selected names
+        const familyIds = entries
+            .map((entry) => {
+                const selectedUser = nameList.find((user) => user.name === entry.name);
+                return selectedUser ? selectedUser.family_id : null;
+            })
+            .filter((id) => id); // Remove null/undefined values
+    
         const payload = {
-            niyaz_type: niyazType,
-            entries: entries.map(({ name, hub }) => ({ name, hub })),
+            hub_slab_id: niyazTypeId,
+            family_ids: familyIds,
         };
-
+    
         try {
-            const response = await fetch("https://api.example.com/api/niyaz", {
+            const response = await fetch("https://api.fmb52.com/api/niyaz/add", {
                 method: "POST",
                 headers: {
+                    Authorization: `Bearer ${token}`, // Add token for authorization
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(payload),
             });
-
-            if (!response.ok) throw new Error("Failed to create the niyaz entry.");
-
-            setSnackbar({
-                open: true,
-                message: "Niyaz entry created successfully!",
-                severity: "success",
-            });
-
-            // Clear form fields
-            setNiyazType("");
-            setEntries([{ sno: 1, name: "", hub: "" }]);
+    
+            const data = await response.json();
+    
+            if (response.ok && data.success) {
+                setSnackbar({
+                    open: true,
+                    message: "Niyaz added successfully!",
+                    severity: "success",
+                });
+    
+                // Clear form fields
+                setNiyazType("");
+                setNiyazTypeId(null);
+                setEntries([{ name: "", hub: "" }]);
+                setNameList([]);
+            } else {
+                throw new Error(data.message || "Failed to add Niyaz.");
+            }
         } catch (error) {
             console.error("Error submitting niyaz entry:", error);
             setSnackbar({
                 open: true,
-                message: "Failed to create the niyaz entry. Please try again.",
+                message: error.message || "Failed to add Niyaz. Please try again.",
                 severity: "error",
             });
         }
     };
+    
+
+    const fetchNiyazTypes = async () => {
+        try {
+            const response = await fetch("https://api.fmb52.com/api/hub-slabs", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }); // Replace with actual API URL
+            const data = await response.json();
+            if (data.success) {
+                setNameOptions(data.data);
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: "Failed to fetch niyaz types.",
+                    severity: "error",
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching niyaz types:", error);
+            setSnackbar({
+                open: true,
+                message: "Error fetching niyaz types.",
+                severity: "error",
+            });
+        }
+    };
+
+     const currencyCode = currency?.currency_code || 'INR';
+  const currencySymbol = currency?.currency_symbol || '₹';
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(value || 0);
+  };
+
+
+    useEffect(() => {
+        fetchNiyazTypes();
+    }, []);
+
+    
 
 
     return (
@@ -178,12 +290,14 @@ const NiyazForm = () => {
                             <FormControl fullWidth>
                                 <InputLabel>Niyaz Type</InputLabel>
                                 <Select
-                                    value={niyazType}
-                                    onChange={(e) => setNiyazType(e.target.value)}
+                                     value={niyazTypeId || ""}
+                                     onChange={handleNiyazTypeChange}
                                 >
-                                    <MenuItem value="Type 1">Type 1</MenuItem>
-                                    <MenuItem value="Type 2">Type 2</MenuItem>
-                                    <MenuItem value="Type 3">Type 3</MenuItem>
+                                    {nameOptions.map((option) => (
+                                        <MenuItem key={option.id} value={option.id}>
+                                           {`${option.name} (${formatCurrency(option.amount)})`}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
                         </Grid>
@@ -219,29 +333,27 @@ const NiyazForm = () => {
                                 {/* Name Field */}
                                 <Grid item xs={12} md={4}>
                                     <FormControl fullWidth>
-                                        <InputLabel>{`Name ${index + 1}`}</InputLabel>
+                                        <InputLabel>{`Select HOF`}</InputLabel>
                                         <Select
                                             value={entry.name}
                                             onChange={(e) =>
                                                 handleEntryChange(index, "name", e.target.value)
                                             }
                                         >
-                                            {nameOptions.map((option) => (
-                                                <MenuItem key={option} value={option}>
-                                                    {option}
-                                                </MenuItem>
-                                            ))}
+                                           {nameList.map((user) => (
+                        <MenuItem key={user.id} value={user.name}>
+                            {user.name}
+                        </MenuItem>
+                    ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
                                 {/* Hub Field */}
                                 <Grid item xs={12} md={4}>
                                     <TextField
-                                        label={`Hub ${index + 1}`}
+                                        label={`Hub`}
                                         value={entry.hub}
-                                        onChange={(e) =>
-                                            handleEntryChange(index, "hub", e.target.value)
-                                        }
+                                        onChange={(e) => handleEntryChange(index, "hub", e.target.value)}
                                         placeholder="Enter hub details..."
                                         fullWidth
                                     />
@@ -290,7 +402,7 @@ const NiyazForm = () => {
                 open={snackbar.open}
                 autoHideDuration={6000}
                 onClose={handleSnackbarClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
                 <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: "100%" }}>
                     {snackbar.message}

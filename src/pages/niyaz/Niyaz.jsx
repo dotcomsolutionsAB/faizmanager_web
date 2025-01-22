@@ -51,7 +51,7 @@ import React from "react";
 import { Box, CssBaseline } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
 import NiyazForm from "../../components/niyaz/NiyazForm";
-import SectorTable from "../../components/grouping/sector/SectorTable";
+import NiyazTable from "../../components/niyaz/NiyazTable";
 import { useEffect } from "react";
 
 
@@ -69,7 +69,7 @@ const Niyaz = () => {
       <NiyazForm />
 
       {/* Table Component */}
-      {/* <SectorTable /> */}
+      <NiyazTable />
     </AppTheme>
   );
 };
