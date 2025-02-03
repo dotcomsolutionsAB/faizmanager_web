@@ -693,11 +693,6 @@ const MenuContentJamiatAdmin = ({ open }) => {
       path: "/dashboard",
     },
     {
-      label: "Niyaz",
-      icon: <StarIcon />,
-      path: "/niyaz",
-    },
-    {
       label: "Mumeneen",
       icon: <PersonIcon />,
       path: "/mumeneen",
@@ -706,13 +701,13 @@ const MenuContentJamiatAdmin = ({ open }) => {
       label: "Accounts",
       icon: <AnalyticsRoundedIcon />,
       subOptions: [
-        { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
         { label: "Receipts", path: "/receipts", icon: <ReceiptIcon /> },
+        { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
         { label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> },
       ],
     },
     {
-      label: "Groupings",
+      label: "Divisions",
       icon: <PeopleRoundedIcon />,
       subOptions: [
         { label: "Sector", path: "/sector", icon: <ApartmentIcon /> },
@@ -721,31 +716,36 @@ const MenuContentJamiatAdmin = ({ open }) => {
       ],
     },
     {
-      label: "Bookings",
-      icon: <EventIcon />,
-      subOptions: [
-        { label: "Zabihat", path: "/zabihat", icon: <StarIcon /> },
-        { label: "Salawat/Fateha", path: "/salawat_fateha", icon: <StarIcon /> },
-        { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
-      ],
+      label: "Niyaz",
+      icon: <StarIcon />,
+      path: "/niyaz",
     },
-    {
-      label: "Feedback",
-      icon: <HelpRoundedIcon />,
-      path: "/feedback",
-    },
-    {
-      label: "Notifications",
-      icon: <NotificationsIcon />,
-      path: "/notifications",
-    },
+    // {
+    //   label: "Bookings",
+    //   icon: <EventIcon />,
+    //   subOptions: [
+    //     { label: "Zabihat", path: "/zabihat", icon: <StarIcon /> },
+    //     { label: "Salawat/Fateha", path: "/salawat_fateha", icon: <StarIcon /> },
+    //     { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
+    //   ],
+    // },
+    // {
+    //   label: "Feedback",
+    //   icon: <HelpRoundedIcon />,
+    //   path: "/feedback",
+    // },
+    // {
+    //   label: "Notifications",
+    //   icon: <NotificationsIcon />,
+    //   path: "/notifications",
+    // },
     {
       label: "Settings",
       icon: <SettingsRoundedIcon />,
       path: "/settings",
     },
     {
-      label: "User Management",
+      label: "Users",
       icon: <AdminPanelSettingsIcon />,
       subOptions: [
         { label: "Roles", path: "/roles", icon: <GroupIcon /> },
