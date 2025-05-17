@@ -33,12 +33,11 @@ const PaymentsForm = () => {
                     },
                     body: JSON.stringify({
                         mode: "cash",
-                        sector: "burhani",
+                        sector: "5",
                         sub_sector: ""
                     })
                 });
                 const data = await response.json();
-                console.log("pending receipts: ", data)
                 if (data?.data) {
                     setReceiptNos(data.data);
                 }
@@ -88,48 +87,45 @@ const PaymentsForm = () => {
                             <TextField fullWidth label="Date" type="date" InputLabelProps={{ shrink: true }} />
                         </Grid>
                         <Grid item xs={12} md={4}>
-<FormControl fullWidth>
-  <InputLabel>Select Receipt No(s)</InputLabel>
-  <Select
-    multiple
-    value={selectedReceipts.map(String)} // Ensure all values are strings
-    onChange={(e) => {
-      const { value } = e.target;
-      setSelectedReceipts(typeof value === 'string' ? value.split(',') : value);
-    }}
-    renderValue={(selected) => (
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-        {selected.map((val) => (
-          <Chip
-            key={val}
-            label={val}
-            onMouseDown={(e) => e.stopPropagation()}
-            onDelete={() =>
-              setSelectedReceipts((prev) => prev.filter((v) => v !== val))
-            }
-            deleteIcon={<CancelIcon />}
-          />
-        ))}
-      </Box>
-    )}
-    sx={{ border: "1px solid #F4EBD0", borderRadius: "8px" }}
-    MenuProps={{
-      PaperProps: {
-        style: {
-          maxHeight: 300,
-          width: 300,
-        },
-      },
-    }}
-  >
-    {receiptNos.map((r) => (
-      <MenuItem key={`${r.receipt_no}-${r.id}`} value={r.receipt_no}>
-        {r.receipt_no} - {r.name} - ₹{r.amount}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-
+                            <FormControl fullWidth>
+                                <InputLabel>Select Receipt No(s)</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedReceipts}
+                                    onChange={(e) => {
+                                        const { value } = e.target;
+                                        setSelectedReceipts(typeof value === 'string' ? value.split(',') : value);
+                                    }}
+                                    renderValue={(selected) => (
+                                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                                            {selected.map((val) => (
+                                                <Chip
+                                                    key={val}
+                                                    label={val}
+                                                    onMouseDown={(e) => e.stopPropagation()}
+                                                    onDelete={() => setSelectedReceipts((prev) => prev.filter((v) => v !== val))}
+                                                    deleteIcon={<CancelIcon />}
+                                                />
+                                            ))}
+                                        </Box>
+                                    )}
+                                    sx={{ border: "1px solid #F4EBD0", borderRadius: "8px" }}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            style: {
+                                                maxHeight: 300,
+                                                width: 300,
+                                            },
+                                        },
+                                    }}
+                                >
+                                    {receiptNos.map((r) => (
+                                        <MenuItem  key={r.id} value={r.receipt_no}>
+                                            {r.receipt_no} - {r.name} - ₹{r.amount}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <TextField fullWidth label="Amount" />

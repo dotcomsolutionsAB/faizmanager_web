@@ -328,7 +328,7 @@ function PaymentsTable() {
       try {
         setLoadingData(true);
 
-        const response = await fetch('https://api.fmb52.com/api/payments/all', {
+        const response = await fetch('https://api.fmb52.com/api/payments', {
                     method: 'POST',
 
           headers: {
