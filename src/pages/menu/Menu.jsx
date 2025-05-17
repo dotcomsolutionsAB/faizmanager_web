@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import ExpensesForm from "../../components/accounts/expenses/ExpensesFrom";
 import ExpensesTable from "../../components/accounts/expenses/ExpensesTable";
 import MenuForm from "../../components/menu/MenuForm";
+import MenuTable from "../../components/menu/MenuTable";
 
 
 const Menu = () => {
@@ -20,7 +21,7 @@ const Menu = () => {
       <MenuForm />
 
       {/* Table Component */}
-      <ExpensesTable />
+      <MenuTable />
     </AppTheme>
   );
 };

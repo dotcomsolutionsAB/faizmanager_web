@@ -674,6 +674,7 @@ const thaliStatusColors = {
   open={addReceiptDialogOpen}
   onClose={() => setAddReceiptDialogOpen(false)}
   row={selectedRowForReceipt}
+  familyId={selectedRowForReceipt?.family_id}
   onSave={(receiptData) => {
     console.log('Receipt Data:', receiptData);
     // Perform save logic here
