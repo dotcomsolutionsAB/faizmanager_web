@@ -3,6 +3,7 @@ import AppTheme from "../../styles/AppTheme";
 import { useEffect } from "react";
 import ExpensesForm from "../../components/accounts/expenses/ExpensesFrom";
 import ExpensesTable from "../../components/accounts/expenses/ExpensesTable";
+import MenuForm from "../../components/menu/MenuForm";
 
 
 const Menu = () => {
@@ -16,7 +17,7 @@ const Menu = () => {
       <CssBaseline />
 
       {/* Form Component */}
-      <ExpensesForm />
+      <MenuForm />
 
       {/* Table Component */}
       <ExpensesTable />

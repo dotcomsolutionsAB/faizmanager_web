@@ -694,11 +694,6 @@ const MenuContentJamiatAdmin = ({ open }) => {
       path: "/dashboard",
     },
     {
-      label: "Niyaz",
-      icon: <StarIcon />,
-      path: "/niyaz",
-    },
-    {
       label: "Mumeneen",
       icon: <PersonIcon />,
       path: "/mumeneen",
@@ -707,8 +702,8 @@ const MenuContentJamiatAdmin = ({ open }) => {
       label: "Accounts",
       icon: <AnalyticsRoundedIcon />,
       subOptions: [
-        { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
         { label: "Receipts", path: "/receipts", icon: <ReceiptIcon /> },
+        { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
         { label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> },
       ],
     },
@@ -720,6 +715,11 @@ const MenuContentJamiatAdmin = ({ open }) => {
         { label: "Sub-Sector", path: "/sub_sector", icon: <BusinessIcon /> },
         { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
       ],
+    },
+        {
+      label: "Niyaz",
+      icon: <StarIcon />,
+      path: "/niyaz",
     },
     // {
     //   label: "Bookings",
