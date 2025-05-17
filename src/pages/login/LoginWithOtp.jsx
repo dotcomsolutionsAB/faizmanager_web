@@ -14,7 +14,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import { styled } from '@mui/material/styles';
 import AppTheme from '../../styles/AppTheme';
-import fmbLogo1 from '../../assets/fmbLogo1.png';
+// import fmbLogo1 from '../../assets/fmbLogo1.png';
 import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';

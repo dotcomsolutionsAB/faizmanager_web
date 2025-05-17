@@ -28,7 +28,7 @@ export default function AccountStats({ year, sector, subSector }) {
       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
 
-      const url = `https://api.fmb52.com/api/dashboard-stats?year=${year}&${sectorParams}&${subSectorParams}`;
+      const url = `https://api.fmb52.com/api/dashboard/stats?year=${year}&${sectorParams}&${subSectorParams}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -312,7 +312,7 @@ export default function AccountStats({ year, sector, subSector }) {
                         fontSize: 14 // Reduced padding for the 1100px to 1260px range
                       },
                     }}>
-                {formatCurrency(accountStats.total_due_amount)}
+                {formatCurrency(accountStats.total_paid_amount)}
                 </Typography>
               </CardContent>
             </Card>

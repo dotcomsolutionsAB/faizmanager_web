@@ -27,6 +27,7 @@ import Roles from './pages/userManagement/Roles';
 import ForgotPassword from './pages/login/ForgotPassword';
 import JamaatTable from './pages/jamaat/Jamaat';
 import Niyaz from './pages/niyaz/Niyaz';
+import Menu from './pages/menu/Menu';
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -67,7 +68,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/mumeneen" element={<MumeneenTable />} />
-            <Route path="/mumeneen/:id" element={<MumeneenDetailsTable />} />
+            <Route path="/mumeneen/:family_id" element={<MumeneenDetailsTable />} />
             <Route path="/receipts" element={<Receipts />} />
             <Route path="/payments" element={<Payments />} />
             <Route path="/expenses" element={<Expenses />} />
@@ -84,6 +85,7 @@ function App() {
             <Route path="/user_access" element={<UserAccess />} />
             <Route path="/jamaat" element={<JamaatTable />} />
             <Route path="/niyaz" element={<Niyaz />} />
+            <Route path="/menu" element={<Menu />} />
           </Route>
           {/* Optional: Catch-all for unknown routes */}
           {/* <Route path="*" element={<NotFound />} /> */}

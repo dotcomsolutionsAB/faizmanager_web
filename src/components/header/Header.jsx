@@ -20,8 +20,6 @@ import { useAppStore } from '../../appStore';
 import CloseIcon from '@mui/icons-material/Close';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-// import logo from '../assets/logo.jpg'
-// import MultipleSelect from './MultipleSelect';
 import { yellow, brown } from '../../styles/ThemePrimitives';
 import AppTheme from '../../styles/AppTheme';
 import { CssBaseline } from '@mui/material';
@@ -36,6 +34,8 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import ListSubheader from '@mui/material/ListSubheader';
 import fmb52 from '../../assets/fmb52.png'
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 
 // import { useAppStore } from '../../appStore';
 
@@ -397,10 +397,10 @@ export default function Header({ selectedSector,
               size="large"
               edge="start"
               aria-label="open drawer"
-              sx={{ mr: 2, color: brown[600] }}
+              sx={{ mr: 2, color: brown[600], border: 'none' }}
               onClick={() => updateOpen(!dopen)}
             >
-              {dopen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+              {dopen ? <KeyboardDoubleArrowLeftIcon /> : <KeyboardDoubleArrowRightIcon />}
             </IconButton>
             {/* <Box component="img" 
                src={logo} 

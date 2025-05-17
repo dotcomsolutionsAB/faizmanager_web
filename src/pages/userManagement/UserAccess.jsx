@@ -1200,7 +1200,7 @@
 
 
 import React from "react";
-import { Box, CssBaseline } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
 import UserAccessForm from "../../components/userManagement/userAccess/userAccessForm"; // Adjust the path as needed
 import UserAccessTable from "../../components/userManagement/userAccess/userAccessTable"; // Adjust the path as needed

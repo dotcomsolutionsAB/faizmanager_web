@@ -7,7 +7,7 @@ import { dataDisplayCustomizations } from './DataDisplay';
 import { feedbackCustomizations } from './Feedback';
 import { navigationCustomizations } from './Navigation';
 import { surfacesCustomizations } from './Surfaces';
-import { colorSchemes, typography, shadows, shape } from './ThemePrimitives';
+import {  typography, shadows, shape } from './ThemePrimitives';
 
 function AppTheme({ children, disableCustomTheme, themeComponents }) {
   const theme = React.useMemo(() => {

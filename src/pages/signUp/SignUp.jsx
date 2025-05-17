@@ -589,7 +589,7 @@ export default function SignUp(props) {
   const [fullName, setFullName] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpFields, setOtpFields] = useState(['', '', '', '', '', '']);
-  const [otp, setOtp] = useState('');
+  // const [otp, setOtp] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [serverOtp, setServerOtp] = useState('');
@@ -746,12 +746,12 @@ export default function SignUp(props) {
       }
     };
     fetchCurrencies();
-  }, []);
+  }, [token]);
 
 
-  const handleCurrencyChange = (event) => {
-    setSelectedCurrency(event.target.value);
-  };
+  // const handleCurrencyChange = (event) => {
+  //   setSelectedCurrency(event.target.value);
+  // };
 
   // const handleSignUpClick = async () => {
   //   // Validate all fields

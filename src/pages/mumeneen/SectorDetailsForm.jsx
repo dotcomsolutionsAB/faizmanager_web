@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -7,32 +7,11 @@ import {
   Button,
   Paper,
   Stack,
-  Menu,
-  MenuItem as MuiMenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { styled, useTheme } from '@mui/material/styles';
+import { yellow } from '../../styles/ThemePrimitives';
+import { useUser } from '../../UserContext';
 
-const StyledTransferButton = styled(Button)(({ theme }) => ({
-    textTransform: 'none',
-    fontWeight: 'bold',
-    border: `1px solid #a98260`, // Match the datepicker's border color
-    borderRadius: '8px',
-    margin: 6,
-    backgroundColor: '#ffffff',
-    color: '#5a4037',
-    '&:hover': {
-      backgroundColor: '#f5e4d2', // Light brown shade on hover
-      borderColor: '#a98260',
-    },
-  }));
-
-
-function SectorDetailsForm() {
+function SectorDetailsForm({familyId}) {  // default user ID or pass as prop
   const [sectorDetails, setSectorDetails] = useState({
     sector: '',
     subSector: '',
@@ -45,150 +24,78 @@ function SectorDetailsForm() {
     city: '',
     deliveryPerson: '',
   });
-
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+ 
+  const {token} =  useUser();
 
   const sectors = ['BURHANI', 'SAIFEE', 'TAHREEQ'];
   const subSectors = ['AA', 'BB', 'CC'];
   const deliveryPersons = ['Person 1', 'Person 2', 'Person 3'];
-  const transferOptions = ['Other sector', 'Other sub-sector', 'Out of jamiat'];
 
   const handleInputChange = (field, value) => {
     setSectorDetails((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const response = await fetch(`https://api.fmb52.com/api/mumeneen/user/${familyId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+
+        if (result.status && result.data) {
+          const data = result.data;
+
+          setSectorDetails({
+            sector: data.sector_name || '',
+            subSector: data.sub_sector_name || '',
+            folio: data.folio_no || '',
+            building: data.building || '',
+            flatNo: data.flat_no || '',
+            address1: data.address1 || '',
+            address2: data.address2 || '',
+            pincode: data.pincode || '',
+            city: data.city || '',
+            deliveryPerson: data.delivery_person || '',
+          });
+        } else {
+          console.error('Failed to fetch user data:', result.message);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    }
+
+    fetchUserData();
+  }, [familyId, token]);
+
   const handleSubmit = () => {
     console.log(sectorDetails);
-  };
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleTransferOption = (option) => {
-    if (option === 'Other sector') {
-      setDialogOpen(true);
-    }
-    setAnchorEl(null);
-  };
-
-  const handleDialogClose = () => {
-    setDialogOpen(false);
+    // Here you can call API to save/update sectorDetails
   };
 
   return (
     <Paper
       sx={{
+        mt: 2,
         p: 4,
         borderRadius: '8px',
         backgroundColor: '#F7F4F1',
+        minHeight: '595px'
       }}
     >
-      {/* Header Section */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Box>
-          <Typography variant="body2" sx={{ mb: 3, color: '#666' }}>
-            You can view and update sector details over here.
-          </Typography>
+          {/* Optional header */}
         </Box>
-
-        {/* Transfer Dropdown */}
-        {/* <Box>
-        <StyledTransferButton
-            endIcon={<MoreVertIcon />}
-            onClick={handleMenuOpen}
-          >
-            Transfer
-          </StyledTransferButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            sx={{
-              '& .MuiPaper-root': {
-                border: '1px solid #e0e0e0', // Matches the dropdown border
-                borderRadius: '8px', // Smooth border radius for the dropdown
-              },
-            }}
-          >
-            {transferOptions.map((option, index) => (
-              <MuiMenuItem
-                key={index}
-                onClick={() => handleTransferOption(option)}
-                sx={{
-                  '&:hover': {
-                    backgroundColor: '#f5f5f5', // Light hover effect
-                    color: '#333', // Keep text color consistent on hover
-                  },
-                }}
-              >
-                {option}
-              </MuiMenuItem>
-            ))}
-          </Menu>
-        </Box> */}
       </Stack>
 
-      {/* Transfer Dialog */}
-      {/* <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="sm">
-        <DialogTitle>Transfer Family</DialogTitle>
-        <DialogContent>
-          <TextField
-            select
-            label="Select Sector"
-            value={sectorDetails.sector}
-            onChange={(e) => setSectorDetails({ ...sectorDetails, sector: e.target.value })}
-            helperText="Please select the sector to which the family is to be transferred.."
-            fullWidth
-            margin="dense"
-            InputProps={{
-                sx: {
-                  height: '52px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  mb: '7px',
-                },
-              }}    
-          >
-            {sectors.map((sector, index) => (
-              <MenuItem key={index} value={sector}>
-                {sector}
-              </MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleDialogClose}
-            variant="contained"
-            sx={{
-                margin: 2,
-                padding: 2,
-              backgroundColor: '#795548', // Matches your theme
-              '&:hover': {
-                backgroundColor: '#5a4037',
-              },
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog> */}
-
-      {/* Form Section */}
       <Box
         component="form"
         sx={{
@@ -205,7 +112,6 @@ function SectorDetailsForm() {
           label="Sector"
           value={sectorDetails.sector}
           onChange={(e) => handleInputChange('sector', e.target.value)}
-        //   helperText="Enter sector name.."
           fullWidth
           InputProps={{
             sx: {
@@ -213,13 +119,12 @@ function SectorDetailsForm() {
               display: 'flex',
               alignItems: 'center',
               mb: '7px',
+              border: `1px solid ${yellow[400]}`,
             },
           }}
         >
-          {sectors.map((sector, index) => (
-            <MenuItem key={index} value={sector}>
-              {sector}
-            </MenuItem>
+          {sectors.map((sec) => (
+            <MenuItem key={sec} value={sec}>{sec}</MenuItem>
           ))}
         </TextField>
 
@@ -229,7 +134,6 @@ function SectorDetailsForm() {
           label="Sub Sector"
           value={sectorDetails.subSector}
           onChange={(e) => handleInputChange('subSector', e.target.value)}
-        //   helperText="Enter sub sector name.."
           fullWidth
           InputProps={{
             sx: {
@@ -237,13 +141,12 @@ function SectorDetailsForm() {
               display: 'flex',
               alignItems: 'center',
               mb: '7px',
+              border: `1px solid ${yellow[400]}`,
             },
           }}
         >
-          {subSectors.map((subSector, index) => (
-            <MenuItem key={index} value={subSector}>
-              {subSector}
-            </MenuItem>
+          {subSectors.map((sub) => (
+            <MenuItem key={sub} value={sub}>{sub}</MenuItem>
           ))}
         </TextField>
 
@@ -252,7 +155,6 @@ function SectorDetailsForm() {
           label="Folio"
           value={sectorDetails.folio}
           onChange={(e) => handleInputChange('folio', e.target.value)}
-        //   helperText="Enter folio number.."
           fullWidth
           InputProps={{
             sx: {
@@ -260,6 +162,7 @@ function SectorDetailsForm() {
               display: 'flex',
               alignItems: 'center',
               mb: '7px',
+              border: `1px solid ${yellow[400]}`,
             },
           }}
         />
@@ -271,7 +174,6 @@ function SectorDetailsForm() {
             label={field}
             value={sectorDetails[field.toLowerCase().replace(' ', '')]}
             onChange={(e) => handleInputChange(field.toLowerCase().replace(' ', ''), e.target.value)}
-            // helperText={`Enter ${field.toLowerCase()}..`}
             fullWidth
             InputProps={{
               sx: {
@@ -279,6 +181,7 @@ function SectorDetailsForm() {
                 display: 'flex',
                 alignItems: 'center',
                 mb: '7px',
+                border: `1px solid ${yellow[400]}`,
               },
             }}
           />
@@ -290,7 +193,6 @@ function SectorDetailsForm() {
           label="Delivery Person"
           value={sectorDetails.deliveryPerson}
           onChange={(e) => handleInputChange('deliveryPerson', e.target.value)}
-        //   helperText="Enter delivery person name.."
           fullWidth
           InputProps={{
             sx: {
@@ -298,6 +200,7 @@ function SectorDetailsForm() {
               display: 'flex',
               alignItems: 'center',
               mb: '7px',
+              border: `1px solid ${yellow[400]}`,
             },
           }}
         >
@@ -309,22 +212,23 @@ function SectorDetailsForm() {
         </TextField>
       </Box>
 
-      <Box sx={{ mt: 3, textAlign: 'center' }}>
+      <Box sx={{ mt: 3, textAlign: 'right' }}>
         <Button
           variant="contained"
-          color="success"
           size="large"
           onClick={handleSubmit}
           sx={{
-            borderRadius: '15px',
+            borderRadius: '8px',
             textTransform: 'none',
             fontWeight: 'bold',
+            backgroundColor: yellow[400],
             '&:hover': {
-              backgroundColor: '#45c162',
+              backgroundColor: yellow[100],
+              color: '#000',
             },
           }}
         >
-          Save Changes
+          Save
         </Button>
       </Box>
     </Paper>

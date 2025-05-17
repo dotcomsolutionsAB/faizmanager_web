@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Paper, TextField, FormControl, InputLabel, Select, Menu, MenuItem, Tooltip, Typography, Button, CssBaseline } from '@mui/material';
+import { Box, Paper, TextField, FormControl, InputLabel, Select, Menu, MenuItem, Tooltip, Typography, Button, CssBaseline, Chip } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../UserContext';
@@ -13,6 +13,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import EditHubDialog from '../../components/mumeneenTable/EditHubDialog';
 import AddReceiptDialog from '../../components/mumeneenTable/AddReceiptDialog';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import OtherSectorTransferDialog from '../../components/mumeneenTable/OtherSectorTransferDialog';
+import OtherJamiatTransferDialog from '../../components/mumeneenTable/OtherJamiatTransferDialog';
+import AddHofDialog from '../../components/mumeneenTable/AddHofDialog';
 
 
 const customLocaleText = {
@@ -46,6 +50,42 @@ function MumeneenTable() {
   const [addReceiptDialogOpen, setAddReceiptDialogOpen] = useState(false);
 const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
 
+const [addHofDialogOpen, setAddHofDialogOpen] = useState(false);
+const [selectedFamilyRow, setSelectedFamilyRow] = useState(null); // for future edit if needed
+
+
+const handleOtherSectorTransferSave = (data) => {
+    console.log('Other Sector Transfer Data:', data);
+    // Handle the save action here, such as API call to update data
+  };
+
+  const handleOtherJamiatTransferSave = (data) => {
+    console.log('Out of Jamiat Transfer Data:', data);
+    // Handle the save action here, such as API call to update data
+  };
+
+  const [selectedRowForTransfer, setSelectedRowForTransfer] = useState(null);
+  const [otherSectorTransferDialogOpen, setOtherSectorTransferDialogOpen] = useState(false);
+  const [otherJamiatTransferDialogOpen, setOtherJamiatTransferDialogOpen] = useState(false);
+
+
+
+const thaliStatusOptions = {
+  "taking": "Taking",
+  "not_taking": "Not Taking",
+  "once_a_week": "Once a Week",
+  "joint": "Joint",
+  "other_centre": "Other Centre"
+};
+
+const thaliStatusColors = {
+  "taking": "success",
+  "not_taking": "error",
+  "once_a_week": "warning",
+  "joint": "info",
+  "other_centre": "default"
+};
+
     // Set the document title
     useEffect(() => {
       document.title = "Mumeneen - FMB 52"; // Set the title for the browser tab
@@ -67,15 +107,23 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
 
   const ActionButtonWithMenu = ({ row, onActionClick }) => {
     const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
+    // const open = Boolean(anchorEl);
+    const [open, setOpen] = useState(false);
+    const [showTransferOptions, setShowTransferOptions] = useState(false);
   
-    const handleClick = (event) => {
-      setAnchorEl(event.currentTarget);
-    };
-  
-    const handleClose = () => {
-      setAnchorEl(null);
-    };
+     const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+    setOpen(true);
+  };
+
+   const handleClose = () => {
+    setAnchorEl(null);
+    setOpen(false);
+  };
+
+     const handleTransferClick = () => {
+    setShowTransferOptions(!showTransferOptions); // Toggle options visibility on click
+  }
   
 
 
@@ -141,79 +189,120 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
               </Box>
             </Tooltip>
           </MenuItem>
-          <MenuItem
-            onClick={() => {
-              onActionClick('Transfer', row);
-              handleClose();
-            }}
-          >
-            <Tooltip title="Transfer" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <TransferWithinAStationIcon  sx={{ color: brown[200] }} />
-                <Typography>Transfer</Typography>
-              </Box>
-            </Tooltip>
-          </MenuItem>
-        </Menu>
+           <MenuItem
+          onClick={handleTransferClick}
+        >
+          <Tooltip title="Transfer" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <TransferWithinAStationIcon sx={{ color: brown[200] }} />
+              <Typography>Transfer</Typography>
+              <KeyboardArrowDownIcon sx={{ color: brown[200] }} />
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        {/* Conditionally render additional options when clicked on "Transfer" */}
+        {showTransferOptions && (
+          <>
+            <MenuItem
+              onClick={() => {
+                onActionClick('Other sector', row);
+                handleClose();
+              }}
+              sx={{ pl: 4 }}
+            >
+              Other sector
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                onActionClick('Out of jamiat', row);
+                handleClose();
+              }}
+              sx={{ pl: 4 }}
+            >
+              Out of jamiat
+            </MenuItem>
+          </>
+        )}
+      </Menu>
       </Box>
     );
   };
   
   const columns = [
     {
-      field: 'mumeneen_info',
-      headerName: 'Mumeneen Info',
-      width: 550,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: '16px',
-          }}>
-            <img
-              src={params.row.photo ? params.row.photo.file_url : '/static/images/avatar-placeholder.png'}
-              alt="User Photo"
+  field: 'mumeneen_info',
+  headerName: 'Mumeneen Info',
+  width: 550,
+  renderCell: (params) => {
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: '16px',
+        }}>
+          <img
+            src={params.row.photo ? params.row.photo.file_url : '/static/images/avatar-placeholder.png'}
+            alt="User Photo"
+            style={{
+              width: 80,
+              height: 90,
+              border: '2px solid #ddd',
+              borderRadius: '8px',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
+        <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+            <Link
+              to={`/mumeneen/${params.row.family_id}`}
               style={{
-                width: 80,
-                height: 90,
-                border: '2px solid #ddd',
-                borderRadius: '8px',
-                objectFit: 'cover',
+                color: yellow[400],
+                textDecoration: 'none',
               }}
-            />
-          </div>
-          <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: 1 }}>
+              onMouseEnter={(e) => (e.target.style.color = brown[700])}
+              onMouseLeave={(e) => (e.target.style.color = yellow[400])}
+            >
+              {params.row.name}
+            </Link>
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+            ITS: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its}</span>
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+            Mobile: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mobile}</span>
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+            Folio No: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.folio_no}</span>
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+            Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector?.name} - {params.row.sub_sector?.name}</span>
+          </Typography>
+          <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+            Thali Status: <span style={{ fontWeight: 'normal', color: brown[700] }}>  
+              <Chip 
+                label={thaliStatusOptions[params.row.thali_status] || params.row.thali_status}
+                color={thaliStatusColors[params.row.thali_status] || "default"}
+                sx={{ ml: 0.5, fontWeight: 'bold' }}
+              /> 
+            </span>
+          </Typography>
+          {/* Show label if it is not null */}
+          {params.row.label && (
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              <Link
-                to={`/mumeneen/${params.row.id}`}
-                style={{
-                  color: yellow[400],
-                  textDecoration: 'none',
-                }}
-                onMouseEnter={(e) => (e.target.style.color = brown[700])}
-                onMouseLeave={(e) => (e.target.style.color = yellow[400])}
-              >
-                {params.row.name}
-              </Link>
+              Label: <span style={{ fontWeight: 'normal', color: brown[700] }}>{params.row.label}</span>
             </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              ITS: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its}</span>
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              Mobile: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mobile}</span>
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              Folio No: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.folio_no}</span>
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector?.name} - {params.row.sub_sector?.name}</span>
-            </Typography>
-          </Box>
+          )}
         </Box>
-      ),
-    },
+      </Box>
+    );
+  },
+},
+
     {
       field: 'hub_amount',
       headerName: 'Hub',
@@ -311,7 +400,7 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
             onActionClick={(action, row) => {
               console.log(`Action: ${action}`, row);
               if (action === 'View Profile') {
-                navigate(`/mumeneen/${row.id}`);
+                navigate(`/mumeneen/${row.family_id}`);
               } else if (action === 'Add Receipt') {
                 setSelectedRowForReceipt(row);
                 setAddReceiptDialogOpen(true); // Open the dialog
@@ -319,8 +408,16 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
                 setSelectedRow(row);
                 setEditHubDialogOpen(true); // Open the dialog
               } else if (action === 'Transfer') {
-                console.log('Transfer clicked for:', row);
-              }
+      console.log('Transfer clicked for:', row);
+    } else if (action === 'Other sector') {
+      console.log('Other sector transfer clicked for:', row);
+      setSelectedRowForTransfer(row);
+      setOtherSectorTransferDialogOpen(true); // Open the Other Sector Transfer dialog
+    } else if (action === 'Out of jamiat') {
+      console.log('Out of jamiat transfer clicked for:', row);
+      setSelectedRowForTransfer(row);
+      setOtherJamiatTransferDialogOpen(true); // Open the Out of Jamiat Transfer dialog
+    }
             }}            
           />
         </Box>
@@ -337,7 +434,7 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
         const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
         const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
 
-        const url = `https://api.fmb52.com/api/get_all_user?year=${year}&${sectorParams}&${subSectorParams}`;
+        const url = `https://api.fmb52.com/api/mumeneen?year=${year}&${sectorParams}&${subSectorParams}`;
 
         const response = await fetch(url, {
           method: "GET",
@@ -387,7 +484,7 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
 
   return (
     <AppTheme>
-          <Box sx={{ width: '100%', overflowX: 'auto', mt: 7, pt: 9, pr: 2, pb: 3, pl: 2 }}>
+          <Box sx={{ width: '100%', overflowX: 'auto', mt: 16, pt: 1, pr: 2, pb: 3, pl: 2 }}>
       <CssBaseline />
       <Paper
         sx={{
@@ -428,9 +525,9 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
             <Button
               variant="outlined"
               color="primary"
-              onClick={() => navigate('/add-family')}
+               onClick={() => setAddHofDialogOpen(true)}
             >
-              Add Family
+              Add HOF
             </Button>
             <FormControl sx={{ minWidth: 150, width: { xs: '100%', sm: '150px' } }}>
               <InputLabel>Filter By</InputLabel>
@@ -479,6 +576,7 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
             }}
             localeText={customLocaleText}
             rowHeight={135}
+            getRowHeight={(params) => (params.model.label ? 155 : 135)} // Increase height if label exists
             checkboxSelection
             disableSelectionOnClick
             pagination
@@ -532,23 +630,45 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
   onSave={(updatedData) => {
     console.log('Updated Data from API:', updatedData);
 
-    if (updatedData && updatedData.hub_amount !== undefined) {
-        const newHubAmount = updatedData.hub_amount;
+    if (updatedData && updatedData.hub) {
+        const newHubAmount = updatedData.hub.hub_amount;
+        const newThaliStatus = updatedData.hub.thali_status;
+        
         console.log('New Hub Amount:', newHubAmount);
+        console.log('Thali status:', newThaliStatus);
 
         setRows((prevRows) =>
             prevRows.map((r) =>
-                r.its === selectedRow.its ? { ...r, hub_amount: newHubAmount } : r
+                r.its === selectedRow.its 
+                    ? { ...r, hub_amount: newHubAmount, thali_status: newThaliStatus } 
+                    : r
             )
         );
     } else {
         console.error('Invalid updated data:', updatedData);
     }
+
 }}
 
   formatCurrency={formatCurrency}
   year={year}
 />
+
+<AddHofDialog
+  open={addHofDialogOpen}
+  onClose={() => setAddHofDialogOpen(false)}
+  row={selectedFamilyRow} // optional, useful if editing existing family
+  onSave={(newData) => {
+    console.log('New Family Saved:', newData);
+    setAddHofDialogOpen(false);
+
+    // Optionally push into table
+    setRows((prev) => [newData, ...prev]);
+  }}
+  formatCurrency={formatCurrency}
+  year={year}
+/>
+
 
 <AddReceiptDialog
   open={addReceiptDialogOpen}
@@ -560,6 +680,21 @@ const [selectedRowForReceipt, setSelectedRowForReceipt] = useState(null);
   }}
   formatCurrency={formatCurrency}
 />
+
+<OtherSectorTransferDialog
+        open={otherSectorTransferDialogOpen}
+        onClose={() => setOtherSectorTransferDialogOpen(false)}
+        row={selectedRowForTransfer}
+        onSave={handleOtherSectorTransferSave}
+      />
+
+      <OtherJamiatTransferDialog
+        open={otherJamiatTransferDialogOpen}
+        onClose={() => setOtherJamiatTransferDialogOpen(false)}
+        row={selectedRowForTransfer}
+        onSave={handleOtherJamiatTransferSave}
+      />
+
 
 
     </AppTheme>

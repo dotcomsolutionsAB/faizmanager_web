@@ -54,7 +54,7 @@ export default function MumeneenStats({ year, sector, subSector }) {
       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
 
-      const url = `https://api.fmb52.com/api/dashboard-stats?year=${year}&${sectorParams}&${subSectorParams}`;
+      const url = `https://api.fmb52.com/api/dashboard/stats?year=${year}&${sectorParams}&${subSectorParams}`;
 
       const response = await fetch(url, {
         method: "GET",

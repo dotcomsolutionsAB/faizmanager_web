@@ -21,7 +21,6 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useUser } from '../../UserContext';
-import BusinessIcon from '@mui/icons-material/Business';
 import BadgeIcon from '@mui/icons-material/Badge';
 import HofDetailsForm from './HofDetailsForm';
 import SectorDetailsForm from './SectorDetailsForm';
@@ -32,34 +31,26 @@ import OverviewTable from './OverviewTable';
 import FamilyDetails from './FamilyDetails';
 import ThaliDetails from './ThaliDetails';
 import AppTheme from '../../styles/AppTheme';
+import divider from '../../assets/divider.png';
+
 
 function MumeneenDetailsTable() {
-  const { id } = useParams();
+  const { family_id } = useParams();
   const { token, loading } = useUser();
   const [details, setDetails] = useState(null);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const [hubData, setHubData] = useState([]);
-  const [familyId, setFamilyId] = useState(null); // State to store the family_id
 
 
 
-  // const hubData = [
-  //   { year: '1445-1446', hub_amount: 60000, due_amount: 20000 },
-  //   { year: '1444-1445', hub_amount: 53000, due_amount: 0 },
-  //   { year: '1443-1444', hub_amount: 45000, due_amount: 0 },
-  //   { year: '1442-1443', hub_amount: 42000, due_amount: 0 },
-  //   { year: '1441-1442', hub_amount: 30000, due_amount: 0 },
-  //   { year: '1440-1441', hub_amount: 99000, due_amount: 0 },
-  //   { year: '1439-1440', hub_amount: 30000, due_amount: 0 },
-  // ];
 
   useEffect(() => {
     if (loading || !token) return;
 
     const fetchDetails = async () => {
       try {
-        const userResponse = await fetch(`https://api.fmb52.com/api/user_details/${id}`, {
+        const userResponse = await fetch(`https://api.fmb52.com/api/mumeneen/user/${family_id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -72,16 +63,14 @@ function MumeneenDetailsTable() {
         }
 
         const userData = await userResponse.json();
-        // console.log(userData)
-        if (userData.data && userData.data.length > 0) {
-          setDetails(userData.data[0]);
-          setFamilyId(userData.data[0].family_id);
+        if (userData.data) {
+          setDetails(userData.data);
         } else {
           throw new Error('No details found.');
         }
 
         // Fetch hub details for this user
-        const hubResponse = await fetch(`https://api.fmb52.com/api/family_hub_details/${userData.data[0].family_id}`, {
+        const hubResponse = await fetch(`https://api.fmb52.com/api/mumeneen/hub_details/${family_id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -89,11 +78,8 @@ function MumeneenDetailsTable() {
           },
         });
 
-        if (!hubResponse.ok) {
-          throw new Error(`Error ${hubResponse.status}: ${hubResponse.statusText}`);
-        }
-
         const hubData = await hubResponse.json();
+        console.log("hub data", hubData)
         setHubData(hubData.data); // Set the fetched hub data in state
       } catch (error) {
         console.error('Error fetching user or hub details:', error);
@@ -102,7 +88,7 @@ function MumeneenDetailsTable() {
     };
 
     fetchDetails();
-  }, [id, token, loading]);
+  }, [family_id, token, loading]);
 
   if (loading || !details) {
     return (
@@ -150,11 +136,7 @@ function MumeneenDetailsTable() {
         flexDirection: { xs: 'column', sm: 'row' },
         flexWrap: 'wrap', 
         gap: 2,
-        // padding: 2,
-        mt: 7, pt: 9, pr: 2, pb: 3, pl: 2,
-        // width: '100%',
-        // maxWidth: '1500px',
-        // margin: '0 auto',
+        mt: 17, pr: 2, pb: 3, pl: 2,
       }}
     >
       {/* Mumeneen Details and Hub Table Box */}
@@ -165,7 +147,6 @@ function MumeneenDetailsTable() {
           borderRadius: '8px',
           boxShadow: 3,
           flex: '0 1 300px',
-          // maxWidth: '400px',
           width: { xs: '100%', sm: '48%', md: '48%' },
           height: '100%'
         }}
@@ -309,7 +290,7 @@ function MumeneenDetailsTable() {
               />
               <Typography variant="body1" sx={{ fontSize: 16, fontWeight: 600, color: yellow[400] }}>Sector:</Typography>
             </Box>
-            <Box sx={{ color: brown[400] }}>{details.sector || 'N/A'}</Box>
+            <Box sx={{ color: brown[400] }}>{details.sector_name || 'N/A'}-{details.sub_sector_name}</Box>
           </Typography>
 
 
@@ -340,7 +321,7 @@ function MumeneenDetailsTable() {
               />
               <Typography variant="body1" sx={{ fontSize: 16, fontWeight: 600, color: yellow[400] }}>Masool:</Typography>
             </Box>
-            <Box sx={{ color: brown[400] }}>{details.masool || 'N/A'}</Box>
+            <Box sx={{ color: brown[400] }}>{details.incharge_name || 'N/A'}</Box>
           </Typography>
 
           <Typography variant="body1" sx={{ padding: 1, display: 'flex', justifyContent: 'space-between' }}>
@@ -355,7 +336,7 @@ function MumeneenDetailsTable() {
               />
               <Typography variant="body1" sx={{ fontSize: 16, fontWeight: 600, color: yellow[400] }}>Masool Mobile No:</Typography>
             </Box>
-            <Box sx={{ color: brown[400] }}>{details.masool_mobile_no || 'N/A'}</Box>
+            <Box sx={{ color: brown[400] }}>{details.incharge_mobile || 'N/A'}</Box>
           </Typography>
         </Box>
 
@@ -440,16 +421,39 @@ function MumeneenDetailsTable() {
           <Tab label="Family Details" />
           <Tab label="Sector Details" />
           <Tab label="Thali Details" />
-          <Tab label="Notification Settings" />
+          {/* <Tab label="Notification Settings" /> */}
         </Tabs>
-        <Box sx={{ mt: 2 }}>
-          {selectedTab === 0 && <OverviewTable familyId={details.family_id} /> }
-          {selectedTab === 1 && <HofDetailsForm />}
+<Box
+    sx={{
+      mt: 2,
+      position: 'relative',
+       marginLeft: '-16px', // Counteracts default padding
+          marginRight: '-16px', // Counteracts default padding
+      height: {
+        xs: 10, // Height for extra-small screens
+        sm: 15, // Height for small screens
+        md: 15, // Height for medium screens
+        lg: 15, // Height for large screens
+        xl: 15, // Height for extra-large screens
+      },
+      backgroundImage: `url(${divider})`, // Replace with your image path
+      backgroundSize: 'contain', // Ensure the divider image scales correctly
+      backgroundRepeat: 'repeat-x', // Repeat horizontally
+      backgroundPosition: 'center',
+      // my: { xs: 1.5, sm: 2, md: 2.5 }, // Vertical margin adjusted for different screen sizes
+    }}
+  />
+  {console.log("id in overview: ", details.id)}
+
+        <Box>
+          {selectedTab === 0 && <OverviewTable familyId={family_id} /> }
+          {selectedTab === 1 && <HofDetailsForm familyId={family_id} id={details.id} />}
           {selectedTab === 2 && <FamilyDetails familyId={details.family_id} /> }
-          {selectedTab === 3 && <SectorDetailsForm />}
+          {selectedTab === 3 && <SectorDetailsForm familyId={family_id} />}
           {selectedTab === 4 && <ThaliDetails />}
-          {selectedTab === 5 && <Typography variant="body1">Notification Settings Content</Typography>}
+          {/* {selectedTab === 5 && <Typography variant="body1">Notification Settings Content</Typography>} */}
         </Box>
+
       </Paper>
     </Box>
     </AppTheme>

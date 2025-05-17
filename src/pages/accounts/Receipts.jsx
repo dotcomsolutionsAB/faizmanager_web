@@ -1,146 +1,5 @@
-// import { useUser } from "../../UserContext";
-// import { useState, useEffect } from "react";
-// import { Box, CircularProgress, Typography, IconButton,  Paper,
-//     CssBaseline, Chip, Stack, Divider } from '@mui/material'
-
-// export default function Receipts() {
-//     const [allReceiptsData, setAllReceiptsData] = useState([]);
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState(null);
-//     const { user } = useUser(); // Get user data, including the Bearer token from UserContext
-//     useEffect(() => {
-//         if (!user.token) return;
-    
-//         const fetchAllReceiptsData = async () => {
-//           try {
-//             const response = await fetch(`https://api.fmb52.com/api/receipts`, {
-//               method: 'GET',
-//               headers: {
-//                 'Content-Type': 'application/json',
-//                 Authorization: `Bearer ${user.token}`,
-//               },
-//             });
-    
-//             if (!response.ok) {
-//               throw new Error(`Error fetching receipts: ${response.statusText}`);
-//             }
-    
-//             const data = await response.json();
-//             console.log(data);
-//             setAllReceiptsData(data.data || []); // Assuming the API response contains a "data" field for receipts
-//             setLoading(false);
-//           } catch (error) {
-//             setError(error.message);
-//             setLoading(false);
-//           }
-//         };
-    
-//         fetchAllReceiptsData();
-//       }, [user.token]);
-
-//        if (loading) {
-//     return <CircularProgress />;  // Show loading spinner while data is being fetched
-//   }
-
-//   if (error) {
-//     return <Typography color="error">{`Error: ${error}`}</Typography>;  // Display error message if the fetch fails
-//   }
-//     return(
-//         <h1>Receipts Page is under development</h1>
-//     )
-// }
-
-
-// import { useUser } from "../../UserContext";
-// import { useState, useEffect } from "react";
-// import { Box, CircularProgress, Typography, Paper, CssBaseline } from "@mui/material";
-// import { DataGrid } from "@mui/x-data-grid";
-// import AppTheme from "../../styles/AppTheme";
-
-// export default function Receipts() {
-//   const [allReceiptsData, setAllReceiptsData] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const { user } = useUser(); // Get user data, including the Bearer token from UserContext
-
-//   useEffect(() => {
-//     if (!user.token) return;
-
-//     const fetchAllReceiptsData = async () => {
-//       try {
-//         const response = await fetch(`https://api.fmb52.com/api/receipts`, {
-//           method: "GET",
-//           headers: {
-//             "Content-Type": "application/json",
-//             Authorization: `Bearer ${user.token}`,
-//           },
-//         });
-
-//         if (!response.ok) {
-//           throw new Error(`Error fetching receipts: ${response.statusText}`);
-//         }
-
-//         const data = await response.json();
-//         setAllReceiptsData(data.data || []); // Assuming the API response contains a "data" field for receipts
-//         setLoading(false);
-//       } catch (error) {
-//         setError(error.message);
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchAllReceiptsData();
-//   }, [user.token]);
-
-//   if (loading) {
-//     return <CircularProgress />; // Show loading spinner while data is being fetched
-//   }
-
-//   if (error) {
-//     return <Typography color="error">{`Error: ${error}`}</Typography>; // Display error message if the fetch fails
-//   }
-
-//   // Define the columns for DataGrid
-//   const columns = [
-//     { field: "receipt_no", headerName: "Receipt No", width: 150 },
-//     { field: "name", headerName: "Name", width: 250 },
-//     { field: "sector", headerName: "Sector", width: 150 },
-//     { field: "sub_sector", headerName: "Sub Sector", width: 150 },
-//     { field: "amount", headerName: "Amount", width: 150 },
-//     { field: "date", headerName: "Date", width: 150 },
-//     { field: "status", headerName: "Status", width: 150 },
-//   ];
-
-//   // Map the receipt data to rows for the DataGrid
-//   const rows = allReceiptsData.map((receipt, index) => ({
-//     id: index,
-//     receipt_no: receipt.receipt_no,
-//     name: receipt.name,
-//     sector: receipt.sector,
-//     sub_sector: receipt.sub_sector,
-//     amount: receipt.amount,
-//     date: receipt.date,
-//     status: receipt.status,
-//   }));
-
-//   return (
-//     <AppTheme>
-//         <CssBaseline />    
-//         <Box sx={{ width: "100%", padding: 2 }}>
-//       <Typography variant="h4" gutterBottom>
-//         Receipts
-//       </Typography>
-//       <Paper sx={{ height: 400, width: "100%" }}>
-//         <DataGrid rows={rows} columns={columns} pageSize={5} />
-//       </Paper>
-//     </Box>
-//     </AppTheme>
-//   );
-// }
-
-
 import React, { useEffect, useState } from 'react';
-import { Box, Paper, TextField,Menu,  MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline } from '@mui/material';
+import { Box, Paper, TextField, Menu, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../UserContext';
@@ -156,6 +15,12 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
+import { useOutletContext, useLocation } from "react-router-dom";
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 import { Flip } from 'react-spring';
 import AppTheme from '../../styles/AppTheme';
@@ -166,6 +31,10 @@ const customLocaleText = {
 };
 
 function Receipts() {
+  const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
+  const [loadingData, setLoadingData] = useState(false);
+
+
   const { token, loading } = useUser();
   const [rows, setRows] = useState([]);
   const [filterText, setFilterText] = useState('');
@@ -182,24 +51,25 @@ function Receipts() {
   const ActionButtonWithOptions = ({ onActionClick }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
-  
+
     // Open the menu
     const handleClick = (event) => {
       setAnchorEl(event.currentTarget);
     };
-  
+
     // Close the menu
     const handleClose = () => {
       setAnchorEl(null);
     };
-  
-        // Set the document title
-        useEffect(() => {
-          document.title = "Receipts - FMB 52"; // Set the title for the browser tab
-        }, []);
-      
+
+    // Set the document title
+    useEffect(() => {
+      document.title = "Receipts - FMB 52"; // Set the title for the browser tab
+    }, []);
+
     return (
       <Box>
+        {/* Actions Button */}
         {/* Actions Button */}
         <Button
           variant="contained"
@@ -210,7 +80,7 @@ function Receipts() {
           {/* <MoreVertIcon /> */}
 
         </Button>
-  
+
         {/* Dropdown Menu */}
         <Menu
           anchorEl={anchorEl}
@@ -229,39 +99,22 @@ function Receipts() {
           {/* View Profile Option */}
           <MenuItem onClick={() => { onActionClick('View Profile'); handleClose(); }}>
             <Tooltip title="View Profile" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <AccountCircleIcon sx={{color: brown[200]}}/>
-                View Profile
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <LocalPrintshopIcon sx={{ color: brown[200] }} />
+                Print
               </Box>
             </Tooltip>
           </MenuItem>
-  
-          {/* Add Receipt Option */}
-          <MenuItem onClick={() => { onActionClick('Add Receipt'); handleClose(); }}>
-            <Tooltip title="Add Receipt" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <ReceiptIcon sx={{color: brown[200]}} />
-                Add Receipt
-              </Box>
-            </Tooltip>
-          </MenuItem>
-  
-          {/* Edit Hub Option */}
-          <MenuItem onClick={() => { onActionClick('Edit Hub'); handleClose(); }}>
-            <Tooltip title="Edit Hub" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <EditIcon sx={{color: brown[200]}} />
-                Edit Hub
-              </Box>
-            </Tooltip>
-          </MenuItem>
-  
-          {/* Transfer Option */}
+
+
+          {/* Edit Option */}
+
+          {/* Delete Option */}
           <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
-            <Tooltip title="Transfer" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <TransferWithinAStationIcon sx={{color: brown[200]}} />
-                Transfer
+            <Tooltip title="Cancel" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <DeleteIcon sx={{ color: brown[200] }} />
+                Cancel
               </Box>
             </Tooltip>
           </MenuItem>
@@ -298,7 +151,7 @@ function Receipts() {
               }}
             />
           </div>
-  
+
           {/* Mumeneen Info (Text) */}
           <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: 1 }}>
             {/* Name */}
@@ -316,22 +169,22 @@ function Receipts() {
                 {params.row.name}
               </Link>
             </Typography>
-  
+
             {/* ITS */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               ITS: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its}</span>
             </Typography>
-  
+
             {/* Mobile */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Mobile: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mobile}</span>
             </Typography>
-  
+
             {/* Folio No */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Folio No: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.folio_no}</span>
             </Typography>
-  
+
             {/* Sector */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector}-{params.row.sub_sector}</span>
@@ -368,7 +221,7 @@ function Receipts() {
         </Box>
       ),
     },
-    
+
     {
       field: 'receipt', // Updated to exclude Receipt No
       headerName: 'Receipt Details',
@@ -380,17 +233,17 @@ function Receipts() {
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Mode: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mode}</span>
             </Typography>
-  
+
             {/* Date */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Date: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.date}</span>
             </Typography>
-  
+
             {/* Year */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Year: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.year}</span>
             </Typography>
-  
+
             {/* Comments */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Comments: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.comments}</span>
@@ -409,7 +262,7 @@ function Receipts() {
           style: 'currency',
           currency: 'INR',
         }).format(params.row.amount);
-  
+
         return (
           <Typography
             variant="body2"
@@ -449,22 +302,26 @@ function Receipts() {
       ),
     },
   ];
-  
+
 
 
 
 
   useEffect(() => {
-    if (loading || !token) return;
+    if (loading || !token || !selectedYear?.length) return;
 
     const fetchData = async () => {
       try {
-        const response = await fetch('https://api.fmb52.com/api/receipts', {
-          method: 'GET',
+        setLoadingData(true);
+        const response = await fetch('https://api.fmb52.com/api/receipts/all', {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify({
+            year: selectedYear,
+          }),
         });
 
         if (!response.ok) {
@@ -472,16 +329,18 @@ function Receipts() {
         }
 
         const data = await response.json();
-        console.log("Recipts:", data);
-        // console.log(data.data)
+        console.log("Receipts:", data);
         setRows(data.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setLoadingData(false); // <-- End loading
       }
     };
 
     fetchData();
-  }, [token, loading]);
+  }, [token, loading, selectedYear]);
+
 
   // Filter rows based on filterText and filterType
   const filteredRows = rows.filter((row) => {
@@ -522,7 +381,7 @@ function Receipts() {
   return (
     <AppTheme>
       <CssBaseline />
-      <Box sx={{ width: '100%', overflowX: 'auto',  mt: 7, pt: 9, pr: 2, pb: 3, pl: 2 }}>
+      <Box sx={{ width: '100%', overflowX: 'auto', mt: 19, pt: 1, pr: 2, pb: 3, pl: 2 }}>
         <Paper
           sx={{
             width: '100%',
@@ -615,6 +474,12 @@ function Receipts() {
           </div>
         </Paper>
       </Box>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loadingData}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
 
     </AppTheme>
   );

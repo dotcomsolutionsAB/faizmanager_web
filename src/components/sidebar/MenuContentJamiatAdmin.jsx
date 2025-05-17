@@ -684,6 +684,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import SecurityIcon from '@mui/icons-material/Security';
 import { yellow } from "../../styles/ThemePrimitives";
 import MenuBase from "./MenuBase"; // Base component to handle rendering logic
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 
 const MenuContentJamiatAdmin = ({ open }) => {
   const menuItems = [
@@ -720,30 +721,35 @@ const MenuContentJamiatAdmin = ({ open }) => {
         { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
       ],
     },
-    {
-      label: "Bookings",
-      icon: <EventIcon />,
-      subOptions: [
-        { label: "Zabihat", path: "/zabihat", icon: <StarIcon /> },
-        { label: "Salawat/Fateha", path: "/salawat_fateha", icon: <StarIcon /> },
-        { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
-      ],
+    // {
+    //   label: "Bookings",
+    //   icon: <EventIcon />,
+    //   subOptions: [
+    //     { label: "Zabihat", path: "/zabihat", icon: <StarIcon /> },
+    //     { label: "Salawat/Fateha", path: "/salawat_fateha", icon: <StarIcon /> },
+    //     { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
+    //   ],
+    // },
+        {
+      label: "Menu",
+      icon: <RestaurantMenuIcon />,
+      path: "/menu",
     },
     {
       label: "Feedback",
       icon: <HelpRoundedIcon />,
       path: "/feedback",
     },
-    {
-      label: "Notifications",
-      icon: <NotificationsIcon />,
-      path: "/notifications",
-    },
-    {
-      label: "Settings",
-      icon: <SettingsRoundedIcon />,
-      path: "/settings",
-    },
+    // {
+    //   label: "Notifications",
+    //   icon: <NotificationsIcon />,
+    //   path: "/notifications",
+    // },
+    // {
+    //   label: "Settings",
+    //   icon: <SettingsRoundedIcon />,
+    //   path: "/settings",
+    // },
     {
       label: "User Management",
       icon: <AdminPanelSettingsIcon />,

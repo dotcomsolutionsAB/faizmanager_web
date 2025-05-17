@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, CircularProgress, Typography, IconButton, Paper,
-  CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Button
+  CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Button, MenuItem, Tooltip, Menu
 } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useUser } from '../../UserContext'; // Assuming useUser is in the correct path
@@ -11,12 +11,15 @@ import { Link } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SwitchIcon from '@mui/icons-material/Flip';
+import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
+import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
+
 
 const FamilyDetails = ({ familyId }) => {
   const [familyData, setFamilyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useUser(); // Get user data, including the Bearer token from UserContext
+  const { token } = useUser(); // Get user data, including the Bearer token from UserContext
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
@@ -55,15 +58,15 @@ const FamilyDetails = ({ familyId }) => {
   console.log(familyId)
 
   useEffect(() => {
-    if (!user.token || !familyId) return;
+    if (!token || !familyId) return;
 
     const fetchFamilyData = async () => {
       try {
-        const response = await fetch(`https://api.fmb52.com/api/get_family_user`, {
+        const response = await fetch(`https://api.fmb52.com/api/mumeneen/family_members`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ family_id: [familyId] }),
         });
@@ -85,7 +88,100 @@ const FamilyDetails = ({ familyId }) => {
     };
 
     fetchFamilyData();
-  }, [familyId, user.token]);
+  }, [familyId, token]);
+
+    const ActionButtonWithOptions = ({ onActionClick }) => {
+      const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
+      const open = Boolean(anchorEl);
+    
+      // Open the menu
+      const handleClick = (event) => {
+        setAnchorEl(event.currentTarget);
+      };
+    
+      // Close the menu
+      const handleClose = () => {
+        setAnchorEl(null);
+      };
+    
+          // Set the document title
+          useEffect(() => {
+            document.title = "Receipts - FMB 52"; // Set the title for the browser tab
+          }, []);
+        
+      return (
+        <Box>
+          {/* Actions Button */}
+           {/* Actions Button */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleClick}
+          >
+            Actions
+            {/* <MoreVertIcon /> */}
+  
+          </Button>
+  
+          {/* Dropdown Menu */}
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+  
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'left',
+            }}
+          >
+
+                        <MenuItem onClick={() => { onActionClick('Switch HOF'); handleClose(); }}>
+              <Tooltip title="Switch HOF" placement="left">
+                <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                  <SwitchAccountIcon sx={{ color: brown[200] }} />
+                  Switch HOF
+                </Box>
+              </Tooltip>
+            </MenuItem>
+
+            {/* View Profile Option */}
+            <MenuItem onClick={() => { onActionClick('View Profile'); handleClose(); }}>
+              <Tooltip title="View Profile" placement="left">
+                <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                  <LocalPrintshopIcon sx={{ color: brown[200] }} />
+                  Print
+                </Box>
+              </Tooltip>
+            </MenuItem>
+  
+  
+            {/* Edit Option */}
+            <MenuItem onClick={() => { onActionClick('Edit Hub'); handleClose(); }}>
+              <Tooltip title="Edit" placement="left">
+                <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                  <EditIcon sx={{ color: brown[200] }} />
+                  Edit
+                </Box>
+              </Tooltip>
+            </MenuItem>
+  
+            {/* Delete Option */}
+            <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
+              <Tooltip title="Delete" placement="left">
+                <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                  <DeleteIcon sx={{ color: brown[200] }} />
+                  Delete
+                </Box>
+              </Tooltip>
+            </MenuItem>
+          </Menu>
+        </Box>
+      );
+    };
 
   const columns = [
     {
@@ -154,34 +250,53 @@ const FamilyDetails = ({ familyId }) => {
         </Box>
       ),
     },
-    {
-      field: 'action',
-      headerName: 'Action',
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '100%',
-              gap: 2,
-            }}
-          >
-            <IconButton onClick={() => handleSwitchHOF(params.row.its)} sx={{ color: brown[700] }}>
-              <SwitchIcon />
-            </IconButton>
-            <IconButton onClick={() => handleEdit(params.row.its)} sx={{ color: brown[700] }}>
-              <EditIcon />
-            </IconButton>
-            <IconButton onClick={() => handleDelete(params.row.its)} sx={{ color: brown[700] }}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        );
-      },
-    },
+    // {
+    //   field: 'action',
+    //   headerName: 'Action',
+    //   flex: 1,
+    //   renderCell: (params) => {
+    //     return (
+    //       <Box
+    //         sx={{
+    //           display: 'flex',
+    //           justifyContent: 'center',
+    //           alignItems: 'center',
+    //           height: '100%',
+    //           gap: 2,
+    //         }}
+    //       >
+    //         <IconButton onClick={() => handleSwitchHOF(params.row.its)} sx={{ color: brown[700] }}>
+    //           <SwitchIcon />
+    //         </IconButton>
+    //         <IconButton onClick={() => handleEdit(params.row.its)} sx={{ color: brown[700] }}>
+    //           <EditIcon />
+    //         </IconButton>
+    //         <IconButton onClick={() => handleDelete(params.row.its)} sx={{ color: brown[700] }}>
+    //           <DeleteIcon />
+    //         </IconButton>
+    //       </Box>
+    //     );
+    //   },
+    // },
+     {
+          field: 'action',
+          headerName: 'Action',
+          width: 170,
+          sortable: true,
+          renderCell: () => (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                height: '100%',
+              }}
+            >
+              <ActionButtonWithOptions />
+            </Box>
+          ),
+        },
   ];
 
   // Loading and error states

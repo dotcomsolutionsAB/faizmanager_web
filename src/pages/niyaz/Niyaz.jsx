@@ -48,7 +48,7 @@
 // }
 
 import React from "react";
-import { Box, CssBaseline } from "@mui/material";
+import { CssBaseline } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
 import NiyazForm from "../../components/niyaz/NiyazForm";
 import NiyazTable from "../../components/niyaz/NiyazTable";
@@ -58,7 +58,7 @@ import { useEffect } from "react";
 const Niyaz = () => {
       // Set the document title
       useEffect(() => {
-        document.title = "Sector - FMB 52"; // Set the title for the browser tab
+        document.title = "Niyaz - FMB 52"; // Set the title for the browser tab
       }, []);
     
   return (

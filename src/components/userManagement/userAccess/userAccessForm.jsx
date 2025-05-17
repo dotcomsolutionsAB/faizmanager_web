@@ -264,83 +264,6 @@ export default function UserAccessForm() {
         fetchRoles();
     }, [token]);
 
-    // // Fetch permissions when a role is selected
-    // useEffect(() => {
-    //   if (!roles) return; // Only fetch if a role is selected
-
-    //   const fetchPermissions = async () => {
-    //     try {
-    //       const response = await fetch(`https://api.fmb52.com/api/roles/${roles}/permissions`, {
-    //         method: "GET",
-    //         headers: {
-    //           Authorization: `Bearer ${token}`,
-    //           "Content-Type": "application/json",
-    //         },
-    //       });
-    //       if (!response.ok) throw new Error("Failed to fetch permissions");
-    //       const data = await response.json();
-    //       setPermissions(data.permissions || []); // Store permissions
-    //     } catch (error) {
-    //       console.error("Error fetching permissions:", error);
-    //     }
-    //   };
-
-    //   fetchPermissions();
-    // }, [roles, token]);
-
-    // Fetch permissions when a role is selected
-    // useEffect(() => {
-
-    //   const fetchPermissions = async () => {
-    //     try {
-    //       const response = await fetch(`https://api.fmb52.com/api/permissions/all`, {
-    //         method: "GET",
-    //         headers: {
-    //           Authorization: `Bearer ${token}`,
-    //           "Content-Type": "application/json",
-    //         },
-    //       });
-    //       if (!response.ok) throw new Error("Failed to fetch permissions");
-    //       const data = await response.json();
-    //       setPermissions(data.permissions || []); // Store permissions
-    //     } catch (error) {
-    //       console.error("Error fetching permissions:", error);
-    //     }
-    //   };
-
-    //   fetchPermissions();
-    // }, [token]);
-
-    // // Fetch permissions for the selected role
-    // useEffect(() => {
-    //   if (!roles) {
-    //     // If no role is selected, show all permissions unchecked
-    //     setRolePermissions([]);
-    //     return;
-    //   }
-
-    //   const fetchRolePermissions = async () => {
-    //     try {
-    //       const response = await fetch(`https://api.fmb52.com/api/roles/${roles}/permissions`, {
-    //         method: "GET",
-    //         headers: {
-    //           Authorization: `Bearer ${token}`,
-    //           "Content-Type": "application/json",
-    //         },
-    //       });
-    //       if (!response.ok) throw new Error("Failed to fetch role permissions");
-    //       const data = await response.json();
-    //       const rolePermissions = data.permissions.map((permission) => permission.name);
-    //       setRolePermissions(rolePermissions); // Store role-specific permissions
-    //     } catch (error) {
-    //       console.error("Error fetching role permissions:", error);
-    //       setRolePermissions([]);
-    //     }
-    //   };
-
-    //   fetchRolePermissions();
-    // }, [roles, token]);
-
     useEffect(() => {
         const fetchPermissions = async () => {
             try {
@@ -480,37 +403,6 @@ export default function UserAccessForm() {
         setSelectedSubSector(allSubSectorNames); // Automatically check all
     }, [selectedSectors, subSectorList]);
 
-    // // Fetch table data from the API
-    // const fetchTableData = async () => {
-    //     try {
-    //         const response = await fetch("https://api.fmb52.com/api/users/with-permissions", {
-    //             method: "GET",
-    //             headers: {
-    //                 Authorization: `Bearer ${token}`,
-    //                 "Content-Type": "application/json",
-    //             },
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error(`Error ${response.status}: ${response.statusText}`);
-    //         }
-
-    //         const data = await response.json();
-    //         setTableData(data.data || []); // Update table data
-    //     } catch (error) {
-    //         console.error("Error fetching table data:", error);
-    //         setSnackbar({
-    //             open: true,
-    //             message: "Failed to fetch table data.",
-    //             severity: "error",
-    //         });
-    //     }
-    // };
-
-    // // Fetch table data on component mount
-    // useEffect(() => {
-    //     fetchTableData();
-    // }, []);
 
 
 
@@ -855,7 +747,7 @@ export default function UserAccessForm() {
             setModules(typeof value === "string" ? value.split(",") : value);
         }}
         renderValue={(selected) => {
-            const displayedItems = selected.slice(0, 2); // Show only the first 2 items
+            const displayedItems = selected.slice(0, 1); // Show only the first 2 items
             const hiddenItems = selected.slice(2); // Hidden items for +N more
             const moreCount = hiddenItems.length;
 

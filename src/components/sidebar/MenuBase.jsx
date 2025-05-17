@@ -86,7 +86,7 @@ const MenuBase = ({ open, menuItems }) => {
                       </ListItemButton>
                     </ListItem>
                   ))}
-                </List>z
+                </List>
               </Collapse>
             )}
           </React.Fragment>

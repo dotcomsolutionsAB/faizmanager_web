@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
   Paper,
   Button,

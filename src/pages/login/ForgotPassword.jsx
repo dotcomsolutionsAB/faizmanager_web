@@ -61,12 +61,12 @@
 
 
 import * as React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
+// import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -76,12 +76,12 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import { styled } from '@mui/material/styles';
 import AppTheme from '../../styles/AppTheme';
-import fmbLogo1 from '../../assets/fmbLogo1.png';
+// import fmbLogo1 from '../../assets/fmbLogo1.png';
 import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+// import { useLocation } from 'react-router-dom';
 // import Dashboard from '../dashboard/index';
-import { useUser } from '../../UserContext';
+// import { useUser } from '../../UserContext';
 import { useTheme } from '@mui/material/styles';
 import { yellow } from '../../styles/ThemePrimitives';
 import fmb52 from '../../assets/fmb52.png';

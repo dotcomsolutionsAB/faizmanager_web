@@ -12,14 +12,11 @@ import TextField from '@mui/material/TextField';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled, useTheme } from '@mui/material/styles';
-import ForgotPassword from './ForgotPassword';
 import AppTheme from '../../styles/AppTheme';
-import fmbLogo1 from '../../assets/fmbLogo1.png';
 import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
-import { useMediaQuery } from '@mui/material';
-import { yellow, brown } from '../../styles/ThemePrimitives';
+import { yellow } from '../../styles/ThemePrimitives';
 import { Visibility, VisibilityOff } from '@mui/icons-material'; // Import Visibility icons
 import { InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
 import { useUser } from '../../UserContext';
@@ -71,100 +68,6 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function LogInWithPassword(props) {
-  // const theme = useTheme();
-  // const [userName, setUserName] = useState('');
-  // const [password, setPassword] = useState('');
-  // const [userNameError, setUserNameError] = useState(false);
-  // const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
-  // const [passwordError, setPasswordError] = useState(false);
-  // const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
-  // const [open, setOpen] = useState(false);
-  // const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
-  // const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar open state
-  // const [snackbarMessage, setSnackbarMessage] = useState(''); // Snackbar message
-  // const [isEmailVerified, setIsEmailVerified] = useState(false);
-  // const navigate = useNavigate();
-
-  // const handleOtpClick = () => {
-  //   navigate('/login-with-otp', { state: { userName } });
-  // };
-
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
-
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-  //   if (validateInputs()) {
-  //     const data = new FormData(event.currentTarget);
-  //     const response = await loginUser(data.get('userName'), data.get('password')); // Replace with actual API call
-  //     if (response.success) {
-  //       setSnackbarMessage('User logged in successfully!');
-  //       setSnackbarOpen(true);
-  //       // After successful login, navigate to the dashboard
-  //       navigate('/dashboard'); // Navigate to dashboard after login
-  //     } else {
-  //       setSnackbarMessage('Login failed. Please check your credentials.');
-  //       setSnackbarOpen(true);
-  //     }
-  //   }
-  // };
-
-
-  // const validateInputs = () => {
-  //   let isValid = true;
-
-  //   if (!userName || !/\S+@\S+\.\S+/.test(userName)) {
-  //     setUserNameError(true);
-  //     setUserNameErrorMessage('Please enter a valid username.');
-  //     isValid = false;
-  //   } else {
-  //     setUserNameError(false);
-  //     setUserNameErrorMessage('');
-  //   }
-
-  //   if (!password || password.length < 6) {
-  //     setPasswordError(true);
-  //     setPasswordErrorMessage('Password must be at least 6 characters long.');
-  //     isValid = false;
-  //   } else {
-  //     setPasswordError(false);
-  //     setPasswordErrorMessage('');
-  //   }
-
-  //   return isValid;
-  // };
-
-  // const loginUser = async (username, password) => {
-  //   try {
-  //     const response = await fetch('https://api.fmb52.com/api/login', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ username, password }),
-  //     });
-
-  //     const responseData = await response.json();
-  //     return responseData;
-  //   } catch (error) {
-  //     console.error('Error during login:', error);
-  //     return { success: false };
-  //   }
-  // };
-
-  // const handleSignUpClick = () => {
-  //   navigate('/sign-up');
-  // };
-
-  // const handleTogglePasswordVisibility = () => {
-  //   setShowPassword(!showPassword); // Toggle the password visibility
-  // };
-
-  // For small screen media query
-  // const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const theme = useTheme();
   const { updateUser } = useUser(); // To update UserContext
   const [userName, setUserName] = useState('');
@@ -196,14 +99,6 @@ export default function LogInWithPassword(props) {
 
   const handleOtpClick = () => {
     navigate('/login-with-otp', { state: { userName } });
-  };
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
   };
 
   const handleSnackbarClose = () => {
@@ -331,12 +226,13 @@ const handlePasswordChange = (e) => {
           );
         
 
-          setSnackbarMessage('Login successful!');
-          setSnackbarSeverity('success');
+          setSnackbarMessage(data.message);
+          setSnackbarSeverity(data.sucess);
           setSnackbarOpen(true);
 
           // Navigate to dashboard or another page
-          navigate('/dashboard', { state: { username: data.data.name } });
+          navigate('/dashboard', { state: { username: data.data.name, snackbarMessage: data.message,
+    snackbarSeverity: 'success', } });
         } else {
           throw new Error(data.message || 'Login failed');
         }

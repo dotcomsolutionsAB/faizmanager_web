@@ -7,7 +7,7 @@ export default function Transfers() {
   return (
     <AppTheme>
         <CssBaseline />
-        <Box sx={{ width: "100%",  mt: 11, pt: 9, pr: 3, pb: 3 , pl: 3}}>
+        <Box sx={{ width: "100%",  mt: 1, pt: 2, pr: 3, pb: 3 , pl: 3}}>
         <Box
       sx={{
         display: 'flex',

@@ -1,142 +1,165 @@
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, Typography, IconButton,  Paper,
-  CssBaseline, Chip, Stack, Divider } from '@mui/material';
-import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Checkbox,
+  Button,
+  Divider,
+  IconButton,
+} from '@mui/material';
+import PrintIcon from '@mui/icons-material/Print';
+import { styled } from '@mui/system';
+import { yellow } from '../../styles/ThemePrimitives';
 import { useUser } from '../../UserContext'; // Assuming useUser is in the correct path
-import { jsPDF } from 'jspdf';
-import PrintIcon from '@mui/icons-material/Print'; // Importing Material UI Print Icon
-import { yellow, brown } from '../../styles/ThemePrimitives';
-import AppTheme from '../../styles/AppTheme';
+import { useOutletContext } from "react-router-dom";
+import { useAppStore } from '../../appStore';
 
 
-const OverviewTable = ({ familyId }) => {
-  const [receiptsData, setReceiptsData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { user } = useUser(); // Get user data, including the Bearer token from UserContext
-  // const [paginationModel, setPaginationModel] = useState({
-  //   page: 0,
-  //   pageSize: 10,
-  // });
 
-  const ReceiptCard = ({ receipt }) => {
-    return (
-      <Box
-      sx={{
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        p: 2,
-        mb: 2,
-        backgroundColor: "#f9f9f9",
-      }}
-    >
-      <Stack spacing={1}>
-        <Typography variant="h6">{receipt.receipt_no}</Typography>
-        <Divider />
-        {/* Removed the Chip components */}
-        <Stack direction="row" spacing={1} justifyContent="space-between" flexWrap="wrap">
-  <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-    <Typography variant="body2" color="textSecondary">
-      Name: {receipt.name || 'N/A'} | 
-    </Typography>
-    <Typography variant="body2" color="textSecondary" sx={{ ml: 0.5 }}>
-      ITS: {receipt.its || 'N/A'}
-    </Typography>
-  </Box>
 
-  <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-  <Typography variant="body2" color="textSecondary">
-      Sector: {receipt.sector || 'N/A'} - {receipt.sub_sector || 'N/A'} |
-    </Typography>
-    <Typography variant="body2" color="textSecondary" sx={{ ml: 0.5 }}>
-      Folio: {receipt.folio_no || 'N/A'}
-    </Typography>
-  </Box>
-</Stack>
-        <Divider />
-        <Stack direction="row" spacing={1} flexWrap="wrap">
-        <Typography variant="h6" sx={{ fontWeight: "bold", color: "#4caf50" }}>
-            ₹{receipt.amount || 'N/A'}
-          </Typography>
-        </Stack>
-        <Divider />
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: 1 }}>
-  <Stack direction="row" spacing={2} flexWrap="wrap">
-    {/* Mode and Details Section */}
-    <Typography variant="body2" color="textSecondary">
-      Mode: {receipt.mode || '--'}
-    </Typography>
+// Styled stat box
+const StatBox = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'small',
+})(({ bg, color, small }) => ({
+  backgroundColor: bg || '#eee',
+  padding: small ? '6px 12px' : '10px 18px',
+  borderRadius: 8,
+  fontWeight: 600,
+  display: 'flex',
+  gap: 8,
+  alignItems: 'center',
+  color,
+  minWidth: small ? 120 : 140,
+}));
 
-    {receipt.mode === 'cheque' && (
-      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-        <Typography variant="body2" color="textSecondary" sx={{ mr: 2 }}>
-          Bank Name: {receipt.bank_name || '--'}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Cheque Date: {receipt.cheque_date || '--'}
-        </Typography>
-      </Box>
-    )}
 
-    {(receipt.mode === 'online' || receipt.mode === 'neft') && (
-      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-        <Typography variant="body2" color="textSecondary" sx={{ mr: 2 }}>
-          Transaction ID: {receipt.transaction_id || '--'}
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          Transaction Date: {receipt.transaction_date || '--'}
-        </Typography>
-      </Box>
-    )}
 
-    {receipt.mode === 'cash' && (
-      <Typography variant="body2" color="textSecondary">
-       Details: --
-      </Typography>
-    )}
-  </Stack>
+// Card with red right border strip
+const ReceiptCard = ({ data, compact = false }) => {
+  const { token, currency } = useUser();
 
-  {/* Print Icon Section */}
-  <IconButton color="primary" onClick={() => handlePrint(receipt)}>
-    <PrintIcon />
-  </IconButton>
-</Box>
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currency?.currency_code || 'INR', // Default to INR if currency is not available
+      minimumFractionDigits: 2, // No decimal places
+      maximumFractionDigits: 2, // No decimal places
+    }).format(value);
 
-      </Stack>
-    </Box>
-    );
+  // Format date to dd-mm-yy
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0'); // Ensures two digits for day
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so adding 1
+    const year = String(date.getFullYear());
+    return `${day}-${month}-${year}`;
   };
 
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     if (window.innerWidth <= 900) {
-  //       // For medium screens, set pageSize to 5
-  //       setPaginationModel((prev) => ({ ...prev, pageSize: 5 }));
-  //     } else {
-  //       // For larger screens, set pageSize to 10
-  //       setPaginationModel((prev) => ({ ...prev, pageSize: 10 }));
-  //     }
-  //   };
-  
-  //   handleResize(); // Set initial page size on mount
-  //   window.addEventListener('resize', handleResize); // Listen to window resize
-  
-  //   return () => {
-  //     window.removeEventListener('resize', handleResize); // Cleanup on unmount
-  //   };
-  // }, []); // Only run once on mount
+  return (
+    <Box
+      sx={{
+        borderRadius: 2,
+        border: `1px solid ${yellow[400]}`,
+        display: 'flex',
+        overflow: 'hidden',
+        width: compact ? 360 : 445,
+        boxShadow: 1,
+      }}
+    >
+      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+        <Box display="flex" justifyContent="space-between">
+          <Checkbox />
+          <Typography fontWeight={600}>{data.receipt_no}</Typography>
+
+          <Typography variant="caption" color="text.secondary">
+            {formatDate(data.date)}
+          </Typography>
+        </Box>
+
+        <Typography mt={1}>{data.name}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          ITS : {data.its}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {data.sector}
+        </Typography>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography sx={{ fontWeight: 600, fontSize: 13, color: yellow[400] }}>
+            {data.mode.toUpperCase()}
+          </Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: 18, color: '#16a34a' }}>
+            {formatCurrency(data.amount)}
+          </Typography>
+        </Box>
+      </CardContent>
+
+      {/* Red bar at right */}
+      <Box
+        sx={{
+          width: 40,
+          backgroundColor: '#ef4444',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+
+        }}
+      >
+        <IconButton sx={{
+          color: '#fff', border: 'none', backgroundColor: '#ef4444', '&:hover': {
+            backgroundColor: '#f87171',
+          },
+        }}>
+          <PrintIcon fontSize="small" />
+        </IconButton>
+      </Box>
+    </Box>
+  );
+};
+
+// Main Component
+const OverviewTable = ({ familyId }) => {
+  const [receipts, setReceipts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { token, currency } = useUser(); // Get user data, including the Bearer token from UserContext
+  const { selectedYear } = useOutletContext();
+  const year = selectedYear.length ? selectedYear[0] : "1445-1446";
+  const [hubData, setHubData] = useState([]);
+  const isSidebarOpen = useAppStore((state) => state.dopen);
+
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: currency?.currency_code || 'INR', // Default to INR if currency is not available
+      minimumFractionDigits: 2, // No decimal places
+      maximumFractionDigits: 2, // No decimal places
+    }).format(value);
+
+
+
+
 
   useEffect(() => {
-    if (!user.token || !familyId) return;
+    if (!token || !familyId) {
+      console.log("Missing token or familyId. Skipping API call.");
+      setLoading(false); // Ensure loading is stopped
+      return;
+    }
 
-    const fetchReceiptsData = async () => {
+    const fetchReceipts = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`https://api.fmb52.com/api/receipts/by_family_ids`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ family_ids: [familyId] }),
         });
@@ -146,261 +169,116 @@ const OverviewTable = ({ familyId }) => {
         }
 
         const data = await response.json();
-        setReceiptsData(data.data || []); // Assuming the API response contains a "data" field for receipts
-        setLoading(false);
+        console.log("API Response:", data); // Debugging
+
+        setReceipts(data?.data || []);
       } catch (error) {
-        setError('The data is currently unavailable, but we are working to resolve this. Thank you for your patience!');
-        setLoading(false);
+        console.error("Error fetching receipts:", error);
+        setError('The data is currently unavailable.');
+      } finally {
+        setLoading(false); // Ensure loading stops in all cases
       }
     };
 
-    fetchReceiptsData();
-  }, [familyId, user.token]);
+    fetchReceipts();
+  }, [familyId, token]);
 
-  // Function to generate and open the PDF
-  const handlePrint = (row) => {
-    const doc = new jsPDF();
-    const { name, its, sector, folio_no, mode, receipt_no, date, comments, amount } = row;
+  useEffect(() => {
+    const fetchHubData = async () => {
+      try {
+        const response = await fetch(`https://api.fmb52.com/api/mumeneen/hub_details/${familyId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (data?.message === "Hub details fetched successfully!") {
+          const filteredHubData = data.data.filter((item) => item.year === year); // Filter by year
+          setHubData(filteredHubData);
+        }
+      } catch (error) {
+        console.error("Error fetching hub data:", error);
+        setError("Error fetching hub data.");
+      }
+    };
+    fetchHubData();
+  }, [token, year]);
 
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(16);
-
-    // Title (Centered)
-    doc.text('Receipt Details', 105, 20, null, null, 'center');
-    
-    // Adding a line after the title for styling
-    doc.setLineWidth(0.5);
-    doc.line(10, 25, 200, 25);
-
-    // Add receipt information with styling
-    doc.setFontSize(12);
-    doc.text(`Receipt No: ${receipt_no || 'N/A'}`, 14, 35);
-    doc.text(`Date: ${date || 'N/A'}`, 14, 45);
-    doc.text(`Mode: ${mode || 'N/A'}`, 14, 55);
-
-    // Add information in a structured format (like a table)
-    const info = [
-      { label: 'Name', value: name || 'N/A' },
-      { label: 'ITS', value: its || 'N/A' },
-      { label: 'Sector', value: sector || 'N/A' },
-      { label: 'Folio No', value: folio_no || 'N/A' },
-      { label: 'Comments', value: comments || 'N/A' },
-      { label: 'Amount', value: `₹${amount || 'N/A'}` },
-    ];
-
-    let yPosition = 70; // Starting Y position for content
-
-    info.forEach((item) => {
-      doc.setFont('Helvetica', 'bold');
-      doc.text(`${item.label}:`, 14, yPosition);
-      doc.setFont('Helvetica', 'normal');
-      doc.text(item.value, 60, yPosition);
-      yPosition += 10; // Spacing between rows
-    });
-
-    // Open the generated PDF in a new tab
-    // doc.save(`receipt_${receipt_no || 'N/A'}.pdf`);
-
-     // Convert the PDF to a data URL
-  const pdfDataUri = doc.output('datauristring'); // This creates a Data URI for the PDF
-
-  // Open the PDF in a new tab
-  const newTab = window.open();
-  if (newTab) {
-    newTab.document.write('<html><head><title>Receipt</title></head><body><embed width="100%" height="100%" src="' + pdfDataUri + '" type="application/pdf"></embed></body></html>');
-  }
-  };
-
-
-  // const columns = [
-  //   {
-  //     field: 'Name',
-  //     headerName: 'Details',
-  //     flex: 2, // Dynamically adjust the width
-  //     minWidth: 120, 
-  //     renderCell: (params) => {
-  //       const name = params.row.name || 'N/A';
-  //       const its = params.row.its || 'N/A';
-  //       const sector = params.row.sector || 'N/A';
-  //       const folioNo = params.row.folio_no || 'N/A';
-
-  //       return (
-  //         <Box sx={{ lineHeight: '1.5', wordWrap: 'break-word', paddingTop: 2 }}>
-  //         <Typography variant="body2">
-  //           <span style={{ color: yellow[300] }}><strong>Name: </strong></span>
-  //           <span style={{ color: brown[700] }}>{name}</span>
-  //         </Typography>
-  //         <Typography variant="body2">
-  //           <span style={{ color: yellow[300] }}><strong>ITS: </strong></span>
-  //           <span style={{ color: brown[700] }}>{its}</span>
-  //         </Typography>
-  //         <Typography variant="body2">
-  //           <span style={{ color: yellow[300]}}><strong>Sector: </strong></span>
-  //           <span style={{ color: brown[700] }}>{sector}</span>
-  //         </Typography>
-  //         <Typography variant="body2">
-  //           <span style={{ color:  yellow[300] }}><strong>Folio No: </strong></span>
-  //           <span style={{ color: brown[700] }}>{folioNo}</span>
-  //         </Typography>
-  //       </Box>
-        
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: 'Mode',
-  //     headerName: 'Receipt Info',
-  //     flex: 1, // Dynamically adjust the width
-  //     minWidth: 200,
-  //     renderCell: (params) => {
-  //       const mode = params.row.mode || 'N/A';
-  //       const receiptNo = params.row.receipt_no || 'N/A';
-  //       const date = params.row.date || 'N/A';
-  //       const year = new Date(date).getFullYear() || 'N/A';
-  //       const comments = params.row.comments || 'N/A';
-
-  //       return (
-  //         <Box sx={{ lineHeight: '1.5', wordWrap: 'break-word', paddingTop: 0.5 }}>
-  //           <Typography variant="body2"><span style={{ color: yellow[300] }}><strong>Mode: </strong></span>
-  //           <span style={{ color: brown[700] }}>{mode}</span></Typography>
-  //           <Typography variant="body2"><span style={{ color: yellow[300] }}><strong>Receipt No: </strong></span>
-  //           <span style={{ color: brown[700] }}>{receiptNo}</span></Typography>
-  //           <Typography variant="body2"><span style={{ color: yellow[300] }}><strong>Date: </strong></span>
-  //           <span style={{ color: brown[700] }}>{date}</span></Typography>
-  //           <Typography variant="body2"><span style={{ color: yellow[300] }}><strong>Year: </strong></span>
-  //           <span style={{ color: brown[700] }}>{year}</span></Typography>
-  //           <Typography variant="body2"><span style={{ color: yellow[300] }}><strong>Comments: </strong></span>
-  //           <span style={{ color: brown[700] }}>{comments}</span></Typography>
-  //         </Box>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: 'amount',
-  //     headerName: 'Amount',
-  //     flex: 1, // Dynamically adjust the width
-  //     minWidth: 50,
-  //     renderCell: (params) => {
-  //       return (
-  //         <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-  //       <Typography variant="body2" sx={{ color: brown[700] }}>
-  //         {params.value}
-  //       </Typography>
-  //     </Box>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: 'print',
-  //     headerName: 'Print',
-  //     width: 60,
-  //     renderCell: (params) => {
-  //       return (
-  //         <Box 
-  //         sx={{
-  //           display: 'flex', 
-  //           // justifyContent: 'center', 
-  //           alignItems: 'center', 
-  //           height: '100%'
-  //         }}
-  //       >
-  //         <IconButton onClick={() => handlePrint(params.row)} sx={{ color: brown[700] }}>
-  //           <PrintIcon />
-  //         </IconButton>
-  //       </Box>
-  //       );
-  //     },
-  //   },
-  // ];
-
-  // Loading and error states
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <Typography variant="h6" color="error">
-          {error}
-        </Typography>
-      </Box>
-    );
-  }
 
   return (
-    <AppTheme>
-        <CssBaseline />
-        <Paper
-      sx={{
-        // p: 4,
-        borderRadius: '8px',
-        // boxShadow: 3,
-        backgroundColor: '#F7F4F1',
-        // maxWidth: '800px',
-        // margin: '20px auto',
-        height: '100%', 
-        display: 'flex',
-        flexDirection: 'column',
-        overflowX: 'hidden',
-      }}
-    >
-          <Box sx={{ p: 4 }}>
-      {receiptsData.map((receipt, index) => (
-        <ReceiptCard key={index} receipt={receipt} />
-      ))}
+    <Box>
+      {/* Top Summary Row */}
+      <Grid container alignItems="center" spacing={2}>
+        {/* Left Column: HUB/PAID/DUE */}
+        <Grid item xs={12} md={9.5}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <StatBox bg="#e0f2fe" color="#0284c7" small={isSidebarOpen}>
+              <Typography variant="h4" fontWeight={600} color="primary">
+                HUB
+              </Typography>
+              <Typography variant="h4" fontWeight={600} color="primary">
+                {formatCurrency(hubData[0]?.hub_amount || 0)}
+              </Typography>
+            </StatBox>
+            <StatBox bg="#dcfce7" color="#15803d" small={isSidebarOpen}>
+              <Typography variant="h4" fontWeight={600} color="success.main">
+                PAID
+              </Typography>
+              <Typography variant="h4" fontWeight={600} color="success.main">
+                {formatCurrency(hubData[0]?.paid_amount || 0)}
+              </Typography>
+            </StatBox>
+            <StatBox bg="#fee2e2" color="#dc2626" small={isSidebarOpen}>
+              <Typography variant="h4" fontWeight={600} color="error">
+                DUE
+              </Typography>
+              <Typography variant="h4" fontWeight={600} color="error">
+                {formatCurrency(hubData[0]?.due_amount || 0)}
+              </Typography>
+            </StatBox>
+          </Box>
+        </Grid>
+
+        {/* Right Column: Print Selected */}
+        <Grid item xs={12} md={2.5}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              sx={{
+                mr: 4,
+                whiteSpace: 'nowrap',
+                textTransform: 'none',
+                padding: isSidebarOpen ? '20px 20px' : '25px 30px',
+                borderRadius: 1,
+                fontSize: isSidebarOpen ? '14px' : '16px',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: yellow[400], // Apply yellow theme color
+                '&:hover': {
+                  backgroundColor: yellow[100], // Hover effect color
+                  color: '#000',
+                },
+              }}
+            >
+              Print Selected
+            </Button>
+          </Box>
+        </Grid>
+      </Grid>
+
+
+      {/* Cards Section */}
+      <Box mt={1} sx={{ minHeight: '595px' }}>
+        <Grid container spacing={3}>
+          {receipts.map((receipt) => (
+            <Grid item key={receipt.id}>
+              <ReceiptCard data={receipt} compact={isSidebarOpen} />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
     </Box>
-   {/* <DataGridPro
-        rows={receiptsData}
-        columns={columns}
-        components={{ Toolbar: GridToolbar }}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
-        rowHeight={110} 
-        disableSelectionOnClick
-        checkboxSelection
-        pagination
-        paginationModel={paginationModel}
-        onPaginationModelChange={(model) => setPaginationModel(model)}
-        pageSizeOptions={[5, 10, 25, 50, 100]}
-        getRowId={(row) => row.receipt_no} // Use receipt_no as the unique identifier
-        sx={{
-          '& .MuiDataGrid-columnHeaders': {
-     color: yellow[400], // Optional: Set text color to black for better contrast
-     '&:hover': {
-       backgroundColor: yellow[300], // Set hover color for headers
-     },
-   },
-   '& .MuiDataGrid-columnHeader:focus, .MuiDataGrid-columnHeader:focus-within': {
-     outline: 'none', // Remove focus outline for headers
-   },
-   '& .MuiDataGrid-columnHeaderTitle': {
-     fontWeight: 'bold', // Optional: Make the header titles bold
-   },
-   '& .MuiDataGrid-cell': {
-     '&:hover': {
-       backgroundColor: yellow[200], // Set hover color for cells
-     },
-   },
-   '& .MuiDataGrid-row:hover': {
-     backgroundColor: yellow[100], // Entire row hover background color
-   },
-           '@media (max-width: 600px)': {
-             '& .MuiDataGrid-columnHeaders': {
-               fontSize: '0.75rem', // Reduce font size on smaller screens
-             },
-             '& .MuiDataGrid-cell': {
-               fontSize: '0.75rem', // Reduce font size for cells on smaller screens
-             },
-           },
-         }}
-      /> */}
-      </Paper>
-    </AppTheme>
   );
 };
 
