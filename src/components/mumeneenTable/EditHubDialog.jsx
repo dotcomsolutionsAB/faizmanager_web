@@ -43,6 +43,7 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
         setSnackbar({ ...snackbar, open: false });
     };
 
+    console.log("Year in edit", year)
 
     console.log("token in edit", token);
 

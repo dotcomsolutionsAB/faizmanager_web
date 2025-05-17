@@ -28,7 +28,7 @@ function MumeneenTable() {
   const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
   const { token, loading, currency } = useUser();
 
-  const year = selectedYear.length ? selectedYear[0] : "";
+  const year = selectedYear.length ? selectedYear : "";
   const sector = selectedSector.length ? selectedSector : ["all"];
   const subSector = selectedSubSector.length ? selectedSubSector : ["all"];
 
@@ -623,6 +623,7 @@ const thaliStatusColors = {
         </div>
       </Paper>
     </Box>
+    {console.log("Year in mumeneen", year)}
     <EditHubDialog
   open={editHubDialogOpen}
   onClose={() => setEditHubDialogOpen(false)}

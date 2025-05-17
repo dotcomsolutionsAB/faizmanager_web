@@ -20,14 +20,14 @@ import divider from '../../assets/divider.png';
 import Avatar from '@mui/material/Avatar';
 import { useUser } from '../../UserContext';
 
-const AddReceiptDialog = ({ open, onClose, familyId,row, onSave, formatCurrency }) => {
+const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency }) => {
   const { token } = useUser();
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  // Snackbar state variables separated
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
   const [loading, setLoading] = useState(false);
   const [receiptAmount, setReceiptAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -122,32 +122,34 @@ const AddReceiptDialog = ({ open, onClose, familyId,row, onSave, formatCurrency 
     return `${currencySymbol === '₹' ? 'Rupees' : ''} ${result}`;
   };
 
-    console.log(familyId)
-
-
   const handleSave = async () => {
-    console.log('Saving receipt, row:', row);
-
     if (!familyId) {
-      setSnackbar({ open: true, message: 'Family ID is required.', severity: 'error' });
+      setSnackbarMessage('Family ID is required.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
     if (!receiptName || receiptName.length > 100) {
-      setSnackbar({ open: true, message: 'Name is required and max 100 chars.', severity: 'error' });
+      setSnackbarMessage('Name is required and max 100 chars.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
     if (!receiptAmount || isNaN(receiptAmount)) {
-      setSnackbar({ open: true, message: 'Valid amount is required.', severity: 'error' });
+      setSnackbarMessage('Valid amount is required.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
     if (!paymentMethod) {
-      setSnackbar({ open: true, message: 'Please select a payment method.', severity: 'error' });
+      setSnackbarMessage('Please select a payment method.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
       return;
     }
 
-
     const payload = {
-      family_id: familyId, // ensure max 10 chars and string
+      family_id: familyId.toString().slice(0, 10),
       name: receiptName,
       amount: Number(receiptAmount),
       mode: paymentMethod.toLowerCase(),
@@ -171,20 +173,29 @@ const AddReceiptDialog = ({ open, onClose, familyId,row, onSave, formatCurrency 
       });
 
       const data = await response.json();
-      console.log('API Response:', data);
 
       if (response.ok) {
-        setSnackbar({ open: true, message: data.message || 'Receipt added successfully!', severity: 'success' });
+        setSnackbarMessage(data.message || 'Receipt added successfully!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
         if (onSave) onSave(data);
         onClose();
       } else {
-        setSnackbar({ open: true, message: data.message || 'Failed to add receipt.', severity: 'error' });
+        setSnackbarMessage(data.message || 'Failed to add receipt.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
       }
     } catch (error) {
-      setSnackbar({ open: true, message: `Error: ${error.message}`, severity: 'error' });
+      setSnackbarMessage(`Error: ${error.message}`);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -414,17 +425,17 @@ const AddReceiptDialog = ({ open, onClose, familyId,row, onSave, formatCurrency 
 
       {/* Snackbar for messages */}
       <Snackbar
-        open={snackbar.open}
+        open={snackbarOpen}
         autoHideDuration={6000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
+          onClose={handleSnackbarClose}
+          severity={snackbarSeverity}
           sx={{ width: '100%' }}
         >
-          {snackbar.message}
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </>
