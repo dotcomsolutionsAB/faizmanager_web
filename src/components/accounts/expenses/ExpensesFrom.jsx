@@ -16,9 +16,13 @@ import divider from "../../../assets/divider.png";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
+import { useUser } from "../../../UserContext";
+import { useOutletContext, useLocation } from "react-router-dom";
 
 const ExpensesForm = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const { token } = useUser();
+  const { selectedYear } = useOutletContext();
 
   // States for form fields
   const [name, setName] = useState("");
@@ -34,54 +38,52 @@ const ExpensesForm = () => {
   const [description, setDescription] = useState("");
   const [attachment, setAttachment] = useState(null);
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  // Snackbar state variables
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const handleCollapseToggle = () => {
     setCollapsed((prev) => !prev);
   };
 
-  const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
-
-//   const handleAttachmentChange = (e) => {
-//     setAttachment(e.target.files[0]);
-//   };
+  const handleSnackbarClose = () => setSnackbarOpen(false);
 
   const handleSubmit = async () => {
     if (!name || !date || !amount || !chequeNo) {
-      setSnackbar({
-        open: true,
-        message: "Please fill all required fields",
-        severity: "error",
-      });
+      setSnackbarMessage("Please fill all required fields");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
       return;
     }
 
     const formData = new FormData();
-    // formData.append("year", year);
+    formData.append("year", selectedYear);
     formData.append("name", name);
     formData.append("date", date);
     formData.append("amount", amount);
     formData.append("cheque_no", chequeNo);
     formData.append("description", description);
-    if (attachment) formData.append("attachment", attachment);
+    if (attachment) {
+      formData.append("attachment", attachment);
+    } else {
+      formData.append("attachment", null);
+    }
 
     try {
       const response = await fetch("https://api.fmb52.com/api/expense", {
         method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
         body: formData,
       });
       const data = await response.json();
 
       if (response.ok) {
-        setSnackbar({
-          open: true,
-          message: data.message || "Expense created successfully!",
-          severity: "success",
-        });
+        setSnackbarMessage(data.message || "Expense created successfully!");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
         // Optionally reset form here:
         setName("");
         setAmount("");
@@ -96,18 +98,14 @@ const ExpensesForm = () => {
           return `${yyyy}-${mm}-${dd}`;
         });
       } else {
-        setSnackbar({
-          open: true,
-          message: data.message || "Failed to create expense",
-          severity: "error",
-        });
+        setSnackbarMessage(data.message || "Failed to create expense");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
       }
     } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Error: " + error.message,
-        severity: "error",
-      });
+      setSnackbarMessage("Error: " + error.message);
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
     }
   };
 
@@ -230,19 +228,19 @@ const ExpensesForm = () => {
                 fullWidth
                 label="Description"
                 multiline
-                rows={3}
+                rows={1}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
             </Grid>
-            {/* <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={3}>
               <input
                 accept="image/*"
                 type="file"
-                onChange={handleAttachmentChange}
                 style={{ marginTop: "16px" }}
+                onChange={(e) => setAttachment(e.target.files[0])}
               />
-            </Grid> */}
+            </Grid>
 
             <Grid item xs={12} sx={{ textAlign: "right" }}>
               <Button
@@ -267,17 +265,26 @@ const ExpensesForm = () => {
 
       {/* Snackbar */}
       <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
+        open={snackbarOpen}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ height: "100%" }}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
       >
         <Alert
           onClose={handleSnackbarClose}
-          severity={snackbar.severity}
+          severity={snackbarSeverity}
+          variant="filled"
           sx={{ width: "100%" }}
+          action={
+            <Button color="inherit" size="small" onClick={handleSnackbarClose}>
+              OK
+            </Button>
+          }
         >
-          {snackbar.message}
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </AppTheme>

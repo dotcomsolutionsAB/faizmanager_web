@@ -344,7 +344,7 @@ export default function MohallaWiseStats({ year, sector, subSector }) {
     >
       {/* Title */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Takhmeen 1446 - 1447H (Mohalla Wise)</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Takhmeen 1446 - 1447H (Sector Wise)</Typography>
         <Button
           variant="outlined"
           color="primary"

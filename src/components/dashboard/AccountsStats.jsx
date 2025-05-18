@@ -360,7 +360,7 @@ export default function AccountStats({ year, sector, subSector }) {
                         fontSize: 14 // Reduced padding for the 1100px to 1260px range
                       },
                     }}>
-                ₹ {formatCurrency(accountStats.total_due_amount)}
+                {formatCurrency(accountStats.total_due_amount)}
                 </Typography>
               </CardContent>
             </Card>

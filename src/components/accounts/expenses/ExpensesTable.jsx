@@ -18,6 +18,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
+import DeleteExpenseDialog from './DeleteExpenseDialog';
 
 import { Flip } from 'react-spring';
 const customLocaleText = {
@@ -38,8 +39,21 @@ function ExpensesTable() {
 
   const navigate = useNavigate();
 
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
+  const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
 
-  const ActionButtonWithOptions = ({ onActionClick }) => {
+
+  const [openDescDialog, setOpenDescDialog] = useState(false);
+const [currentDescription, setCurrentDescription] = useState('');
+
+const truncateText = (text, maxLength = 30) => {
+  if (!text) return '';
+  return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
+};
+
+
+
+  const ActionButtonWithOptions = ({ onActionClick,  receiptId  }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
 
@@ -53,9 +67,21 @@ function ExpensesTable() {
       setAnchorEl(null);
     };
 
+    const handlePrintClick = () => {
+      const printUrl = `https://api.fmb52.com/api/receipt_print/${receiptId}`;
+      window.open(printUrl, '_blank'); // Opens in new tab
+      handleClose();
+    };
+
+     const handleDeleteClick = () => {
+      setDeleteId(receiptId); // Set the ID of the receipt to be deleted
+      setOpenDeleteDialog(true); // Open the delete dialog
+      handleClose();
+    };
+
     // Set the document title
     useEffect(() => {
-      document.title = "Receipts - FMB 52"; // Set the title for the browser tab
+      document.title = "Expenses - FMB 52"; // Set the title for the browser tab
     }, []);
 
     return (
@@ -87,8 +113,8 @@ function ExpensesTable() {
           }}
         >
           {/* View Profile Option */}
-          <MenuItem onClick={() => { onActionClick('View Profile'); handleClose(); }}>
-            <Tooltip title="View Profile" placement="left">
+          <MenuItem onClick={handlePrintClick}>
+            <Tooltip title="Print" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                 <LocalPrintshopIcon sx={{ color: brown[200] }} />
                 Print
@@ -108,7 +134,7 @@ function ExpensesTable() {
           </MenuItem>
 
           {/* Delete Option */}
-          <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
+          <MenuItem onClick={handleDeleteClick}>
             <Tooltip title="Delete" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                 <DeleteIcon sx={{ color: brown[200] }} />
@@ -271,13 +297,16 @@ function ExpensesTable() {
       ),
     },
 
-    {
-      field: 'description',
-      headerName: 'Description',
-      width: 150,
-      sortable: true,
-      renderCell: (params) => (
-        <Box
+{
+  field: 'description',
+  headerName: 'Description',
+  width: 150,
+  sortable: true,
+  renderCell: (params) => {
+    const truncated = truncateText(params.row.description);
+
+    return (
+      <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -286,19 +315,30 @@ function ExpensesTable() {
             width: '100%',
           }}
         >
-          <Typography
-            variant="body2"
-            sx={{
-              // fontWeight: 'bold',
-              textAlign: 'center',
-              color: brown[700],
-            }}
-          >
-            {params.row.description}
-          </Typography>
-        </Box>
-      ),
-    },
+      <Typography
+        variant="body2"
+        sx={{
+          cursor: 'pointer',
+          color: brown[700],
+          textAlign: 'center',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          width: '100%',
+        }}
+        onClick={() => {
+          setCurrentDescription(params.row.description);
+          setOpenDescDialog(true);
+        }}
+        title="Click to view full description"
+      >
+        {truncated}
+      </Typography>
+      </Box>
+    );
+  },
+},
+
 
     // {
     //   field: 'attachment_url',
@@ -319,7 +359,7 @@ function ExpensesTable() {
       headerName: 'Action',
       width: 170,
       sortable: true,
-      renderCell: () => (
+      renderCell: (params) => (
         <Box
           sx={{
             display: 'flex',
@@ -329,7 +369,7 @@ function ExpensesTable() {
             height: '100%',
           }}
         >
-          <ActionButtonWithOptions />
+          <ActionButtonWithOptions receiptId={params.row.id} />
         </Box>
       ),
     },
@@ -485,6 +525,31 @@ function ExpensesTable() {
           </div>
         </Paper>
       </Box>
+      <DeleteExpenseDialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        receiptId={deleteId}
+        onConfirm={() => {
+          // Handle the actual deletion here, for example:
+          // Delete the item from the state
+          setRows(rows.filter(row => row.id !== deleteId));
+          setOpenDeleteDialog(false);
+        }}
+      />
+
+       <Dialog open={openDescDialog} onClose={() => setOpenDescDialog(false)}>
+      <DialogTitle>Description</DialogTitle>
+      <DialogContent>
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+          {currentDescription}
+        </Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setOpenDescDialog(false)} color="primary">
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
 
     </AppTheme>
   );

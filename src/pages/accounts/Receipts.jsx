@@ -1,28 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Paper, TextField, Menu, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline } from '@mui/material';
+import { Box, Paper, TextField, Menu, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline, Snackbar, Alert } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../UserContext';
 import { Link } from 'react-router-dom';
 import { yellow, brown } from '../../styles/ThemePrimitives';
 import EditIcon from '@mui/icons-material/Edit';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation';
 import Tooltip from '@mui/material/Tooltip';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import DeleteIcon from '@mui/icons-material/Delete';
+import CancelIcon from '@mui/icons-material/Cancel';
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import { useOutletContext, useLocation } from "react-router-dom";
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import DownloadIcon from '@mui/icons-material/Download';
+import CancelReceiptDialog from '../../components/accounts/receipts/CancelReceiptDialog';
 
-
-import { Flip } from 'react-spring';
 import AppTheme from '../../styles/AppTheme';
 
 const customLocaleText = {
@@ -33,13 +27,14 @@ const customLocaleText = {
 function Receipts() {
   const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
   const [loadingData, setLoadingData] = useState(false);
+  const [modeFilter, setModeFilter] = useState('All'); 
 
+  
 
   const { token, loading } = useUser();
   const [rows, setRows] = useState([]);
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
-  const [filterType, setFilterType] = useState('HOF');
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
@@ -47,10 +42,49 @@ function Receipts() {
 
   const navigate = useNavigate();
 
+  
+  // Export filtered rows to Excel
+  const exportToExcel = () => {
+    if (!filteredRows.length) {
+      alert("No data to export.");
+      return;
+    }
+    // Prepare data for XLSX
+    const exportData = filteredRows.map(row => ({
+      Name: row.name,
+      ITS: row.its,
+      Mobile: row.mobile,
+      'Folio No': row.folio_no,
+      Sector: row.sector,
+      'Sub Sector': row.sub_sector,
+      Mode: row.mode,
+      Date: row.date,
+      Year: row.year,
+      Comments: row.comments,
+      Amount: row.amount,
+      ReceiptNo: row.receipt_no,
+    }));
 
-  const ActionButtonWithOptions = ({ onActionClick }) => {
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Receipts");
+
+    // Generate buffer and trigger download
+    XLSX.writeFile(workbook, `Receipts_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+  const ActionButtonWithOptions = ({ receiptId  }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
+     const [openCancelDialog, setOpenCancelDialog] = useState(false);
+     
     const open = Boolean(anchorEl);
+
+     // Snackbar states
+
 
     // Open the menu
     const handleClick = (event) => {
@@ -61,6 +95,22 @@ function Receipts() {
     const handleClose = () => {
       setAnchorEl(null);
     };
+    const handlePrintClick = () => {
+    const printUrl = `https://api.fmb52.com/api/receipt_print/${receiptId}`;
+    window.open(printUrl, '_blank');  // Opens in new tab
+    handleClose();
+  };
+
+  const handleCancelClick = () => {
+    setOpenCancelDialog(true);
+    handleClose();
+  };
+
+  const handleConfirmCancel = (id) => {
+    // TODO: Add your cancel logic here, e.g., call API to cancel receipt
+    console.log('Cancel confirmed for receipt ID:', id);
+    // Optionally refresh the list or show a notification
+  };
 
     // Set the document title
     useEffect(() => {
@@ -97,28 +147,68 @@ function Receipts() {
           }}
         >
           {/* View Profile Option */}
-          <MenuItem onClick={() => { onActionClick('View Profile'); handleClose(); }}>
-            <Tooltip title="View Profile" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <LocalPrintshopIcon sx={{ color: brown[200] }} />
-                Print
-              </Box>
-            </Tooltip>
-          </MenuItem>
-
+          <MenuItem onClick={handlePrintClick}>
+          <Tooltip title="View/Print Receipt" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <LocalPrintshopIcon sx={{ color: brown[200] }} />
+              Print
+            </Box>
+          </Tooltip>
+        </MenuItem>
 
           {/* Edit Option */}
-
-          {/* Delete Option */}
-          <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
-            <Tooltip title="Cancel" placement="left">
+                    <MenuItem onClick={() => { /* Your Edit logic */ handleClose(); }}>
+            <Tooltip title="Edit" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <DeleteIcon sx={{ color: brown[200] }} />
-                Cancel
+                <EditIcon sx={{ color: brown[200] }} />
+                Edit
               </Box>
             </Tooltip>
           </MenuItem>
+
+          {/* Delete Option */}
+         <MenuItem onClick={handleCancelClick}>
+          <Tooltip title="Cancel" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <CancelIcon sx={{ color: brown[200] }} />
+              Cancel
+            </Box>
+          </Tooltip>
+        </MenuItem>
         </Menu>
+       <CancelReceiptDialog
+        open={openCancelDialog}
+        onClose={() => setOpenCancelDialog(false)}
+        receiptId={receiptId}
+        onConfirm={handleConfirmCancel}
+        setSnackbarOpen={setSnackbarOpen}
+        setSnackbarMessage={setSnackbarMessage}
+        setSnackbarSeverity={setSnackbarSeverity}
+      />
+       <Snackbar
+        open={snackbarOpen}
+        onClose={() => setSnackbarOpen(false)}
+        sx={{ height: "100%"}}
+   anchorOrigin={{
+      vertical: "top",
+      horizontal: "center"
+   }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          variant="filled"
+              sx={{ width: "100%",  
+               }}
+              action={
+                <Button color="inherit" size="small" onClick={() => setSnackbarOpen(false)}>
+                  OK
+                </Button>
+              }
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
       </Box>
     );
   };
@@ -283,24 +373,24 @@ function Receipts() {
       },
     },
     {
-      field: 'action',
-      headerName: 'Action',
-      width: 170,
-      sortable: true,
-      renderCell: () => (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          <ActionButtonWithOptions />
-        </Box>
-      ),
-    },
+    field: 'action',
+    headerName: 'Action',
+    width: 170,
+    sortable: false,
+    renderCell: (params) => (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        <ActionButtonWithOptions receiptId={params.row.id} />
+      </Box>
+    ),
+  },
   ];
 
 
@@ -370,17 +460,26 @@ function Receipts() {
     // const matchesYear = selectedYear === 'all' || !selectedYear || row.year?.toString() === selectedYear;
 
 
-    const matchesFilterType =
-      filterType === 'All' ||
-      (row.mumeneen_type &&
-        row.mumeneen_type.trim().toUpperCase() === filterType.trim().toUpperCase());
 
-    return matchesFilterText && matchesFilterType;
+            const matchesMode =
+      modeFilter === 'All' || row.mode?.toLowerCase() === modeFilter.toLowerCase();
+
+
+    return matchesFilterText && matchesMode;
   });
 
   return (
     <AppTheme>
       <CssBaseline />
+      <div
+        style={{
+          filter: snackbarOpen ? "blur(5px)" : "none",
+          transition: "filter 0.3s ease",
+          pointerEvents: snackbarOpen ? "none" : "auto",
+          userSelect: snackbarOpen ? "none" : "auto",
+          marginTop: '145px'
+        }}
+      >
       <Box sx={{ width: '100%', overflowX: 'auto', mt: 19, pt: 1, pr: 2, pb: 3, pl: 2 }}>
         <Paper
           sx={{
@@ -419,10 +518,28 @@ function Receipts() {
                 },
               }}
             />
+             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+           <FormControl sx={{ minWidth: 150, width: { xs: '100%', sm: '150px' } }}>
+              <InputLabel>Filter By Mode</InputLabel>
+              <Select
+                label="Filter By Mode"
+                value={modeFilter}
+                onChange={(e) => setModeFilter(e.target.value)}
+              >
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Cash">Cash</MenuItem>
+                <MenuItem value="Cheque">Cheque</MenuItem>
+                <MenuItem value="NEFT">NEFT</MenuItem>
+              </Select>
+            </FormControl>
+            <Button variant="contained" color="primary" startIcon={<DownloadIcon />} onClick={() => exportToExcel()}>
+              Export to Excel
+            </Button>
+            </Box>
           </Box>
           <div style={{ height: 700, width: '100%', overflow: 'auto' }}>
             <DataGridPro
-              rows={rows}
+              rows={filteredRows}
               columns={columns}
               components={{ Toolbar: GridToolbar }}
               localeText={customLocaleText}
@@ -480,7 +597,7 @@ function Receipts() {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-
+</div>
     </AppTheme>
   );
 }

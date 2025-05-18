@@ -22,8 +22,6 @@ import { useUser } from '../../UserContext'; // Assuming this is the context for
 import divider from '../../assets/divider.png';
 
 const OtherJamiatTransferDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => {
-    const [selectedSector, setSelectedSector] = useState('');
-    const sectors = ['BURHANI', 'SAIFEE'];
 
      const handleSave = () => {
         console.log("Hello");
@@ -32,8 +30,8 @@ const OtherJamiatTransferDialog = ({ open, onClose, row, onSave, formatCurrency,
 
     return (
         <>
-            <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-                <DialogTitle>Other Sector Transfer</DialogTitle>
+            <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+                <DialogTitle>Other Jamiat Transfer</DialogTitle>
                 <Box
                     sx={{
                         width: 'calc(100% + 24px)',
@@ -66,31 +64,19 @@ const OtherJamiatTransferDialog = ({ open, onClose, row, onSave, formatCurrency,
                             gap: 3,
                         }}
                     >
- <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel>Sector</InputLabel>
-                        <Select
-                            value={selectedSector}
-                            onChange={(e) => setSelectedSector(e.target.value)}
-                            label="Sector"
-                        >
-                            {sectors.map((sector, index) => (
-                                <MenuItem key={index} value={sector}>
-                                    {sector}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                       
+                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
+      Are you sure you want to transfer this family out of jamiat?
+    </Typography>
                                
    
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{ p: 3 }}>
                     <Button onClick={onClose} color="primary" variant="outlined">
-                        Cancel
+                        No
                     </Button>
                     <Button onClick={handleSave} color="primary" variant="contained">
-                        Save
+                        Yes
                     </Button>
                 </DialogActions>
             </Dialog>

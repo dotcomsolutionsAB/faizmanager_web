@@ -17,6 +17,11 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import OtherSectorTransferDialog from '../../components/mumeneenTable/OtherSectorTransferDialog';
 import OtherJamiatTransferDialog from '../../components/mumeneenTable/OtherJamiatTransferDialog';
 import AddHofDialog from '../../components/mumeneenTable/AddHofDialog';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import DownloadIcon from '@mui/icons-material/Download';
+
+
 
 
 const customLocaleText = {
@@ -36,6 +41,9 @@ function MumeneenTable() {
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
   const [filterType, setFilterType] = useState('HOF');
+const [hubFilter, setHubFilter] = useState('All'); // default to show all
+
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
@@ -105,6 +113,43 @@ const thaliStatusColors = {
     }).format(value || 0);
   };
 
+  
+  const exportToExcel = () => {
+  // Map filteredRows to flat JSON suitable for Excel
+  const exportData = filteredRows.map(row => ({
+    Name: row.name,
+    ITS: row.its,
+    Mobile: row.mobile,
+    'Folio No': row.folio_no,
+    Sector: row.sector?.name || '',
+    'Sub Sector': row.sub_sector?.name || '',
+    'Thali Status': thaliStatusOptions[row.thali_status] || row.thali_status || '',
+    'Hub Amount': row.hub_amount,
+    'Paid Amount': row.paid_amount,
+    'Due Amount': row.due_amount,
+    Overdue: row.overdue,
+    'Mumeneen Type': row.mumeneen_type,
+    Label: row.label || '',
+  }));
+
+  // Create worksheet from JSON data
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+  // Create workbook and add the worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Mumeneen Data");
+
+  // Generate buffer
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+  // Save file
+  try {
+    saveAs(new Blob([wbout], { type: "application/octet-stream" }), `mumeneen_data_${new Date().toISOString().slice(0,10)}.xlsx`);
+  } catch (e) {
+    console.error(e, wbout);
+  }
+};
+
   const ActionButtonWithMenu = ({ row, onActionClick }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     // const open = Boolean(anchorEl);
@@ -124,7 +169,7 @@ const thaliStatusColors = {
      const handleTransferClick = () => {
     setShowTransferOptions(!showTransferOptions); // Toggle options visibility on click
   }
-  
+
 
 
 
@@ -479,7 +524,17 @@ const thaliStatusColors = {
       (row.mumeneen_type &&
         row.mumeneen_type.trim().toUpperCase() === filterType.trim().toUpperCase());
 
-    return matchesFilterText && matchesFilterType;
+         // New hub filter condition:
+  let matchesHubFilter = true;
+  if (hubFilter === 'Hub Not Set') {
+    matchesHubFilter = row.hub_amount === 0;
+  } else if (hubFilter === 'Due') {
+    matchesHubFilter = row.due_amount > 0;
+  } else if (hubFilter === 'Overdue') {
+    matchesHubFilter = row.overdue > 0;
+  } // else "All" means no filter
+
+    return matchesFilterText && matchesFilterType && matchesHubFilter;
   });
 
   return (
@@ -537,6 +592,34 @@ const thaliStatusColors = {
                 <MenuItem value="FM">FM</MenuItem>
               </Select>
             </FormControl>
+            <FormControl sx={{ minWidth: 180, width: { xs: '100%', sm: '150px' } }}>
+  <InputLabel>Hub Status</InputLabel>
+  <Select
+    value={hubFilter}
+    label="Hub Status"
+    onChange={(e) => setHubFilter(e.target.value)}
+  >
+    <MenuItem value="All">All</MenuItem>
+    <MenuItem value="Hub Not Set">Hub Not Set</MenuItem>
+    <MenuItem value="Due">Due</MenuItem>
+    <MenuItem value="Overdue">Overdue</MenuItem>
+  </Select>
+</FormControl>
+             <FormControl sx={{ minWidth: 150, width: { xs: '100%', sm: '150px' } }}>
+              <InputLabel>Thaali Status</InputLabel>
+              <Select label="Filter By">
+                <MenuItem >Taking</MenuItem>
+                <MenuItem >Not Taking</MenuItem>
+                <MenuItem >Other Center</MenuItem>
+              </Select>
+            </FormControl>
+<Button variant="contained" color="primary" startIcon={<DownloadIcon />} onClick={() => exportToExcel()}>
+  Export to Excel
+</Button>
+
+
+
+
           </Box>
         </Box>
         <div style={{ height: 700, width: '100%', overflow: 'auto' }}>
@@ -623,7 +706,6 @@ const thaliStatusColors = {
         </div>
       </Paper>
     </Box>
-    {console.log("Year in mumeneen", year)}
     <EditHubDialog
   open={editHubDialogOpen}
   onClose={() => setEditHubDialogOpen(false)}

@@ -32,7 +32,7 @@ const OtherSectorTransferDialog = ({ open, onClose, row, onSave, formatCurrency,
 
     return (
         <>
-            <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+            <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
                 <DialogTitle>Other Sector Transfer</DialogTitle>
                 <Box
                     sx={{

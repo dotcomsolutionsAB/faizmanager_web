@@ -36,6 +36,7 @@ import ListSubheader from '@mui/material/ListSubheader';
 import fmb52 from '../../assets/fmb52.png'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import SectorSubSectorSelect from './MultiSelectWithCheckboxes';
 
 // import { useAppStore } from '../../appStore';
 
@@ -287,11 +288,16 @@ export default function Header({ selectedSector,
 
           const data = await response.json();
           if (data?.data) {
-            const filteredSectors = data.data.filter((sector) => sector.name !== 'Annual Report');
-            setSectors(filteredSectors);
-          } else {
-            console.error('No sectors found');
+          // Convert IDs to string for consistency
+          const filteredSectors = data.data
+            .filter((sector) => sector.name !== 'Annual Report')
+            .map((s) => ({ ...s, id: String(s.id) }));
+          setSectors(filteredSectors);
+          // Initialize selected sectors if none selected yet
+          if (!selectedSector.length) {
+            setSelectedSector(filteredSectors.map((s) => s.id));
           }
+        }
         } catch (error) {
           console.error('Error fetching sectors:', error);
         } finally {
@@ -302,51 +308,102 @@ export default function Header({ selectedSector,
     }
   }, [token]);
 
-  // Fetch sub-sectors based on selected sector
+   // Fetch sub-sectors for all selected sectors
   useEffect(() => {
-    console.log('Selected sector:', selectedSector);
-    if (token && selectedSector && selectedSector.length > 0) {
-      const fetchSubSectors = async () => {
-        setLoadingSubSectors(true);
-        try {
-          const sectorToFetch = selectedSector[0];
-          const response = await fetch(`https://api.fmb52.com/api/sub_sector?sector=${sectorToFetch}`, {
+    if (!token) return;
+    if (!selectedSector.length) {
+      setSubSectors([]);
+      return;
+    }
+    
+    const fetchSubSectors = async () => {
+      setLoadingSubSectors(true);
+      try {
+        // Join sector IDs as comma-separated string for API call
+        const sectorsQuery = selectedSector.join(',');
+
+        const response = await fetch(
+          `https://api.fmb52.com/api/sub_sector?sectors=${sectorsQuery}`,
+          {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
+              Authorization: `Bearer ${token}`,
             },
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch sub-sectors');
           }
+        );
+        if (!response.ok) throw new Error('Failed to fetch sub-sectors');
+        const data = await response.json();
+        if (data?.data) {
+          // Convert IDs to strings and sector_id to string
+          const convertedSubSectors = data.data.map((ss) => ({
+            ...ss,
+            id: String(ss.id),
+            sector_id: String(ss.sector_id),
+          }));
+          setSubSectors(convertedSubSectors);
 
-          const data = await response.json();
-
-          if (data?.data) {
-            // Filter sub-sectors by selected sector
-            const filteredSubSectors = data.data.filter((subSector) =>
-              selectedSector.includes(subSector.sector_id)  // Compare using sector_id
-            );
-            setSubSectors(filteredSubSectors);
-          } else {
-            setSubSectors([]);
+          // Initialize selected sub-sectors if none selected yet
+          if (!selectedSubSector.length) {
+            setSelectedSubSector(convertedSubSectors.map((ss) => ss.id));
           }
-        } catch (error) {
-          console.error('Error fetching sub-sectors:', error);
-          setSubSectors([]);
-        } finally {
-          setLoadingSubSectors(false);
         }
-      };
+      } catch (error) {
+        console.error('Error fetching sub-sectors:', error);
+        setSubSectors([]);
+      } finally {
+        setLoadingSubSectors(false);
+      }
+    };
 
-      fetchSubSectors();
-    } else {
-      // Clear sub-sectors if no sector is selected
-      setSubSectors([]);
-    }
+    fetchSubSectors();
   }, [token, selectedSector]);
+
+  // Fetch sub-sectors based on selected sector
+  // useEffect(() => {
+  //   console.log('Selected sector:', selectedSector);
+  //   if (token && selectedSector && selectedSector.length > 0) {
+  //     const fetchSubSectors = async () => {
+  //       setLoadingSubSectors(true);
+  //       try {
+  //         const sectorToFetch = selectedSector[0];
+  //         const response = await fetch(`https://api.fmb52.com/api/sub_sector?sector=${sectorToFetch}`, {
+  //           method: 'GET',
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //             'Authorization': `Bearer ${token}`,
+  //           },
+  //         });
+
+  //         if (!response.ok) {
+  //           throw new Error('Failed to fetch sub-sectors');
+  //         }
+
+  //         const data = await response.json();
+
+  //         if (data?.data) {
+  //           // Filter sub-sectors by selected sector
+  //           const filteredSubSectors = data.data.filter((subSector) =>
+  //             selectedSector.includes(subSector.sector_id)  // Compare using sector_id
+  //           );
+  //           setSubSectors(filteredSubSectors);
+  //         } else {
+  //           setSubSectors([]);
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching sub-sectors:', error);
+  //         setSubSectors([]);
+  //       } finally {
+  //         setLoadingSubSectors(false);
+  //       }
+  //     };
+
+  //     fetchSubSectors();
+  //   } else {
+  //     // Clear sub-sectors if no sector is selected
+  //     setSubSectors([]);
+  //   }
+  // }, [token, selectedSector]);
 
   // Fetch years
   useEffect(() => {
@@ -424,7 +481,7 @@ export default function Header({ selectedSector,
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
 
-              <div>
+              {/* <div>
                 <FormControl
                   sx={{
                     m: 1,
@@ -516,7 +573,7 @@ export default function Header({ selectedSector,
                   </Select>
 
                   {/* Clear all icon */}
-                  {selectedSector.length > 0 && (
+                 {/*  {selectedSector.length > 0 && (
                     <IconButton
                       size="small"
                       onMouseDown={(e) => e.stopPropagation()}
@@ -544,8 +601,8 @@ export default function Header({ selectedSector,
 
 
 
-              </div>
-              <div>
+              </div> */}
+              {/* <div>
                 <FormControl
                   sx={{
                     m: 1,
@@ -689,7 +746,17 @@ export default function Header({ selectedSector,
 
 
 
-              </div>
+              </div> */}
+<SectorSubSectorSelect
+  sectors={sectors}                 // Array of sector objects {id, name, ...}
+  subSectors={subSectors}           // Array of sub-sector objects {id, sub_sector_name, sector_id, ...}
+  selectedSector={selectedSector}   // state array of selected sector ids
+  setSelectedSector={setSelectedSector} // setter function to update sectors
+  selectedSubSector={selectedSubSector} // state array of selected sub-sector ids
+  setSelectedSubSector={setSelectedSubSector} // setter function to update sub-sectors
+/>
+
+
               {/* <div>
       <FormControl  sx={{ m: 1, width: { xs: '100%', sm: '22ch', md: '25ch' } }}>
         <InputLabel id="demo-multiple-name-label">Select Year</InputLabel>

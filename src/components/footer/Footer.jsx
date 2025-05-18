@@ -31,8 +31,14 @@ export default function Footer(props) {
         align="center"
       >
         {'Copyright © '} Proudly Powered by 
-        <Link color="inherit" href="https://www.dotcomsolutions.biz \" sx={{ml: 0.5}}>
-          Dotcom
+        <Link
+  color="inherit"
+  href="https://www.dotcomsolutions.biz"
+  target="_blank"
+  rel="noopener noreferrer"
+  sx={{ ml: 0.5 }}
+>
+          Dot Com Solutions
         </Link>{' '}
         {new Date().getFullYear()}
         {'.'}
