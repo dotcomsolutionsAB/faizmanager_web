@@ -49,65 +49,76 @@ const ExpensesForm = () => {
 
   const handleSnackbarClose = () => setSnackbarOpen(false);
 
-  const handleSubmit = async () => {
-    if (!name || !date || !amount || !chequeNo) {
-      setSnackbarMessage("Please fill all required fields");
-      setSnackbarSeverity("error");
+const handleSubmit = async () => {
+  if (!name || !date || !amount || !chequeNo) {
+    setSnackbarMessage("Please fill all required fields");
+    setSnackbarSeverity("error");
+    setSnackbarOpen(true);
+    return;
+  }
+
+  // Cheque number must be exactly 6 digits
+  const chequePattern = /^\d{6}$/;
+  if (!chequePattern.test(chequeNo)) {
+    setSnackbarMessage("Cheque number must be exactly 6 digits.");
+    setSnackbarSeverity("error");
+    setSnackbarOpen(true);
+    return;
+  }
+
+  const body = JSON.stringify({
+    paid_to: name,
+    date,
+    amount,
+    cheque_no: chequeNo,
+    description,
+  });
+
+  try {
+    const response = await fetch("https://api.fmb52.com/api/expense", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setSnackbarMessage(data.message || "Expense created successfully!");
+      setSnackbarSeverity("success");
       setSnackbarOpen(true);
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("year", selectedYear);
-    formData.append("name", name);
-    formData.append("date", date);
-    formData.append("amount", amount);
-    formData.append("cheque_no", chequeNo);
-    formData.append("description", description);
-    if (attachment) {
-      formData.append("attachment", attachment);
-    } else {
-      formData.append("attachment", null);
-    }
-
-    try {
-      const response = await fetch("https://api.fmb52.com/api/expense", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-        body: formData,
+      // Reset form
+      setName("");
+      setAmount("");
+      setChequeNo("");
+      setDescription("");
+      setDate(() => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
       });
-      const data = await response.json();
-
-      if (response.ok) {
-        setSnackbarMessage(data.message || "Expense created successfully!");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-        // Optionally reset form here:
-        setName("");
-        setAmount("");
-        setChequeNo("");
-        setDescription("");
-        setAttachment(null);
-        setDate(() => {
-          const today = new Date();
-          const yyyy = today.getFullYear();
-          const mm = String(today.getMonth() + 1).padStart(2, "0");
-          const dd = String(today.getDate()).padStart(2, "0");
-          return `${yyyy}-${mm}-${dd}`;
-        });
-      } else {
-        setSnackbarMessage(data.message || "Failed to create expense");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      }
-    } catch (error) {
-      setSnackbarMessage("Error: " + error.message);
+       // Refresh the page after a short delay (optional for UX)
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      setSnackbarMessage(data.message || "Failed to create expense");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     }
-  };
+  } catch (error) {
+    setSnackbarMessage("Error: " + error.message);
+    setSnackbarSeverity("error");
+    setSnackbarOpen(true);
+  }
+};
+
+
 
   return (
     <AppTheme>
@@ -214,15 +225,21 @@ const ExpensesForm = () => {
                 required
               />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                label="Cheque No."
-                value={chequeNo}
-                onChange={(e) => setChequeNo(e.target.value)}
-                required
-              />
-            </Grid>
+<Grid item xs={12} md={3}>
+  <TextField
+    fullWidth
+    label="Cheque No."
+    value={chequeNo}
+    onChange={(e) => {
+      const value = e.target.value;
+      // Only allow digits
+      const filteredValue = value.replace(/\D/g, '');
+      setChequeNo(filteredValue);
+    }}
+    required
+  />
+</Grid>
+
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -233,14 +250,14 @@ const ExpensesForm = () => {
                 onChange={(e) => setDescription(e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
+            {/* <Grid item xs={12} md={3}>
               <input
                 accept="image/*"
                 type="file"
                 style={{ marginTop: "16px" }}
                 onChange={(e) => setAttachment(e.target.files[0])}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sx={{ textAlign: "right" }}>
               <Button

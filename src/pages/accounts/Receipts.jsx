@@ -387,7 +387,7 @@ function Receipts() {
           height: '100%',
         }}
       >
-        <ActionButtonWithOptions receiptId={params.row.id} />
+        <ActionButtonWithOptions receiptId={params.row.hashed_id} />
       </Box>
     ),
   },

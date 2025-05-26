@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SwitchIcon from '@mui/icons-material/Flip';
 import SwitchAccountIcon from '@mui/icons-material/SwitchAccount';
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
+import SwitchHofDialog from '../../components/familyDetails/SwitchHofDialog';
 
 
 const FamilyDetails = ({ familyId }) => {
@@ -27,32 +28,50 @@ const FamilyDetails = ({ familyId }) => {
 
   // Dialog state
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedITS, setSelectedITS] = useState(null); // Store the ITS of the selected user for switching HOF
+
+   const [openSwitchHofDialog, setOpenSwitchHofDialog] = useState(false);
+  const [selectedRowForSwitch, setSelectedRowForSwitch] = useState(null);
+
+
+
+  const handleActionClick = (action, row) => {
+    if (action === 'Switch HOF') {
+      setSelectedRowForSwitch(row);
+      setOpenSwitchHofDialog(true);
+    }
+    // other actions...
+
+    else if (action === 'Delete') {
+      console.log("Delete")
+    }
+
+    else if (action === 'Edit') {
+      console.log("Edit")
+    }
+
+    else if (action === "Print") {
+      console.log("Print")
+    }
+
+  };
+
+
+  const handleCloseSwitchHofDialog = () => {
+    setOpenSwitchHofDialog(false);
+    setSelectedRowForSwitch(null);
+  };
 
   const handleEdit = (id) => {
     console.log("Edit", id);
     // Implement your edit functionality here
   };
 
+
   const handleDelete = (id) => {
     console.log("Delete", id);
     // Implement your delete functionality here
   };
 
-  const handleSwitchHOF = (its) => {
-    setSelectedITS(its); // Set the ITS of the user being switched
-    setOpenDialog(true); // Open the dialog
-  };
-
-  const confirmSwitchHOF = async () => {
-    console.log("Switch HOF for ITS:", selectedITS);
-    // Implement the logic to switch HOF here. You can call the API to update the HOF
-    setOpenDialog(false); // Close the dialog after confirmation
-  };
-
-  const cancelSwitchHOF = () => {
-    setOpenDialog(false); // Close the dialog without performing the action
-  };
 
   console.log("Family Details Component")
   console.log(familyId)
@@ -90,7 +109,7 @@ const FamilyDetails = ({ familyId }) => {
     fetchFamilyData();
   }, [familyId, token]);
 
-    const ActionButtonWithOptions = ({ onActionClick }) => {
+    const ActionButtonWithOptions = ({ onActionClick, row }) => {
       const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
       const open = Boolean(anchorEl);
     
@@ -106,7 +125,7 @@ const FamilyDetails = ({ familyId }) => {
     
           // Set the document title
           useEffect(() => {
-            document.title = "Receipts - FMB 52"; // Set the title for the browser tab
+            document.title = "Family Details - FMB 52"; // Set the title for the browser tab
           }, []);
         
       return (
@@ -139,7 +158,10 @@ const FamilyDetails = ({ familyId }) => {
             }}
           >
 
-                        <MenuItem onClick={() => { onActionClick('Switch HOF'); handleClose(); }}>
+                        <MenuItem onClick={() => {
+            onActionClick('Switch HOF', row);
+            handleClose();
+          }}>
               <Tooltip title="Switch HOF" placement="left">
                 <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                   <SwitchAccountIcon sx={{ color: brown[200] }} />
@@ -149,8 +171,9 @@ const FamilyDetails = ({ familyId }) => {
             </MenuItem>
 
             {/* View Profile Option */}
-            <MenuItem onClick={() => { onActionClick('View Profile'); handleClose(); }}>
-              <Tooltip title="View Profile" placement="left">
+            <MenuItem onClick={() => {  onActionClick('Print', row);
+            handleClose(); }}>
+              <Tooltip title="Print" placement="left">
                 <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                   <LocalPrintshopIcon sx={{ color: brown[200] }} />
                   Print
@@ -160,7 +183,8 @@ const FamilyDetails = ({ familyId }) => {
   
   
             {/* Edit Option */}
-            <MenuItem onClick={() => { onActionClick('Edit Hub'); handleClose(); }}>
+            <MenuItem onClick={() => {  onActionClick('Edit', row);
+            handleClose(); }}>
               <Tooltip title="Edit" placement="left">
                 <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                   <EditIcon sx={{ color: brown[200] }} />
@@ -170,7 +194,8 @@ const FamilyDetails = ({ familyId }) => {
             </MenuItem>
   
             {/* Delete Option */}
-            <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
+            <MenuItem onClick={() => {  onActionClick('Delete', row);
+            handleClose(); }}>
               <Tooltip title="Delete" placement="left">
                 <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                   <DeleteIcon sx={{ color: brown[200] }} />
@@ -283,7 +308,7 @@ const FamilyDetails = ({ familyId }) => {
           headerName: 'Action',
           width: 170,
           sortable: true,
-          renderCell: () => (
+          renderCell: (params) => (
             <Box
               sx={{
                 display: 'flex',
@@ -293,7 +318,8 @@ const FamilyDetails = ({ familyId }) => {
                 height: '100%',
               }}
             >
-              <ActionButtonWithOptions />
+              <ActionButtonWithOptions onActionClick={handleActionClick}  // <-- Pass the handler function here
+        row={params.row}     />
             </Box>
           ),
         },
@@ -376,23 +402,16 @@ const FamilyDetails = ({ familyId }) => {
         />
       </Paper>
 
-      {/* Dialog for HOF Switch Confirmation */}
-      <Dialog open={openDialog} onClose={cancelSwitchHOF}>
-        <DialogTitle>Are you sure you want to switch HOF?</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1">
-            You are about to switch the HOF for the member with ITS?.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelSwitchHOF} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={confirmSwitchHOF} color="primary">
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+     <SwitchHofDialog
+  open={openSwitchHofDialog}
+  onClose={handleCloseSwitchHofDialog}
+  row={selectedRowForSwitch}
+  onSave={(data) => {
+    // optionally refresh data or handle success here
+    handleCloseSwitchHofDialog();
+  }}
+/>
+
     </AppTheme>
   );
 };

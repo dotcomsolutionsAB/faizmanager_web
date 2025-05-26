@@ -18,6 +18,11 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useOutletContext, useLocation } from "react-router-dom";
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DeletePaymentsDialog from './DeletePaymentsDialog';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
 
 import { Flip } from 'react-spring';
 import AppTheme from "../../../styles/AppTheme";
@@ -31,6 +36,8 @@ const customLocaleText = {
 function PaymentsTable() {
     const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
     const [loadingData, setLoadingData] = useState(false);
+      const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
+      const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
   
   const { token, loading } = useUser();
   const [rows, setRows] = useState([]);
@@ -42,10 +49,18 @@ function PaymentsTable() {
     pageSize: 10,
   });
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+const [snackbarMessage, setSnackbarMessage] = useState('');
+const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
+const handleSnackbarClose = () => {
+  setSnackbarOpen(false);
+};
+
   const navigate = useNavigate();
 
 
-  const ActionButtonWithOptions = ({ onActionClick }) => {
+  const ActionButtonWithOptions = ({ onActionClick,  paymentId  }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
   
@@ -57,6 +72,12 @@ function PaymentsTable() {
     // Close the menu
     const handleClose = () => {
       setAnchorEl(null);
+    };
+
+         const handleDeleteClick = () => {
+      setDeleteId(paymentId); // Set the ID of the receipt to be deleted
+      setOpenDeleteDialog(true); // Open the delete dialog
+      handleClose();
     };
   
         // Set the document title
@@ -92,45 +113,26 @@ function PaymentsTable() {
             horizontal: 'left',
           }}
         >
-          {/* View Profile Option */}
-          <MenuItem onClick={() => { onActionClick('View Profile'); handleClose(); }}>
-            <Tooltip title="View Profile" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <AccountCircleIcon sx={{color: brown[200]}}/>
-                View Profile
-              </Box>
-            </Tooltip>
-          </MenuItem>
-  
-          {/* Add Receipt Option */}
-          <MenuItem onClick={() => { onActionClick('Add Receipt'); handleClose(); }}>
-            <Tooltip title="Add Receipt" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <ReceiptIcon sx={{color: brown[200]}} />
-                Add Receipt
-              </Box>
-            </Tooltip>
-          </MenuItem>
   
           {/* Edit Hub Option */}
-          <MenuItem onClick={() => { onActionClick('Edit Hub'); handleClose(); }}>
+          <MenuItem onClick={() => { onActionClick('Edit'); handleClose(); }}>
             <Tooltip title="Edit Hub" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
                 <EditIcon sx={{color: brown[200]}} />
-                Edit Hub
+                Edit
               </Box>
             </Tooltip>
           </MenuItem>
   
-          {/* Transfer Option */}
-          <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
-            <Tooltip title="Transfer" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <TransferWithinAStationIcon sx={{color: brown[200]}} />
-                Transfer
-              </Box>
-            </Tooltip>
-          </MenuItem>
+           {/* Delete Option */}
+                    <MenuItem onClick={handleDeleteClick}>
+                      <Tooltip title="Delete" placement="left">
+                        <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                          <DeleteIcon sx={{ color: brown[200] }} />
+                          Delete
+                        </Box>
+                      </Tooltip>
+                    </MenuItem>
         </Menu>
       </Box>
     );
@@ -300,7 +302,7 @@ function PaymentsTable() {
       headerName: 'Action',
       width: 170,
       sortable: true,
-      renderCell: () => (
+      renderCell: (params) => (
         <Box
           sx={{
             display: 'flex',
@@ -310,7 +312,7 @@ function PaymentsTable() {
             height: '100%',
           }}
         >
-          <ActionButtonWithOptions />
+          <ActionButtonWithOptions paymentId={params.row.id} />
         </Box>
       ),
     },
@@ -328,7 +330,7 @@ function PaymentsTable() {
       try {
         setLoadingData(true);
 
-        const response = await fetch('https://api.fmb52.com/api/payments', {
+        const response = await fetch('https://api.fmb52.com/api/payments/all', {
                     method: 'POST',
 
           headers: {
@@ -488,6 +490,31 @@ function PaymentsTable() {
             />
           </div>
         </Paper>
+        <DeletePaymentsDialog
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+                paymentId={deleteId}
+                onConfirm={() => {
+                  // Handle the actual deletion here, for example:
+                  // Delete the item from the state
+                  setRows(rows.filter(row => row.id !== deleteId));
+                  setOpenDeleteDialog(false);
+                }}
+                setSnackbarOpen={setSnackbarOpen}
+  setSnackbarMessage={setSnackbarMessage}
+  setSnackbarSeverity={setSnackbarSeverity}
+              />
+              <Snackbar
+  open={snackbarOpen}
+  autoHideDuration={6000}
+  onClose={handleSnackbarClose}
+sx={{ height: "100%" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+>
+  <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+    {snackbarMessage}
+  </Alert>
+</Snackbar>
       </Box>
       <Backdrop
               sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}

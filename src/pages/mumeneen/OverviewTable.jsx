@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Grid,
-  Card,
   CardContent,
   Checkbox,
   Button,
@@ -13,12 +12,9 @@ import {
 import PrintIcon from '@mui/icons-material/Print';
 import { styled } from '@mui/system';
 import { yellow } from '../../styles/ThemePrimitives';
-import { useUser } from '../../UserContext'; // Assuming useUser is in the correct path
+import { useUser } from '../../UserContext';
 import { useOutletContext } from "react-router-dom";
 import { useAppStore } from '../../appStore';
-
-
-
 
 // Styled stat box
 const StatBox = styled(Box, {
@@ -35,25 +31,22 @@ const StatBox = styled(Box, {
   minWidth: small ? 120 : 140,
 }));
 
-
-
-// Card with red right border strip
-const ReceiptCard = ({ data, compact = false }) => {
-  const { token, currency } = useUser();
+// ReceiptCard component
+const ReceiptCard = ({ data, compact = false, onPrint, checked, onCheckboxChange }) => {
+  const { currency } = useUser();
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: currency?.currency_code || 'INR', // Default to INR if currency is not available
-      minimumFractionDigits: 2, // No decimal places
-      maximumFractionDigits: 2, // No decimal places
+      currency: currency?.currency_code || 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value);
 
-  // Format date to dd-mm-yy
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0'); // Ensures two digits for day
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed, so adding 1
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = String(date.getFullYear());
     return `${day}-${month}-${year}`;
   };
@@ -70,10 +63,13 @@ const ReceiptCard = ({ data, compact = false }) => {
       }}
     >
       <CardContent sx={{ flexGrow: 1, p: 2 }}>
-        <Box display="flex" justifyContent="space-between">
-          <Checkbox />
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Checkbox
+            checked={checked}
+            onChange={() => onCheckboxChange(data.hashed_id)}
+            inputProps={{ 'aria-label': `select receipt ${data.receipt_no}` }}
+          />
           <Typography fontWeight={600}>{data.receipt_no}</Typography>
-
           <Typography variant="caption" color="text.secondary">
             {formatDate(data.date)}
           </Typography>
@@ -107,14 +103,20 @@ const ReceiptCard = ({ data, compact = false }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-
         }}
       >
-        <IconButton sx={{
-          color: '#fff', border: 'none', backgroundColor: '#ef4444', '&:hover': {
-            backgroundColor: '#f87171',
-          },
-        }}>
+        <IconButton
+          sx={{
+            color: '#fff',
+            border: 'none',
+            backgroundColor: '#ef4444',
+            '&:hover': {
+              backgroundColor: '#f87171',
+            },
+          }}
+          onClick={() => onPrint && onPrint(data.hashed_id)}
+          aria-label={`Print receipt ${data.receipt_no}`}
+        >
           <PrintIcon fontSize="small" />
         </IconButton>
       </Box>
@@ -127,31 +129,28 @@ const OverviewTable = ({ familyId }) => {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { token, currency } = useUser(); // Get user data, including the Bearer token from UserContext
+  const { token, currency } = useUser();
   const { selectedYear } = useOutletContext();
   const year = selectedYear.length ? selectedYear[0] : "1445-1446";
   const [hubData, setHubData] = useState([]);
   const isSidebarOpen = useAppStore((state) => state.dopen);
 
+  // State to track selected receipt IDs (hashed_id)
+  const [selectedReceiptIds, setSelectedReceiptIds] = useState([]);
+
   const formatCurrency = (value) =>
     new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: currency?.currency_code || 'INR', // Default to INR if currency is not available
-      minimumFractionDigits: 2, // No decimal places
-      maximumFractionDigits: 2, // No decimal places
+      currency: currency?.currency_code || 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(value);
-
-
-
-
 
   useEffect(() => {
     if (!token || !familyId) {
-      console.log("Missing token or familyId. Skipping API call.");
-      setLoading(false); // Ensure loading is stopped
+      setLoading(false);
       return;
     }
-
     const fetchReceipts = async () => {
       setLoading(true);
       try {
@@ -163,23 +162,17 @@ const OverviewTable = ({ familyId }) => {
           },
           body: JSON.stringify({ family_ids: [familyId] }),
         });
-
-        if (!response.ok) {
-          throw new Error(`Error fetching receipts: ${response.statusText}`);
-        }
-
+        if (!response.ok) throw new Error(`Error fetching receipts: ${response.statusText}`);
         const data = await response.json();
-        console.log("API Response:", data); // Debugging
-
         setReceipts(data?.data || []);
-      } catch (error) {
-        console.error("Error fetching receipts:", error);
+        // Reset selected on new data load:
+        setSelectedReceiptIds([]);
+      } catch (err) {
         setError('The data is currently unavailable.');
       } finally {
-        setLoading(false); // Ensure loading stops in all cases
+        setLoading(false);
       }
     };
-
     fetchReceipts();
   }, [familyId, token]);
 
@@ -189,28 +182,58 @@ const OverviewTable = ({ familyId }) => {
         const response = await fetch(`https://api.fmb52.com/api/mumeneen/hub_details/${familyId}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         const data = await response.json();
         if (data?.message === "Hub details fetched successfully!") {
-          const filteredHubData = data.data.filter((item) => item.year === year); // Filter by year
+          const filteredHubData = data.data.filter((item) => item.year === year);
           setHubData(filteredHubData);
         }
-      } catch (error) {
-        console.error("Error fetching hub data:", error);
+      } catch (err) {
         setError("Error fetching hub data.");
       }
     };
     fetchHubData();
   }, [token, year]);
 
+  // Handle print icon click for single receipt
+  const handlePrint = (receiptId) => {
+    const printUrl = `https://api.fmb52.com/api/receipt_print/${receiptId}`;
+    window.open(printUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // Handle checkbox change: toggle selected receipt
+  const handleCheckboxChange = (hashed_id) => {
+    setSelectedReceiptIds((prevSelected) => {
+      if (prevSelected.includes(hashed_id)) {
+        // Unselect
+        return prevSelected.filter((id) => id !== hashed_id);
+      } else {
+        // Select
+        return [...prevSelected, hashed_id];
+      }
+    });
+  };
+
+  // Handle "Print Selected" button click
+  const handlePrintSelected = () => {
+    if (selectedReceiptIds.length === 0) {
+      alert('Please select at least one receipt to print.');
+      return;
+    }
+    // Compose print URL with selected receipt IDs as query param, comma-separated
+    const idsParam = selectedReceiptIds.join(',');
+    const printUrl = `https://api.fmb52.com/api/receipt_print?receipt_ids=${encodeURIComponent(idsParam)}`;
+
+    // Open in new tab/window
+    window.open(printUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <Box>
       {/* Top Summary Row */}
       <Grid container alignItems="center" spacing={2}>
-        {/* Left Column: HUB/PAID/DUE */}
         <Grid item xs={12} md={9.5}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <StatBox bg="#e0f2fe" color="#0284c7" small={isSidebarOpen}>
@@ -240,11 +263,13 @@ const OverviewTable = ({ familyId }) => {
           </Box>
         </Grid>
 
-        {/* Right Column: Print Selected */}
+        {/* Right Column: Print Selected Button */}
         <Grid item xs={12} md={2.5}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
+              // disabled={selectedReceiptIds.length === 0}
+              onClick={handlePrintSelected}
               sx={{
                 mr: 4,
                 whiteSpace: 'nowrap',
@@ -254,10 +279,14 @@ const OverviewTable = ({ familyId }) => {
                 fontSize: isSidebarOpen ? '14px' : '16px',
                 display: 'flex',
                 alignItems: 'center',
-                backgroundColor: yellow[400], // Apply yellow theme color
+                backgroundColor: yellow[400],
                 '&:hover': {
-                  backgroundColor: yellow[100], // Hover effect color
+                  backgroundColor: yellow[100],
                   color: '#000',
+                },
+                '&:disabled': {
+                  backgroundColor: '#ddd',
+                  color: '#999',
                 },
               }}
             >
@@ -267,13 +296,18 @@ const OverviewTable = ({ familyId }) => {
         </Grid>
       </Grid>
 
-
       {/* Cards Section */}
       <Box mt={1} sx={{ minHeight: '595px' }}>
         <Grid container spacing={3}>
           {receipts.map((receipt) => (
             <Grid item key={receipt.id}>
-              <ReceiptCard data={receipt} compact={isSidebarOpen} />
+              <ReceiptCard
+                data={receipt}
+                compact={isSidebarOpen}
+                onPrint={handlePrint}
+                checked={selectedReceiptIds.includes(receipt.hashed_id)}
+                onCheckboxChange={handleCheckboxChange}
+              />
             </Grid>
           ))}
         </Grid>
