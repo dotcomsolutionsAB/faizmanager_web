@@ -324,6 +324,8 @@ useEffect(() => {
 
             setModules(rolePermissions); // Set selected modules as exactly what comes from API
             setRolePermissions(rolePermissions); // Set dropdown options to only these
+
+            
         } catch (error) {
             console.error("Error fetching role permissions:", error);
             setModules([]);
@@ -391,17 +393,18 @@ useEffect(() => {
     }, [token]);
 
     // Filter sub-sectors based on selected sectors and automatically select them
-    useEffect(() => {
-        const filtered = subSectorList.filter((subSector) =>
-            selectedSectors.includes(subSector.sector_name)
-        );
+useEffect(() => {
+    const filtered = subSectorList.filter((subSector) =>
+        selectedSectors.includes(subSector.sector_name)
+    );
 
-        // Automatically check all filtered sub-sectors
-        const allSubSectorNames = filtered.map((subSector) => subSector.sub_sector_name);
-        setFilteredSubSectors(filtered); // Update filtered sub-sectors
-        setSelectedSubSector(allSubSectorNames); // Automatically check all
-    }, [selectedSectors, subSectorList]);
+    setFilteredSubSectors(filtered); // ✅ Only update available sub-sectors
+    // Do NOT auto-select anything here
+}, [selectedSectors, subSectorList]);
 
+
+const selectedRoleName = roleList.find((role) => role.id === roles)?.name;
+const isSectorAdmin = selectedRoleName === "Sector Admin";
 
 
 
@@ -920,7 +923,8 @@ useEffect(() => {
 
                             {/* Sub-Sector */}
                             {/* Sub-Sector */}
-                            <TableRow>
+                            {!isSectorAdmin && (
+                                                            <TableRow>
                                 <TableCell
                                     sx={{
                                         fontWeight: "bold",
@@ -1035,6 +1039,7 @@ useEffect(() => {
                                     </FormControl>
                                 </TableCell>
                             </TableRow>
+                            )}
 
                             <TableRow>
                                 <TableCell
