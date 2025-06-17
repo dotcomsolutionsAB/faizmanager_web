@@ -71,10 +71,33 @@ export default function UserAccessForm() {
         setSelectedSectors(typeof value === "string" ? value.split(",") : value);
     };
 
-    const handleSubSectorChange = (event) => {
-        const { value } = event.target;
-        setSelectedSubSector(typeof value === "string" ? value.split(",") : value);
-    };
+const handleSubSectorChange = (event) => {
+    const { value } = event.target;
+    const newSelection = typeof value === "string" ? value.split(",") : value;
+
+    const selectedRoleName = roleList.find((role) => role.id === roles)?.name;
+
+    if (selectedRoleName === "Masool" && newSelection.length > 4) {
+        setSnackbar({
+            open: true,
+            message: "Masool can select up to 4 sub-sectors only.",
+            severity: "warning",
+        });
+        return;
+    }
+
+    if (selectedRoleName === "Musaid" && newSelection.length > 1) {
+        setSnackbar({
+            open: true,
+            message: "Musaid can select only 1 sub-sector.",
+            severity: "warning",
+        });
+        return;
+    }
+
+    setSelectedSubSector(newSelection);
+};
+
 
     const handleDeleteSector = (event, sectorToDelete) => {
         event.stopPropagation();
@@ -940,103 +963,139 @@ const isSectorAdmin = selectedRoleName === "Sector Admin";
                                         borderBottom: `1px solid ${yellow[300]}`,
                                     }}
                                 >
-                                    <FormControl size="small" sx={{ width: '40%' }}>
-                                        <InputLabel>Select Sub-Sector</InputLabel>
-                                        <Select
-                                            multiple
-                                            value={selectedSubSector}
-                                            onChange={handleSubSectorChange}
-                                            renderValue={(selected) => {
-                                                const displayedItems = selected.slice(0, 5); // Display up to 6 items
-                                                const hiddenItems = selected.slice(5); // Remaining items
-                                                const moreCount = hiddenItems.length; // Count of hidden items
+<FormControl size="small" sx={{ width: '40%' }}>
+  <InputLabel>Select Sub-Sector</InputLabel>
+  <Select
+    multiple
+    value={selectedSubSector}
+    onChange={(event) => {
+      const { value } = event.target;
+      const newSelection = typeof value === "string" ? value.split(",") : value;
+      const selectedRoleName = roleList.find((role) => role.id === roles)?.name;
 
-                                                return (
-                                                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                                                        {displayedItems.map((value) => (
-                                                            <Chip
-                                                                key={value}
-                                                                label={value}
-                                                                onMouseDown={(e) => e.stopPropagation()}
-                                                                onDelete={(event) => handleDeleteSubSector(event, value)}
-                                                                deleteIcon={<CancelIcon />}
-                                                            />
-                                                        ))}
-                                                        {moreCount > 0 && (
-                                                            <Tooltip
-                                                                title={
-                                                                    <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                                                        {hiddenItems.map((value) => (
-                                                                            <Box key={value}>{value}</Box>
-                                                                        ))}
-                                                                    </Box>
-                                                                }
-                                                                arrow
-                                                            >
-                                                                <Chip
-                                                                    label={`+${moreCount} more`}
-                                                                    sx={{
-                                                                        backgroundColor: "#f5f5f5",
-                                                                        cursor: "pointer",
-                                                                    }}
-                                                                />
-                                                            </Tooltip>
-                                                        )}
-                                                    </Box>
-                                                );
-                                            }}
+      if (selectedRoleName === "Masool" && newSelection.length > 4) {
+        setSnackbar({
+          open: true,
+          message: "Masool can select up to 4 sub-sectors only.",
+          severity: "warning",
+        });
+        return;
+      }
 
-                                            sx={{ border: "1px solid #F4EBD0", borderRadius: "8px" }}
-                                            MenuProps={{
-                                                PaperProps: {
-                                                    style: {
-                                                        maxHeight: 300,
-                                                        width: 300,
-                                                    },
-                                                },
-                                            }}
-                                        >
-                                            {selectedSectors.reduce((acc, sectorName) => {
-                                                const sectorSubSectors = filteredSubSectors.filter(
-                                                    (subSector) => subSector.sector_name === sectorName
-                                                );
-                                                return acc.concat(
-                                                    <ListSubheader
-                                                        key={sectorName}
-                                                        sx={{
-                                                            fontWeight: "bold",
-                                                            position: "sticky",
-                                                            top: 0,
-                                                            backgroundColor: yellow[100],
-                                                            zIndex: 1,
-                                                        }}
-                                                    >
-                                                        {sectorName}
-                                                    </ListSubheader>,
-                                                    sectorSubSectors.map((subSector) => (
-                                                        <MenuItem key={subSector.id} value={subSector.sub_sector_name}>
-                                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedSubSector.includes(subSector.sub_sector_name)}
-                                                                    onChange={() => {
-                                                                        if (selectedSubSector.includes(subSector.sub_sector_name)) {
-                                                                            setSelectedSubSector((prev) =>
-                                                                                prev.filter((name) => name !== subSector.sub_sector_name)
-                                                                            );
-                                                                        } else {
-                                                                            setSelectedSubSector((prev) => [...prev, subSector.sub_sector_name]);
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                {subSector.sub_sector_name}
-                                                            </Box>
-                                                        </MenuItem>
-                                                    ))
-                                                );
-                                            }, [])}
-                                        </Select>
-                                    </FormControl>
+      if (selectedRoleName === "Musaid" && newSelection.length > 1) {
+        setSnackbar({
+          open: true,
+          message: "Musaid can select only 1 sub-sector.",
+          severity: "warning",
+        });
+        return;
+      }
+
+      setSelectedSubSector(newSelection);
+    }}
+    renderValue={(selected) => {
+      const displayedItems = selected.slice(0, 5);
+      const hiddenItems = selected.slice(5);
+      const moreCount = hiddenItems.length;
+
+      return (
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+          {displayedItems.map((value) => (
+            <Chip
+              key={value}
+              label={value}
+              onMouseDown={(e) => e.stopPropagation()}
+              onDelete={(event) => handleDeleteSubSector(event, value)}
+              deleteIcon={<CancelIcon />}
+            />
+          ))}
+          {moreCount > 0 && (
+            <Tooltip
+              title={
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  {hiddenItems.map((value) => (
+                    <Box key={value}>{value}</Box>
+                  ))}
+                </Box>
+              }
+              arrow
+            >
+              <Chip
+                label={`+${moreCount} more`}
+                sx={{ backgroundColor: "#f5f5f5", cursor: "pointer" }}
+              />
+            </Tooltip>
+          )}
+        </Box>
+      );
+    }}
+    sx={{ border: "1px solid #F4EBD0", borderRadius: "8px" }}
+    MenuProps={{
+      PaperProps: {
+        style: { maxHeight: 300, width: 300 },
+      },
+    }}
+  >
+    {selectedSectors.reduce((acc, sectorName) => {
+      const sectorSubSectors = filteredSubSectors.filter(
+        (subSector) => subSector.sector_name === sectorName
+      );
+      return acc.concat(
+        <ListSubheader
+          key={sectorName}
+          sx={{
+            fontWeight: "bold",
+            position: "sticky",
+            top: 0,
+            backgroundColor: yellow[100],
+            zIndex: 1,
+          }}
+        >
+          {sectorName}
+        </ListSubheader>,
+        sectorSubSectors.map((subSector) => (
+          <MenuItem key={subSector.id} value={subSector.sub_sector_name}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <input
+                type="checkbox"
+                checked={selectedSubSector.includes(subSector.sub_sector_name)}
+                onChange={() => {
+                  const selectedRoleName = roleList.find((role) => role.id === roles)?.name;
+                  const isSelected = selectedSubSector.includes(subSector.sub_sector_name);
+                  const newSelection = isSelected
+                    ? selectedSubSector.filter((name) => name !== subSector.sub_sector_name)
+                    : [...selectedSubSector, subSector.sub_sector_name];
+
+                  if (selectedRoleName === "Masool" && newSelection.length > 4) {
+                    setSnackbar({
+                      open: true,
+                      message: "Masool can select up to 4 sub-sectors only.",
+                      severity: "warning",
+                    });
+                    return;
+                  }
+
+                  if (selectedRoleName === "Musaid" && newSelection.length > 1) {
+                    setSnackbar({
+                      open: true,
+                      message: "Musaid can select only 1 sub-sector.",
+                      severity: "warning",
+                    });
+                    return;
+                  }
+
+                  setSelectedSubSector(newSelection);
+                }}
+              />
+              {subSector.sub_sector_name}
+            </Box>
+          </MenuItem>
+        ))
+      );
+    }, [])}
+  </Select>
+</FormControl>
+
                                 </TableCell>
                             </TableRow>
                             )}
