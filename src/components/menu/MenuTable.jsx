@@ -18,6 +18,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
+import DeleteMenuDialog from './DeleteMenuDialog';
 
 import { Flip } from 'react-spring';
 const customLocaleText = {
@@ -25,7 +26,7 @@ const customLocaleText = {
   noResultsOverlayLabel: '', // Remove default "No results" text for filtered data
 };
 
-function MenuTable() {
+function MenuTable({ onEditMenu, refreshTrigger }) {
   const { token, loading, currency } = useUser();
   const [rows, setRows] = useState([]);
   const [filterText, setFilterText] = useState('');
@@ -36,10 +37,16 @@ function MenuTable() {
     pageSize: 10,
   });
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+const [snackbarMessage, setSnackbarMessage] = useState('');
+const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
   const navigate = useNavigate();
 
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
+    const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
 
-  const ActionButtonWithOptions = ({ onActionClick }) => {
+  const ActionButtonWithOptions = ({ onActionClick, row, onEditMenu, menuId }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
 
@@ -57,6 +64,16 @@ function MenuTable() {
     useEffect(() => {
       document.title = "Menu - FMB 52"; // Set the title for the browser tab
     }, []);
+
+    const handleEditClick = () => {
+    onEditMenu(row);  // Pass selected row to parent
+    handleClose();
+  };
+       const handleDeleteClick = () => {
+      setDeleteId(menuId); // Set the ID of the receipt to be deleted
+      setOpenDeleteDialog(true); // Open the delete dialog
+      handleClose();
+    };
 
     return (
       <Box>
@@ -88,7 +105,7 @@ function MenuTable() {
         >
 
           {/* Edit Option */}
-          <MenuItem onClick={() => { onActionClick('Edit Hub'); handleClose(); }}>
+          <MenuItem onClick={handleEditClick}>
             <Tooltip title="Edit" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                 <EditIcon sx={{ color: brown[200] }} />
@@ -98,14 +115,14 @@ function MenuTable() {
           </MenuItem>
 
           {/* Delete Option */}
-          <MenuItem onClick={() => { onActionClick('Transfer'); handleClose(); }}>
-            <Tooltip title="Delete" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <DeleteIcon sx={{ color: brown[200] }} />
-                Delete
-              </Box>
-            </Tooltip>
-          </MenuItem>
+          <MenuItem onClick={handleDeleteClick}>
+                      <Tooltip title="Delete" placement="left">
+                        <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                          <DeleteIcon sx={{ color: brown[200] }} />
+                          Delete
+                        </Box>
+                      </Tooltip>
+                    </MenuItem>
         </Menu>
       </Box>
     );
@@ -304,7 +321,7 @@ function MenuTable() {
       headerName: 'Action',
       width: 170,
       sortable: true,
-      renderCell: () => (
+      renderCell: (params) => (
         <Box
           sx={{
             display: 'flex',
@@ -314,7 +331,7 @@ function MenuTable() {
             height: '100%',
           }}
         >
-          <ActionButtonWithOptions />
+           <ActionButtonWithOptions row={params.row} onEditMenu={onEditMenu} menuId={params.row.id} />
         </Box>
       ),
     },
@@ -352,7 +369,7 @@ function MenuTable() {
     };
 
     fetchData();
-  }, [token, loading]);
+  }, [token, loading, refreshTrigger]);
 
   // Filter function to search the data
   const handleSearch = (e) => {
@@ -470,6 +487,21 @@ function MenuTable() {
           </div>
         </Paper>
       </Box>
+
+            <DeleteMenuDialog
+              open={openDeleteDialog}
+              onClose={() => setOpenDeleteDialog(false)}
+              menuId={deleteId}
+              onConfirm={() => {
+                // Handle the actual deletion here, for example:
+                // Delete the item from the state
+                setRows(rows.filter(row => row.id !== deleteId));
+                setOpenDeleteDialog(false);
+              }}
+               setSnackbarOpen={setSnackbarOpen}
+  setSnackbarMessage={setSnackbarMessage}
+  setSnackbarSeverity={setSnackbarSeverity}
+            />
 
     </AppTheme>
   );

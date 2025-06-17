@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect , useRef} from "react";
 import {
   Box,
   Typography,
@@ -22,8 +22,18 @@ import divider from "../../assets/divider.png";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
+import { useUser } from "../../UserContext";
+import { useOutletContext, useLocation } from "react-router-dom";
 
-const MenuForm = () => {
+
+
+
+const MenuForm = ({ menuData, onSuccess }) => {
+  const formRef = useRef(null);
+
+    const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
+  
+  const { token } = useUser();
   const [collapsed, setCollapsed] = useState(false);
   const [miqaatNoThaali, setMiqaatNoThaali] = useState(false);
   const [selectedHOF, setSelectedHOF] = useState("");
@@ -35,12 +45,56 @@ const MenuForm = () => {
   const [niyazBy, setNiyazBy] = useState("");
   const [sfDish, setSfDish] = useState("");
   const [sfDetails, setSfDetails] = useState("");
-
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
+
+    const year = selectedYear.length ? selectedYear : "1445-1446";
+    const sector = selectedSector.length ? selectedSector : ["all"];
+    const subSector = selectedSubSector.length ? selectedSubSector : ["all"];
+
+  // HOF fetching
+  const [hofOptions, setHofOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+
+const fetchHOFs = async () => {
+  if (loading || !token) return;
+  setLoading(true);
+  try {
+    const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join('&');
+    const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join('&');
+    const url = `https://api.fmb52.com/api/mumeneen?year=${year}&${sectorParams}&${subSectorParams}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+
+    const data = await response.json();
+    const hofData = (data.data || []).filter((item) => item.mumeneen_type === "HOF"); // 🔥 Only HOFs
+    setHofOptions(hofData);
+    setApiError(null);
+  } catch (error) {
+    console.error("Error fetching HOFs:", error);
+    setApiError("The data is currently unavailable. Please try again later.");
+    setHofOptions([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  useEffect(() => {
+    fetchHOFs();
+  }, [token]); // Re-run if token changes
 
   const handleCollapseToggle = () => {
     setCollapsed((prev) => !prev);
@@ -48,26 +102,95 @@ const MenuForm = () => {
 
   const handleSnackbarClose = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
-  // Dummy HOF options for Select dropdown - replace with real data
-  const hofOptions = [
-    { id: 1, name: "HOF 1" },
-    { id: 2, name: "HOF 2" },
-    { id: 3, name: "HOF 3" },
-  ];
 
-  const handleSubmit = () => {
-    // Your submit logic here
-    setSnackbar({
-      open: true,
-      message: "Form submitted!",
-      severity: "success",
-    });
+   // Whenever menuData changes, update form fields
+  useEffect(() => {
+    if (menuData) {
+      // formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      // console.log(menuData)
+
+      setDate(menuData.date || '');
+      setMenu(menuData.menu || '');
+      setNiyazBy(menuData.niaz_by || '');
+      setSfDish(menuData.sf_dish || '');
+      setSfDetails(menuData.sf_details || '');
+      setMiqaatNoThaali(menuData.status === 1);
+      setSelectedHOF(menuData.family_id || '');
+    } else {
+      // Reset form if no menuData
+      setDate(new Date().toISOString().split('T')[0]);
+      setMenu('');
+      setNiyazBy('');
+      setSfDish('');
+      setSfDetails('');
+      setMiqaatNoThaali(false);
+      setSelectedHOF('');
+    }
+  }, [menuData]);
+
+
+const handleSubmit = async () => {
+  const payload = {
+    status: miqaatNoThaali ? 1 : 0,
+    date,
+    menu,
+    niyaz_by: niyazBy,
+    sf_dish: sfDish,
+    sf_details: sfDetails,
   };
+
+  // If HOF is selected, add family_id to payload
+  if (selectedHOF) {
+    payload.family_id = selectedHOF;
+  }
+try {
+      const url = menuData
+        ? `https://api.fmb52.com/api/menus/update/${menuData.id}`
+        : 'https://api.fmb52.com/api/menus';
+
+      const method = menuData ? 'POST' : 'POST'; // or 'PUT' if backend expects it
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setSnackbar({
+          open: true,
+          message: data.message || (menuData ? 'Menu updated!' : 'Menu submitted!'),
+          severity: 'success',
+        });
+        if (onSuccess) onSuccess();
+        // Optionally reset form or keep loaded values
+      } else {
+        setSnackbar({
+          open: true,
+          message: data.message || 'Submission failed.',
+          severity: 'error',
+        });
+      }
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: 'Error occurred during submission.',
+        severity: 'error',
+      });
+    }
+  };
+
 
   return (
     <AppTheme>
       <CssBaseline />
       <Box
+      ref={formRef}
         sx={{
           mt: 17,
           pt: 2,
@@ -83,35 +206,11 @@ const MenuForm = () => {
           boxShadow: 1,
         }}
       >
-        {/* Header */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: "bold",
-              marginBottom: 1,
-              padding: "8px 16px",
-              borderRadius: 1,
-            }}
-          >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: 1, padding: "8px 16px", borderRadius: 1 }}>
             Add Menu
           </Typography>
-          {/* Collapse Icon */}
-          <IconButton
-            onClick={handleCollapseToggle}
-            sx={{
-              color: yellow[300],
-              "&:hover": {
-                color: yellow[400],
-              },
-            }}
-          >
+          <IconButton onClick={handleCollapseToggle} sx={{ color: yellow[300], "&:hover": { color: yellow[400] } }}>
             {collapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
           </IconButton>
         </Box>
@@ -120,13 +219,7 @@ const MenuForm = () => {
             sx={{
               width: "calc(100% + 48px)",
               position: "relative",
-             height: {
-                xs: 10,
-                sm: 15,
-                md: 15,
-                lg: 15,
-                xl: 15,
-              },
+              height: { xs: 10, sm: 15, md: 15, lg: 15, xl: 15 },
               backgroundImage: `url(${divider})`,
               backgroundSize: "contain",
               backgroundRepeat: "repeat-x",
@@ -139,16 +232,9 @@ const MenuForm = () => {
         )}
         <Collapse in={!collapsed}>
           <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
-            {/* First row */}
             <Grid item xs={12} md={6}>
               <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={miqaatNoThaali}
-                    onChange={(e) => setMiqaatNoThaali(e.target.checked)}
-                    color="primary"
-                  />
-                }
+                control={<Checkbox checked={miqaatNoThaali} onChange={(e) => setMiqaatNoThaali(e.target.checked)} color="primary" />}
                 label="Miqaat / No Thaali"
               />
             </Grid>
@@ -160,101 +246,63 @@ const MenuForm = () => {
                   value={selectedHOF}
                   label="Select HOF"
                   onChange={(e) => setSelectedHOF(e.target.value)}
+                  disabled={loading}
+                  MenuProps={{
+      anchorOrigin: {
+        vertical: 'bottom',
+        horizontal: 'left',
+      },
+      transformOrigin: {
+        vertical: 'top',
+        horizontal: 'left',
+      },
+      getContentAnchorEl: null, // Important for MUI v4
+      PaperProps: {
+        style: {
+          maxHeight: 300,
+        },
+      },
+    }}
                 >
                   {hofOptions.map((hof) => (
-                    <MenuItem key={hof.id} value={hof.id}>
+                    <MenuItem key={hof.id} value={hof.family_id}>
                       {hof.name}
                     </MenuItem>
                   ))}
                 </Select>
+                {apiError && <Typography color="error">{apiError}</Typography>}
               </FormControl>
             </Grid>
-
-            {/* Second row */}
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                // size="small"
-                label="Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
+              <TextField fullWidth label="Date" type="date" InputLabelProps={{ shrink: true }} value={date} onChange={(e) => setDate(e.target.value)} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                // size="small"
-                label="Menu"
-                value={menu}
-                onChange={(e) => setMenu(e.target.value)}
-              />
-            </Grid>
-
-            {/* Third row */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                // size="small"
-                label="Niyaz By"
-                value={niyazBy}
-                onChange={(e) => setNiyazBy(e.target.value)}
-              />
+              <TextField fullWidth label="Menu" value={menu} onChange={(e) => setMenu(e.target.value)} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                // size="small"
-                label="SF Dish"
-                value={sfDish}
-                onChange={(e) => setSfDish(e.target.value)}
-              />
+              <TextField fullWidth label="Niyaz By" value={niyazBy} onChange={(e) => setNiyazBy(e.target.value)} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                // size="small"
-                label="SF Details"
-                value={sfDetails}
-                onChange={(e) => setSfDetails(e.target.value)}
-              />
+              <TextField fullWidth label="SF Dish" value={sfDish} onChange={(e) => setSfDish(e.target.value)} />
             </Grid>
-
-            {/* Submit button */}
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="SF Details" value={sfDetails} onChange={(e) => setSfDetails(e.target.value)} />
+            </Grid>
             <Grid item xs={12} sx={{ textAlign: "right" }}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-                sx={{
-                  color: "white",
-                  backgroundColor: yellow[300],
-                  "&:hover": {
-                    backgroundColor: yellow[200],
-                    color: "#000",
-                  },
-                }}
-              >
+              <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ color: "white", backgroundColor: yellow[300], "&:hover": { backgroundColor: yellow[200], color: "#000" } }}>
                 Submit
               </Button>
             </Grid>
           </Grid>
         </Collapse>
       </Box>
-
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}
+         sx={{ height: "100%"}}
+        anchorOrigin={{
+      vertical: "top",
+      horizontal: "center"
+   }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} variant="filled" sx={{ width: "100%" }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

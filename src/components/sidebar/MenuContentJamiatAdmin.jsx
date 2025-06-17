@@ -754,8 +754,8 @@ const MenuContentJamiatAdmin = ({ open }) => {
       label: "User Management",
       icon: <AdminPanelSettingsIcon />,
       subOptions: [
-        { label: "Roles", path: "/roles", icon: <GroupIcon /> },
-        { label: "Permissions", path: "/user_access", icon: <SecurityIcon /> },
+        // { label: "Roles", path: "/roles", icon: <GroupIcon /> },
+        { label: "User Access", path: "/user_access", icon: <SecurityIcon /> },
       ],
     },
   ];

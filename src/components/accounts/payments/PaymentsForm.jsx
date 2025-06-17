@@ -40,8 +40,8 @@ const PaymentsForm = () => {
           },
           body: JSON.stringify({
             mode: "cash",
-            sector: "5",
-            sub_sector: ""
+            sector: selectedSector,
+            sub_sector: selectedSubSector
           })
         });
         const data = await response.json();
@@ -53,7 +53,7 @@ const PaymentsForm = () => {
       }
     };
     fetchReceipts();
-  }, [token]);
+  }, [token, selectedSector, selectedSubSector]);
 
   const toggleReceipt = (receiptNo) => {
     setSelectedReceipts((prev) => {

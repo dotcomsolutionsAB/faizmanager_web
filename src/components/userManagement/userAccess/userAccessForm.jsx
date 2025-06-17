@@ -197,51 +197,50 @@ export default function UserAccessForm() {
     const sector = ["all"];
     const subSector = ["all"];
 
-    const fetchData = async () => {
-        try {
-            const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
-            const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
+const fetchData = async () => {
+    try {
+        const url = `https://api.fmb52.com/api/mumeneen/name/${itsId}`;
 
-            const url = `https://api.fmb52.com/api/get_all_user?year=${year}&${sectorParams}&${subSectorParams}`;
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`, // Include Bearer token in headers
-                    "Content-Type": "application/json",
-                },
-            });
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
 
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
+        const data = await response.json();
 
-            const data = await response.json();
-            const foundUser = data.data.find((user) => user.its === itsId); // Match user by ITS
-            if (foundUser) {
-                setUser(foundUser); // Update the state with the found user details
-                setIsValid(true);
-                // Store user details in localStorage for persistence
-                localStorage.setItem("foundUserDetails", JSON.stringify(foundUser));
-                const storedUser = JSON.parse(localStorage.getItem("foundUserDetails"));
-                console.log("Stores user", storedUser); // Logs the stored user details
+        if (data.code === 200 && data.status === "success" && data.data) {
+            const fetchedUser = {
+                id: itsId, // If you only have ITS
+                its: itsId,
+                name: data.data.name,
+            };
 
-            } else {
-
-                setUser(null);
-                setIsValid(false);
-                // Remove previously stored user details if not found
-                localStorage.removeItem("foundUserDetails");
-            }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-            setApiError(
-                "The data is currently unavailable, but we are working to resolve this. Thank you for your patience!"
-            );
+            setUser(fetchedUser);
+            setIsValid(true);
+            setApiError(""); // ✅ Clear the error message
+            localStorage.setItem("foundUserDetails", JSON.stringify(fetchedUser));
+        } else {
             setUser(null);
             setIsValid(false);
+            setApiError("User not found.");
+            localStorage.removeItem("foundUserDetails");
         }
-    };
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+        setApiError("The data is currently unavailable, but we are working to resolve this. Thank you for your patience!");
+        setUser(null);
+        setIsValid(false);
+    }
+};
+
+
     // Fetch roles from /api/roles/all
     useEffect(() => {
         const fetchRoles = async () => {
@@ -301,41 +300,41 @@ export default function UserAccessForm() {
     }, [token]);
 
     // Fetch permissions for the selected role
-    useEffect(() => {
-        if (!roles) {
-            setModules([]); // Clear selected modules if no role is selected
-            return;
+useEffect(() => {
+    if (!roles) {
+        setModules([]);
+        setRolePermissions([]);
+        return;
+    }
+
+    const fetchRolePermissions = async () => {
+        try {
+            const response = await fetch(`https://api.fmb52.com/api/permissions/by_role/${roles}`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) throw new Error("Failed to fetch role permissions");
+
+            const result = await response.json();
+            const rolePermissions = (result?.data?.permissions || []).map((perm) => perm.name);
+
+            setModules(rolePermissions); // Set selected modules as exactly what comes from API
+            setRolePermissions(rolePermissions); // Set dropdown options to only these
+        } catch (error) {
+            console.error("Error fetching role permissions:", error);
+            setModules([]);
+            setRolePermissions([]);
         }
+    };
 
-        const fetchRolePermissions = async () => {
-            try {
-                const response = await fetch(`https://api.fmb52.com/api/roles/${roles}/permissions`, {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                });
-                if (!response.ok) throw new Error("Failed to fetch role permissions");
+    fetchRolePermissions();
+}, [roles, token]);
 
-                const data = await response.json();
-                const rolePermissions = data.permissions.map((permission) => permission.name);
 
-                // Combine role-specific permissions with currently selected modules
-                setModules((prevModules) => {
-                    const combinedPermissions = new Set([...prevModules, ...rolePermissions]);
-                    return Array.from(combinedPermissions); // Convert back to array
-                });
-
-                setRolePermissions(rolePermissions); // Update state for role-specific permissions
-            } catch (error) {
-                console.error("Error fetching role permissions:", error);
-                setRolePermissions([]);
-            }
-        };
-
-        fetchRolePermissions();
-    }, [roles, token]);
 
 
     // Check if a module is selected for the role
@@ -585,7 +584,7 @@ export default function UserAccessForm() {
 
 
                             {/* Validity */}
-                            <TableRow>
+                            {/* <TableRow>
                                 <TableCell
                                     sx={{
                                         fontWeight: "bold",
@@ -618,7 +617,7 @@ export default function UserAccessForm() {
                                     />
 
                                 </TableCell>
-                            </TableRow>
+                            </TableRow> */}
 
                             {/* Assign Roles */}
                             <TableRow>
@@ -799,15 +798,14 @@ export default function UserAccessForm() {
     >
         {/* Grouped modules with ListSubheader and Checkbox */}
         {Object.entries(
-            Object.entries(permissionNameMap).reduce((acc, [key, label]) => {
-                const [category] = key.split(".");
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
-                acc[category].push({ key, label });
-                return acc;
-            }, {})
-        ).map(([category, items]) => {
+      rolePermissions.reduce((acc, name) => {
+        const [category] = name.split(".");
+        const label = permissionNameMap[name] || name;
+        if (!acc[category]) acc[category] = [];
+        acc[category].push({ key: name, label });
+        return acc;
+      }, {})
+    ).map(([category, items]) => {
             const allSelected = items.every((item) => modules.includes(item.key));
             const someSelected = items.some((item) => modules.includes(item.key)) && !allSelected;
 
