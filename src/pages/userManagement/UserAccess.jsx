@@ -1204,23 +1204,25 @@ import { CssBaseline } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
 import UserAccessForm from "../../components/userManagement/userAccess/userAccessForm"; // Adjust the path as needed
 import UserAccessTable from "../../components/userManagement/userAccess/userAccessTable"; // Adjust the path as needed
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
 
 const UserAccess = () => {
       // Set the document title
       useEffect(() => {
         document.title = "Permissions - FMB 52"; // Set the title for the browser tab
       }, []);
+      const [editUserData, setEditUserData] = useState(null);
     
   return (
     <AppTheme>
       <CssBaseline />
 
       {/* Form Component */}
-      <UserAccessForm />
+      <UserAccessForm  editData={editUserData} setEditData={setEditUserData}/>
 
       {/* Table Component */}
-      <UserAccessTable />
+      <UserAccessTable setEditUserData={setEditUserData}/>
     </AppTheme>
   );
 };

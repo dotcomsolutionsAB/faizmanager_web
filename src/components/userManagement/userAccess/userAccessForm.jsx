@@ -37,7 +37,7 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
 
 
-export default function UserAccessForm() {
+export default function UserAccessForm({editData,setEditData}) {
     const { token } = useUser();
     const [collapsed, setCollapsed] = useState(false); // State for collapse
 
@@ -66,10 +66,27 @@ export default function UserAccessForm() {
     const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
 
-    const handleSectorChange = (event) => {
-        const { value } = event.target;
-        setSelectedSectors(typeof value === "string" ? value.split(",") : value);
-    };
+const handleSectorChange = (event) => {
+    const { value } = event.target;
+    const newSelection = typeof value === "string" ? value.split(",") : value;
+
+    const selectedRoleName = roleList.find((role) => role.id === roles)?.name;
+
+    if (
+        ["Sector Admin", "Masool", "Musaid"].includes(selectedRoleName) &&
+        newSelection.length > 1
+    ) {
+        setSnackbar({
+            open: true,
+            message: `${selectedRoleName} can select only 1 sector.`,
+            severity: "warning",
+        });
+        return;
+    }
+
+    setSelectedSectors(newSelection);
+};
+
 
 const handleSubSectorChange = (event) => {
     const { value } = event.target;
@@ -149,69 +166,99 @@ const handleSubSectorChange = (event) => {
     //   }
     // }
 
-    const handleSubmit = async () => {
-        if (!user || !modules.length || !validityDate || !selectedSectors.length || !selectedSubSector.length) {
-            setSnackbar({
-                open: true,
-                message: "Please make sure all fields are filled before submitting.",
-                severity: "warning",
-            });
-            return;
-        }
+    useEffect(() => {
+  if (editData) {
+    setItsId(editData.its);
+    setUser({
+      id: editData.id,
+      its: editData.its,
+      name: editData.name,
+    });
+    setRoles(editData.role_id); // You may need to include role_id in tableData
+    setModules(editData.permissions.map((perm) => perm.permission_name));
+    setSelectedSectors(editData.sector_names); // may need to map to sector names
+    setSelectedSubSector(editData.sub_sector_names); // same here
+    setIsValid(true);
+  }
+}, [editData]);
 
-        const body = {
-            user_id: user.id, // Get the ID from the stored user
-            permissions: modules.map((moduleName) => ({
-                name: moduleName, // Module name from dropdown
-                valid_from: today, // Current date
-                valid_to: validityDate, // Selected validity date
-            })),
-            sub_sector_ids: filteredSubSectors
-                .filter((subSector) => selectedSubSector.includes(subSector.sub_sector_name))
-                .map((subSector) => subSector.id), // Map selected sub-sectors to their IDs
-        };
 
-        console.log("body", body);
+const handleSubmit = async () => {
+    if (!user || !modules.length || !selectedSectors.length) {
+        setSnackbar({
+            open: true,
+            message: "Please make sure all fields are filled before submitting.",
+            severity: "warning",
+        });
+        return;
+    }
 
-        try {
-            const response = await fetch("https://api.fmb52.com/api/users/assign-permissions", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`, // Include Bearer token in headers
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body), // Convert the request body to JSON
-            });
+    const selectedSectorIds = sectorList
+        .filter((sector) => selectedSectors.includes(sector.name))
+        .map((sector) => sector.id);
 
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            setSnackbar({
-                open: true,
-                message: "Permissions successfully assigned!",
-                severity: "success",
-            });
-            console.log("Response data:", data);
-            // Clear all fields after successful submission
-        setItsId(""); // Clear ITS ID
-        setUser(null); // Clear user data
-        setValidityDate(""); // Clear validity date
-        setModules([]); // Clear selected modules
-        setSelectedSectors([]); // Clear selected sectors
-        setSelectedSubSector([]); // Clear selected sub-sectors
-        setApiError(""); // Clear any error messages
-        setIsValid(null); // Reset validation status
-        } catch (error) {
-            console.error("Error submitting permissions:", error);
-            setSnackbar({
-                open: true,
-                message: "There was an error submitting the permissions. Please try again.",
-                severity: "error",
-            });
-        }
+    const selectedSubSectorIds = filteredSubSectors
+        .filter((subSector) => selectedSubSector.includes(subSector.sub_sector_name))
+        .map((subSector) => subSector.id);
+console.log(user.id)
+    const body = {
+        user_id: user.id,
+        role_id: roles, // role_id from selected dropdown
+        permissions: modules.map((moduleName) => ({
+            name: moduleName,
+            valid_from: today,
+            valid_to: validityDate || today, // fallback in case not selected
+        })),
+        sector_id: selectedSectorIds,
+        sub_sector_ids: selectedSubSectorIds
     };
+    console.log(body)
+
+    try {
+        const response = await fetch("https://api.fmb52.com/api/users/assign-permissions", {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setSnackbar({
+            open: true,
+            message: "Permissions successfully assigned!",
+            severity: "success",
+        });
+
+        // Clear all fields
+        setItsId("");
+        setUser(null);
+        setValidityDate("");
+        setModules([]);
+        setSelectedSectors([]);
+        setSelectedSubSector([]);
+        setApiError("");
+        setIsValid(null);
+if (setEditData) {
+  setEditData(null); // ✅ Reset edit mode if this prop is passed
+}
+
+        console.log("API Success:", data);
+    } catch (error) {
+        console.error("Error submitting permissions:", error);
+        setSnackbar({
+            open: true,
+            message: "There was an error submitting the permissions. Please try again.",
+            severity: "error",
+        });
+    }
+};
+
 
     // Hardcoded values for sector, subSector, and year
 
@@ -240,7 +287,7 @@ const fetchData = async () => {
 
         if (data.code === 200 && data.status === "success" && data.data) {
             const fetchedUser = {
-                id: itsId, // If you only have ITS
+                id: data.data.id, // If you only have ITS
                 its: itsId,
                 name: data.data.name,
             };

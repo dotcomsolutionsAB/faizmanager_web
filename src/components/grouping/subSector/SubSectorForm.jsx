@@ -32,7 +32,8 @@ const SubSectorForm = () => {
     const { token } = useUser();
     const [collapsed, setCollapsed] = useState(false); // Collapse state
     const [subSectorName, setSubSectorName] = useState("");
-    const [sectorName, setSectorName] = useState("");
+    const [sectorId, setSectorId] = useState("");
+
     const [inchargeName, setInchargeName] = useState("");
     const [inchargeMobile, setInchargeMobile] = useState("");
     const [inchargeEmail, setInchargeEmail] = useState("");
@@ -78,7 +79,7 @@ const SubSectorForm = () => {
     }, []);
 
     const handleSubmit = async () => {
-        if (!subSectorName || !sectorName || !inchargeName || !inchargeMobile || !inchargeEmail) {
+        if (!subSectorName || !sectorId) {
             setSnackbar({
                 open: true,
                 message: "Please fill all the fields before submitting.",
@@ -89,14 +90,11 @@ const SubSectorForm = () => {
 
         const payload = {
             sub_sector_name: subSectorName,
-            sector_name: sectorName,
-            incharge_name: inchargeName,
-            incharge_mobile: inchargeMobile,
-            incharge_email: inchargeEmail,
+            sector_id: sectorId,
         };
 
         try {
-            const response = await fetch("https://api.fmb52.com/api/subsector/create", {
+            const response = await fetch("https://api.fmb52.com/api/sub_sector", {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -117,10 +115,7 @@ const SubSectorForm = () => {
 
             // Clear form fields
             setSubSectorName("");
-            setSectorName("");
-            setInchargeName("");
-            setInchargeMobile("");
-            setInchargeEmail("");
+            setSectorId("");
         } catch (error) {
             console.error("Error submitting sub-sector:", error);
             setSnackbar({
@@ -221,59 +216,28 @@ const SubSectorForm = () => {
 
                         {/* Sector Name */}
                         <Grid item xs={12} md={3}>
-                            <FormControl size="small" fullWidth>
-                                <InputLabel>Select Sector</InputLabel>
-                                <Select
-                                    value={sectorName}
-                                    onChange={(e) => setSectorName(e.target.value)}
-                                >
-                                    {sectors.map((sector) => (
-                                        <MenuItem key={sector.id} value={sector.name}>
-                                            {sector.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+<FormControl size="small" fullWidth>
+    <InputLabel>Select Sector</InputLabel>
+    <Select
+        value={sectorId}
+        onChange={(e) => setSectorId(e.target.value)}
+        label="Select Sector"
+    >
+        {sectors.map((sector) => (
+            <MenuItem key={sector.id} value={sector.id}>
+                {sector.name}
+            </MenuItem>
+        ))}
+    </Select>
+</FormControl>
+
                         </Grid>
 
                         {/* Incharge Name */}
-                        <Grid item xs={12} md={3}>
-                            <TextField
-                                label="Incharge Name"
-                                variant="outlined"
-                                size="small"
-                                value={inchargeName}
-                                onChange={(e) => setInchargeName(e.target.value)}
-                                fullWidth
-                                placeholder="Enter Incharge Name"
-                            />
-                        </Grid>
 
                         {/* Incharge Mobile */}
-                        <Grid item xs={12} md={3}>
-                            <TextField
-                                label="Incharge Mobile"
-                                variant="outlined"
-                                size="small"
-                                value={inchargeMobile}
-                                onChange={(e) => setInchargeMobile(e.target.value)}
-                                fullWidth
-                                placeholder="Enter Incharge Mobile"
-                            />
-                        </Grid>
 
                         {/* Incharge Email */}
-                        <Grid item xs={12} md={3}>
-                            <TextField
-                                label="Incharge Email"
-                                variant="outlined"
-                                size="small"
-                                value={inchargeEmail}
-                                onChange={(e) => setInchargeEmail(e.target.value)}
-                                fullWidth
-                                placeholder="Enter Incharge Email"
-                            />
-                        </Grid>
                     </Grid>
 
                     {/* Submit Button */}

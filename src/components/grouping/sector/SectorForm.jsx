@@ -22,8 +22,11 @@ import divider from '../../../assets/divider.png';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
+import { useUser } from "../../../UserContext";
+
 
 const SectorForm = () => {
+    const {token} = useUser();
     const [collapsed, setCollapsed] = useState(false); // State for collapse
     const [sectorName, setSectorName] = useState("");
     const [secretaryName, setSecretaryName] = useState("");
@@ -40,7 +43,7 @@ const SectorForm = () => {
     const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
     const handleSubmit = async () => {
-        if (!sectorName || !secretaryName || !secretaryMobile || !secretaryEmail) {
+        if (!sectorName) {
             setSnackbar({
                 open: true,
                 message: "Please fill all the fields before submitting.",
@@ -51,15 +54,14 @@ const SectorForm = () => {
 
         const payload = {
             sector_name: sectorName,
-            secretary_name: secretaryName,
-            secretary_mobile: secretaryMobile,
-            secretary_email: secretaryEmail,
+            // notes: null,
         };
 
         try {
             const response = await fetch("https://api.fmb52.com/api/sector", {
-                method: "GET",
+                method: "POST",
                 headers: {
+                    Authorization: `Bearer ${token}`, // Include Bearer token in headers
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(payload),
@@ -77,9 +79,6 @@ const SectorForm = () => {
 
             // Clear form fields
             setSectorName("");
-            setSecretaryName("");
-            setSecretaryMobile("");
-            setSecretaryEmail("");
         } catch (error) {
             console.error("Error submitting sector:", error);
             setSnackbar({
@@ -180,46 +179,11 @@ const SectorForm = () => {
                     </Grid>
 
                     {/* Secretary Name */}
-                    <Grid item xs={12} md={3}>
-                        {/* <Typography sx={{ fontWeight: "bold" }}>Secretary</Typography> */}
-                        <TextField
-                            label="Secretary Name"
-                            variant="outlined"
-                            size="small"
-                            value={secretaryName}
-                            onChange={(e) => setSecretaryName(e.target.value)}
-                            fullWidth
-                            placeholder="Please enter name of the secretary.."
-                        />
-                    </Grid>
 
                     {/* Secretary Mobile */}
-                    <Grid item xs={12} md={3}>
-                        {/* <Typography sx={{ fontWeight: "bold" }}>Mobile</Typography> */}
-                        <TextField
-                            label="Secretary Mobile No"
-                            variant="outlined"
-                            size="small"
-                            value={secretaryMobile}
-                            onChange={(e) => setSecretaryMobile(e.target.value)}
-                            fullWidth
-                            placeholder="Please enter mobile no of the secretary.."
-                        />
-                    </Grid>
 
                     {/* Secretary Email */}
-                    <Grid item xs={12} md={3}>
-                        {/* <Typography sx={{ fontWeight: "bold" }}>Email</Typography> */}
-                        <TextField
-                            label="Secretary Email ID"
-                            variant="outlined"
-                            size="small"
-                            value={secretaryEmail}
-                            onChange={(e) => setSecretaryEmail(e.target.value)}
-                            fullWidth
-                            placeholder="Please enter Email ID of the secretary.."
-                        />
-                    </Grid>
+
                 </Grid>
                   {/* Submit Button */}
                   <Box sx={{ textAlign: "right", mt: 3 }}>

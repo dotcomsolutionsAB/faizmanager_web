@@ -530,7 +530,8 @@ import {
     TableRow,
     TableHead,
     Paper,
-    Table
+    Table,
+     Menu, MenuItem
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import { yellow, brown } from "../../../styles/ThemePrimitives";
@@ -538,11 +539,18 @@ import { useUser } from "../../../UserContext";
 import divider from "../../../assets/divider.png";
 import AppTheme from "../../../styles/AppTheme";
 import CloseIcon from "@mui/icons-material/Close";
+// import Dialog from '@mui/material/Dialog';
+// import DialogActions from '@mui/material/DialogActions';
+// import DialogContent from '@mui/material/DialogContent';
+// import DialogTitle from '@mui/material/DialogTitle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Tooltip from '@mui/material/Tooltip';
+import EditIcon from '@mui/icons-material/Edit';
 
-const UserAccessTable = () => {
+
+const UserAccessTable = ({setEditUserData}) => {
     const { token } = useUser();
     const [tableData, setTableData] = useState([]);
-    const [userDetails, setUserDetails] = useState({});
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -552,48 +560,52 @@ const UserAccessTable = () => {
         setDialogOpen(false);
         setSelectedUser(null);
     };
+    const handleActionClick = (action, row) => {
+  if (action === "Edit Hub") {
+    setEditUserData(row); // 🔥 Send row to the form for editing
+    window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top to focus on form
+  }
+};
 
-    const fetchTableData = async () => {
-        try {
-            const response = await fetch("https://api.fmb52.com/api/users/with-permissions", {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
 
-            if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+const fetchTableData = async () => {
+    try {
+        const response = await fetch("https://api.fmb52.com/api/users/with-permissions", {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-            const data = await response.json();
-            console.log("Raw API Response:", data.data); // Log raw API response
+        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
 
-            const userIds = data.data.map((user) => user.user_id); // Extract all user IDs
-            const userDetailsMap = await fetchUserDetails(userIds); // Fetch ITS from user_details API
+        const data = await response.json();
 
-            // Transform table data
-            const transformedData = data.data.map((user) => ({
-                id: user.user_id, // Use `user_id` as `id`
-                its: userDetailsMap[user.user_id]?.its || "N/A", // Fetch ITS from userDetailsMap
-                mobile: userDetailsMap[user.user_id]?.mobile || "N/A", // Placeholder for mobile
-                name: user.user_name || "N/A", // Use `user_name`
-                email: user.user_email || "N/A", // Use `user_email`
+        const transformedData = data.data.map((user) => ({
+            id: user.user_id,
+            its: user.its || "N/A",
+            name: user.user_name || "N/A",
+            email: user.user_email || "N/A",
+            mobile: user.mobile || "N/A",
+            role: user.user_role || "N/A",
+            role_id: user.role_id || null,
+            permissions: user.permissions || [],
+            sector_names: user.sector_names || [],
+            sub_sector_names: user.sub_sector_names || [],
+        }));
 
-                permissions: user.permissions || [], // Ensure permissions is an array
-                role: user.user_role || "N/A", // Add role for display
-            }));
+        setTableData(transformedData);
+    } catch (error) {
+        console.error("Error fetching table data:", error);
+        setSnackbar({
+            open: true,
+            message: "Failed to fetch table data.",
+            severity: "error",
+        });
+    }
+};
 
-            console.log("Transformed Table Data:", transformedData); // Debug transformed data
-            setTableData(transformedData);
-        } catch (error) {
-            console.error("Error fetching table data:", error);
-            setSnackbar({
-                open: true,
-                message: "Failed to fetch table data.",
-                severity: "error",
-            });
-        }
-    };
 
     const fetchUserDetails = async (userIds) => {
         const userDetailsMap = {};
@@ -655,7 +667,88 @@ const UserAccessTable = () => {
             .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
             .join(" "); // Join the words with spaces
     };
+  const ActionButtonWithOptions = ({ onActionClick, row }) => {
+    const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
+    const open = Boolean(anchorEl);
 
+    // Open the menu
+    const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+
+    // Close the menu
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+
+
+
+
+     const handleDeleteClick = () => {
+
+        console.log("Delete")
+      handleClose();
+    };
+
+    // Set the document title
+    useEffect(() => {
+      document.title = "User Access- FMB 52"; // Set the title for the browser tab
+    }, []);
+
+    return (
+      <Box>
+        {/* Actions Button */}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleClick}
+        >
+          Actions
+          {/* <MoreVertIcon /> */}
+
+        </Button>
+
+        {/* Dropdown Menu */}
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}
+        >
+
+
+
+          {/* Edit Option */}
+          <MenuItem onClick={() => { onActionClick("Edit Hub", row); handleClose(); }}>
+            <Tooltip title="Edit" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <EditIcon sx={{ color: brown[200] }} />
+                Edit
+              </Box>
+            </Tooltip>
+          </MenuItem>
+
+          {/* Delete Option */}
+          <MenuItem onClick={handleDeleteClick}>
+            <Tooltip title="Delete" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <DeleteIcon sx={{ color: brown[200] }} />
+                Delete
+              </Box>
+            </Tooltip>
+          </MenuItem>
+        </Menu>
+      </Box>
+    );
+  };
     const columns = [
         {
             field: "its",
@@ -719,26 +812,25 @@ const UserAccessTable = () => {
                 </Button>
             ),
         },
-        {
-            field: "actions",
-            headerName: "Actions",
-            flex: 1,
-            renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    size="small"
-                    sx={{
-                        backgroundColor: yellow[400],
-                        "&:hover": {
-                            backgroundColor: yellow[100],
-                            color: "#000",
-                        },
-                    }}
+         {
+              field: 'action',
+              headerName: 'Action',
+              width: 170,
+              sortable: true,
+              renderCell: (params) => (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '100%',
+                    height: '100%',
+                  }}
                 >
-                    Actions
-                </Button>
-            ),
-        },
+                  <ActionButtonWithOptions onActionClick={handleActionClick} row={params.row} />
+                </Box>
+              ),
+            },
     ];
 
     useEffect(() => {
