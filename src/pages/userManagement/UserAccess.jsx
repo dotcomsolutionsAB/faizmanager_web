@@ -1202,8 +1202,8 @@
 import React from "react";
 import { CssBaseline } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
-import UserAccessForm from "../../components/userManagement/userAccess/userAccessForm"; // Adjust the path as needed
-import UserAccessTable from "../../components/userManagement/userAccess/userAccessTable"; // Adjust the path as needed
+import UserAccessForm from "../../components/userManagement/userAccess/UserAccessForm"; // Adjust the path as needed
+import UserAccessTable from "../../components/userManagement/userAccess/UserAccessTable"; // Adjust the path as needed
 import { useEffect, useState } from "react";
 
 

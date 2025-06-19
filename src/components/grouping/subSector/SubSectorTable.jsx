@@ -1,158 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import {
-//     Table,
-//     TableBody,
-//     TableCell,
-//     TableContainer,
-//     TableHead,
-//     TableRow,
-//     Typography,
-//     Paper,
-//     Box,
-//     Button,
-//     Snackbar,
-//     Alert,
-//     CssBaseline
-// } from "@mui/material";
-// import { yellow } from "../../../styles/ThemePrimitives";
-// import AppTheme from "../../../styles/AppTheme";
-// import { useUser } from "../../../UserContext";
-
-// const SubSectorTable = () => {
-//     const {token} = useUser();
-//     const [tableData, setTableData] = useState([]);
-//     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-
-//     const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
-
-//     const fetchTableData = async () => {
-//         try {
-//             const response = await fetch("https://api.fmb52.com/api/sub_sector", {
-//                 method: "GET",
-//                 headers: {
-//                     "Content-Type": "application/json",
-//                     Authorization: `Bearer ${token}`,
-
-//                 },
-//             });
-
-//             if (!response.ok) {
-//                 throw new Error(`Error ${response.status}: ${response.statusText}`);
-//             }
-
-//             const data = await response.json();
-//             setTableData(data.data || []);
-//         } catch (error) {
-//             console.error("Error fetching table data:", error);
-//             setSnackbar({
-//                 open: true,
-//                 message: "Failed to fetch table data.",
-//                 severity: "error",
-//             });
-//         }
-//     };
-
-//     useEffect(() => {
-//         fetchTableData();
-//     }, []);
-
-//     return (
-//         <AppTheme>
-//             <CssBaseline />
-//             <Box
-//                 sx={{
-//                     mt: 2,
-//                     pt: 2,
-//                     pb: 3,
-//                     pl: 3,
-//                     pr: 3,
-//                     mr: 2,
-//                     ml: 2,
-//                     mb: 3,
-//                     backgroundColor: "#fff",
-//                     border: "1px solid #F4EBD0",
-//                     borderRadius: 2,
-//                     boxShadow: 1,
-//                 }}
-//             >
-//                 <Typography
-//                     variant="h6"
-//                     sx={{
-//                         fontWeight: "bold",
-//                         marginBottom: 1,
-//                         padding: "8px 16px",
-//                         borderRadius: 1,
-//                     }}
-//                 >
-//                     Sub-Sector Details Table
-//                 </Typography>
-//                 <TableContainer component={Paper} sx={{ border: `1px solid ${yellow[300]}` }}>
-//                     <Table sx={{ minWidth: 650 }} aria-label="subsector table">
-//                         <TableHead>
-//                             <TableRow>
-//                                 <TableCell sx={{ fontWeight: "bold", backgroundColor: yellow[300], color: "white" }}>SN</TableCell>
-//                                 <TableCell sx={{ fontWeight: "bold", backgroundColor: yellow[300], color: "white" }}>Sub-Sector</TableCell>
-//                                 <TableCell sx={{ fontWeight: "bold", backgroundColor: yellow[300], color: "white" }}>Incharge</TableCell>
-//                                 <TableCell sx={{ fontWeight: "bold", backgroundColor: yellow[300], color: "white" }}>Mobile</TableCell>
-//                                 <TableCell sx={{ fontWeight: "bold", backgroundColor: yellow[300], color: "white" }}>Email</TableCell>
-//                                 <TableCell sx={{ fontWeight: "bold", backgroundColor: yellow[300], color: "white" }}>Actions</TableCell>
-//                             </TableRow>
-//                         </TableHead>
-//                         <TableBody>
-//                             {tableData.map((row, index) => {
-//                                 const { sector_name, sub_sector_name, notes } = row;
-//                                 const inchargeMatch = notes.match(/Incharge: (.*?),/);
-//                                 const mobileMatch = notes.match(/Mobile: (.*?),/);
-//                                 const emailMatch = notes.match(/Email: (.*)/);
-
-//                                 return (
-//                                     <TableRow key={row.id}>
-//                                         <TableCell>{index + 1}</TableCell>
-//                                         <TableCell>{`${sector_name}-${sub_sector_name}`}</TableCell>
-//                                         <TableCell>{inchargeMatch ? inchargeMatch[1] : "N/A"}</TableCell>
-//                                         <TableCell>{mobileMatch ? mobileMatch[1] : "N/A"}</TableCell>
-//                                         <TableCell>{emailMatch ? emailMatch[1].trim() : "N/A"}</TableCell>
-//                                         <TableCell>
-//                                             <Button
-//                                                 variant="contained"
-//                                                 size="small"
-//                                                 color="primary"
-//                                                 sx={{
-//                                                     backgroundColor: yellow[400],
-//                                                     '&:hover': {
-//                                                         backgroundColor: yellow[100],
-//                                                         color: '#000',
-//                                                     },
-//                                                 }}
-//                                             >
-//                                                 Actions
-//                                             </Button>
-//                                         </TableCell>
-//                                     </TableRow>
-//                                 );
-//                             })}
-//                         </TableBody>
-//                     </Table>
-//                 </TableContainer>
-
-//                 <Snackbar
-//                     open={snackbar.open}
-//                     autoHideDuration={6000}
-//                     onClose={handleSnackbarClose}
-//                     anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-//                 >
-//                     <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: "100%" }}>
-//                         {snackbar.message}
-//                     </Alert>
-//                 </Snackbar>
-//             </Box>
-//         </AppTheme>
-//     );
-// };
-
-// export default SubSectorTable;
-
-
 import React, { useEffect, useState } from "react";
 import {
     Typography,
@@ -168,6 +13,7 @@ import {
     IconButton,
     Menu,
     MenuItem,
+    TextField
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import { yellow, brown } from "../../../styles/ThemePrimitives";
@@ -183,6 +29,8 @@ const SubSectorTable = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedSubSector, setSelectedSubSector] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
+    const [filterText, setFilterText] = useState("");
+
 
     const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
     const handleDialogClose = () => {
@@ -323,17 +171,42 @@ const SubSectorTable = () => {
                     boxShadow: 1,
                 }}
             >
-                <Typography
-                    variant="h6"
-                    sx={{
-                        fontWeight: "bold",
-                        marginBottom: 1,
-                        padding: "8px 16px",
-                        borderRadius: 1,
-                    }}
-                >
-                    Sub-Sectors
-                </Typography>
+<Box
+  sx={{
+    display: "flex",
+    flexDirection: { xs: "column", sm: "row" },
+    justifyContent: "space-between",
+    alignItems: { xs: "flex-start", sm: "center" },
+    gap: 2,
+    mb: 2,
+    px: 2,
+  }}
+>
+  <Typography
+    variant="h6"
+    sx={{
+      fontWeight: "bold",
+    }}
+  >
+    Sub-Sectors
+  </Typography>
+
+  <TextField
+    label="Search"
+    variant="outlined"
+    value={filterText}
+    onChange={(e) => setFilterText(e.target.value)}
+    sx={{ width: { xs: "100%", sm: "300px" } }}
+    InputProps={{
+      sx: {
+        height: "52px",
+        display: "flex",
+        alignItems: "center",
+      },
+    }}
+  />
+</Box>
+
                  <Box
                                                     sx={{
                                                         width: "calc(100% + 48px)",
@@ -361,7 +234,14 @@ const SubSectorTable = () => {
                     }}
                 >
                     <DataGridPro
-                        rows={subSectors}
+                        rows={subSectors.filter((s) =>
+    Object.values(s).some(
+        (value) =>
+            typeof value === "string" &&
+            value.toLowerCase().includes(filterText.toLowerCase())
+    )
+)}
+
                         columns={columns}
                         getRowId={(row) => row.id}
                         rowHeight={100}
