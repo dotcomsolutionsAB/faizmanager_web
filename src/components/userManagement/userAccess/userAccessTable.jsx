@@ -531,7 +531,7 @@ import {
     TableHead,
     Paper,
     Table,
-     Menu, MenuItem
+    Menu, MenuItem
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import { yellow, brown } from "../../../styles/ThemePrimitives";
@@ -548,16 +548,16 @@ import Tooltip from '@mui/material/Tooltip';
 import EditIcon from '@mui/icons-material/Edit';
 import UserAccessDeleteDialog from "./UserAccessDeleteDialog";
 
-const UserAccessTable = ({setEditUserData}) => {
+const UserAccessTable = ({ setEditUserData }) => {
     const { token } = useUser();
     const [tableData, setTableData] = useState([]);
-      const [snackbar, setSnackbar] = useState(false);
+    const [snackbar, setSnackbar] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [deleteId, setDeleteId] = useState(null); 
-    const [openDeleteDialog, setOpenDeleteDialog] = useState(false); 
+    const [deleteId, setDeleteId] = useState(null);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [rows, setRows] = useState([]);
     const handleDeleteDialogClose = () => setOpenDeleteDialog(false);
 
@@ -568,9 +568,40 @@ const UserAccessTable = ({setEditUserData}) => {
         setSelectedUser(null);
     };
     const handleActionClick = async (action, row) => {
-    if (action === "Edit") {
+        if (action === "Edit") {
+            try {
+                const res = await fetch(`https://api.fmb52.com/api/users/with-permissions/${row.id}`, {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                if (!res.ok) throw new Error(`Failed to fetch user details: ${res.status}`);
+
+                const json = await res.json();
+                const user = json.data[0];
+
+                setEditUserData(user); // Send to UserAccessForm
+                window.scrollTo({ top: 0, behavior: "smooth" });
+
+            } catch (err) {
+                console.error("Edit fetch failed:", err);
+                setSnackbar({
+                    open: true,
+                    message: "Failed to load user for editing.",
+                    severity: "error",
+                });
+            }
+        }
+    };
+
+
+
+    const fetchTableData = async () => {
         try {
-            const res = await fetch(`https://api.fmb52.com/api/users/with-permissions/${row.id}`, {
+            const response = await fetch("https://api.fmb52.com/api/users/with-permissions", {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -578,64 +609,33 @@ const UserAccessTable = ({setEditUserData}) => {
                 },
             });
 
-            if (!res.ok) throw new Error(`Failed to fetch user details: ${res.status}`);
+            if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
 
-            const json = await res.json();
-            const user = json.data[0];
+            const data = await response.json();
 
-            setEditUserData(user); // Send to UserAccessForm
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            const transformedData = data.data.map((user) => ({
+                id: user.user_id,
+                its: user.its || "N/A",
+                name: user.user_name || "N/A",
+                email: user.user_email || "N/A",
+                mobile: user.mobile || "N/A",
+                role: user.user_role || "N/A",
+                role_id: user.role_id || null,
+                permissions: user.permissions || [],
+                sector_names: user.sector_names || [],
+                sub_sector_names: user.sub_sector_names || [],
+            }));
 
-        } catch (err) {
-            console.error("Edit fetch failed:", err);
+            setTableData(transformedData);
+        } catch (error) {
+            console.error("Error fetching table data:", error);
             setSnackbar({
                 open: true,
-                message: "Failed to load user for editing.",
+                message: "Failed to fetch table data.",
                 severity: "error",
             });
         }
-    }
-};
-
-
-
-const fetchTableData = async () => {
-    try {
-        const response = await fetch("https://api.fmb52.com/api/users/with-permissions", {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
-
-        const data = await response.json();
-
-        const transformedData = data.data.map((user) => ({
-            id: user.user_id,
-            its: user.its || "N/A",
-            name: user.user_name || "N/A",
-            email: user.user_email || "N/A",
-            mobile: user.mobile || "N/A",
-            role: user.user_role || "N/A",
-            role_id: user.role_id || null,
-            permissions: user.permissions || [],
-            sector_names: user.sector_names || [],
-            sub_sector_names: user.sub_sector_names || [],
-        }));
-
-        setTableData(transformedData);
-    } catch (error) {
-        console.error("Error fetching table data:", error);
-        setSnackbar({
-            open: true,
-            message: "Failed to fetch table data.",
-            severity: "error",
-        });
-    }
-};
+    };
 
 
     const fetchUserDetails = async (userIds) => {
@@ -698,89 +698,89 @@ const fetchTableData = async () => {
             .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
             .join(" "); // Join the words with spaces
     };
-  const ActionButtonWithOptions = ({ onActionClick, row, user_id }) => {
-    const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
-    const open = Boolean(anchorEl);
+    const ActionButtonWithOptions = ({ onActionClick, row, user_id }) => {
+        const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
+        const open = Boolean(anchorEl);
 
-    // Open the menu
-    const handleClick = (event) => {
-      setAnchorEl(event.currentTarget);
+        // Open the menu
+        const handleClick = (event) => {
+            setAnchorEl(event.currentTarget);
+        };
+
+        // Close the menu
+        const handleClose = () => {
+            setAnchorEl(null);
+        };
+
+
+
+
+        const handleDeleteClick = () => {
+            setDeleteId(user_id); // Set the ID of the receipt to be deleted
+            setOpenDeleteDialog(true); // Open the delete dialog
+            handleClose();
+        };
+
+
+        // Set the document title
+        useEffect(() => {
+            document.title = "User Access- FMB 52"; // Set the title for the browser tab
+        }, []);
+
+        return (
+            <Box>
+                {/* Actions Button */}
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleClick}
+                >
+                    Actions
+                    {/* <MoreVertIcon /> */}
+
+                </Button>
+
+                {/* Dropdown Menu */}
+                <Menu
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                >
+
+
+
+                    {/* Edit Option */}
+                    <MenuItem onClick={() => { onActionClick("Edit", row); handleClose(); }}>
+                        <Tooltip title="Edit" placement="left">
+                            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                                <EditIcon sx={{ color: brown[200] }} />
+                                Edit
+                            </Box>
+                        </Tooltip>
+                    </MenuItem>
+
+                    {/* Delete Option */}
+                    <MenuItem onClick={handleDeleteClick}>
+                        <Tooltip title="Delete" placement="left">
+                            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                                <DeleteIcon sx={{ color: brown[200] }} />
+                                Delete
+                            </Box>
+                        </Tooltip>
+                    </MenuItem>
+                </Menu>
+            </Box>
+        );
     };
-
-    // Close the menu
-    const handleClose = () => {
-      setAnchorEl(null);
-    };
-
-
-
-
-     const handleDeleteClick = () => {
-      setDeleteId(user_id); // Set the ID of the receipt to be deleted
-      setOpenDeleteDialog(true); // Open the delete dialog
-      handleClose();
-    };
-
-
-    // Set the document title
-    useEffect(() => {
-      document.title = "User Access- FMB 52"; // Set the title for the browser tab
-    }, []);
-
-    return (
-      <Box>
-        {/* Actions Button */}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleClick}
-        >
-          Actions
-          {/* <MoreVertIcon /> */}
-
-        </Button>
-
-        {/* Dropdown Menu */}
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'left',
-          }}
-        >
-
-
-
-          {/* Edit Option */}
-          <MenuItem onClick={() => { onActionClick("Edit", row); handleClose(); }}>
-            <Tooltip title="Edit" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <EditIcon sx={{ color: brown[200] }} />
-                Edit
-              </Box>
-            </Tooltip>
-          </MenuItem>
-
-          {/* Delete Option */}
-         <MenuItem onClick={handleDeleteClick}>
-                     <Tooltip title="Delete" placement="left">
-                       <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                         <DeleteIcon sx={{ color: brown[200] }} />
-                         Delete
-                       </Box>
-                     </Tooltip>
-                   </MenuItem>
-        </Menu>
-      </Box>
-    );
-  };
     const columns = [
         {
             field: "its",
@@ -844,26 +844,26 @@ const fetchTableData = async () => {
                 </Button>
             ),
         },
-         {
-              field: 'action',
-              headerName: 'Action',
-              width: 170,
-              sortable: true,
-              renderCell: (params) => (
+        {
+            field: 'action',
+            headerName: 'Action',
+            width: 170,
+            sortable: true,
+            renderCell: (params) => (
                 <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    width: '100%',
-                    height: '100%',
-                  }}
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
                 >
-                  <ActionButtonWithOptions onActionClick={handleActionClick} row={params.row} user_id={params.row.id}/>
-                  {/* {console.log(params.row.id)} */}
+                    <ActionButtonWithOptions onActionClick={handleActionClick} row={params.row} user_id={params.row.id} />
+                    {/* {console.log(params.row.id)} */}
                 </Box>
-              ),
-            },
+            ),
+        },
     ];
 
     useEffect(() => {
@@ -1104,18 +1104,19 @@ const fetchTableData = async () => {
             <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
                 <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
             </Snackbar>
-                <UserAccessDeleteDialog
-  open={openDeleteDialog}        // ✅ correct flag
-  onClose={handleDeleteDialogClose}
-  userId={deleteId}
-  onConfirm={() => {
-    handleDeleteDialogClose();   // close after success
-    fetchTableData();            // refresh the grid
-  }}
-    setSnackbar={setSnackbar}
-  setSnackbarMessage={setSnackbarMessage}
-  setSnackbarSeverity={setSnackbarSeverity}
-/>
+
+            <UserAccessDeleteDialog
+                open={openDeleteDialog}        // ✅ correct flag
+                onClose={handleDeleteDialogClose}
+                userId={deleteId}
+                onConfirm={() => {
+                    handleDeleteDialogClose();   // close after success
+                    fetchTableData();            // refresh the grid
+                }}
+                setSnackbar={setSnackbar}
+                setSnackbarMessage={setSnackbarMessage}
+                setSnackbarSeverity={setSnackbarSeverity}
+            />
 
 
         </AppTheme>

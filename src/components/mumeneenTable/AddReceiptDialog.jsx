@@ -39,10 +39,34 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
     chequeNumber: '',
     chequeDate: '',
   });
+  const [bankList, setBankList] = useState([]);
+
   const [neftDetails, setNeftDetails] = useState({
     transactionId: '',
     transactionDate: '',
   });
+
+      useEffect(() => {
+  const fetchBanks = async () => {
+    try {
+      const response = await fetch('https://api.fmb52.com/api/banks', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (response.ok && data.status && Array.isArray(data.data)) {
+        setBankList(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching banks:', err);
+    }
+  };
+
+  if (open) {
+    fetchBanks();
+  }
+}, [open, token]);
 
   useEffect(() => {
     if (row) {
@@ -147,6 +171,9 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
       setSnackbarOpen(true);
       return;
     }
+
+
+
 
     const payload = {
       family_id: familyId.toString().slice(0, 10),
@@ -347,13 +374,50 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
             {paymentMethod === 'Cheque' && (
               <Grid container spacing={1} sx={{ pr: 1 }}>
                 <Grid item xs={12} md={3}>
-                  <TextField
-                    label="Bank Name"
-                    value={bankDetails.bankName}
-                    onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
-                    fullWidth
-                  />
-                </Grid>
+  <Select
+    fullWidth
+    displayEmpty
+    value={bankDetails.bankName}
+     sx={{
+                    '& .MuiSelect-select': {
+                      padding: '4px 0px',
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                    },
+                  }}
+                  MenuProps={{
+    anchorOrigin: {
+      vertical: 'bottom',
+      horizontal: 'left',
+    },
+    transformOrigin: {
+      vertical: 'top',
+      horizontal: 'left',
+    },
+    PaperProps: {
+      style: {
+        marginTop: 4,
+        maxHeight: 200,
+        maxWidth: 100,
+      },
+    },
+  }}
+    onChange={(e) =>
+      setBankDetails({ ...bankDetails, bankName: e.target.value })
+    }
+    renderValue={(selected) =>
+      selected ? selected : <span style={{ color: '#aaa' }}>Select Bank</span>
+    }
+  >
+    {bankList.map((bank) => (
+      <MenuItem key={bank.code} value={bank.name}>
+        {bank.name}
+      </MenuItem>
+    ))}
+  </Select>
+</Grid>
+
                 <Grid item xs={12} md={3}>
                   <TextField
                     label="Cheque Number"

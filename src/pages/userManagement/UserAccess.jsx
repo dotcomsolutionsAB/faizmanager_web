@@ -172,8 +172,8 @@
 //   };
 
 //   // Hardcoded values for sector, subSector, and year
- 
- 
+
+
 //   const year = "1445-1446";
 //   const sector = ["all"];
 //   const subSector = ["all"];
@@ -182,9 +182,9 @@
 //     try {
 //       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
 //       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
-  
+
 //       const url = `https://api.fmb52.com/api/get_all_user?year=${year}&${sectorParams}&${subSectorParams}`;
-  
+
 //       const response = await fetch(url, {
 //         method: "GET",
 //         headers: {
@@ -192,11 +192,11 @@
 //           "Content-Type": "application/json",
 //         },
 //       });
-  
+
 //       if (!response.ok) {
 //         throw new Error(`Error ${response.status}: ${response.statusText}`);
 //       }
-  
+
 //       const data = await response.json();
 //       const foundUser = data.data.find((user) => user.its === itsId); // Match user by ITS
 //       if (foundUser) {
@@ -358,14 +358,14 @@
 
 //     fetchPermissions();
 //   }, [token]);
-  
+
 //   // Fetch permissions for the selected role
 //   useEffect(() => {
 //     if (!roles) {
 //       setModules([]); // Clear selected modules if no role is selected
 //       return;
 //     }
-  
+
 //     const fetchRolePermissions = async () => {
 //       try {
 //         const response = await fetch(`https://api.fmb52.com/api/roles/${roles}/permissions`, {
@@ -376,27 +376,27 @@
 //           },
 //         });
 //         if (!response.ok) throw new Error("Failed to fetch role permissions");
-  
+
 //         const data = await response.json();
 //         const rolePermissions = data.permissions.map((permission) => permission.name);
-  
+
 //         // Combine role-specific permissions with currently selected modules
 //         setModules((prevModules) => {
 //           const combinedPermissions = new Set([...prevModules, ...rolePermissions]);
 //           return Array.from(combinedPermissions); // Convert back to array
 //         });
-  
+
 //         setRolePermissions(rolePermissions); // Update state for role-specific permissions
 //       } catch (error) {
 //         console.error("Error fetching role permissions:", error);
 //         setRolePermissions([]);
 //       }
 //     };
-  
+
 //     fetchRolePermissions();
 //   }, [roles, token]);
 
-  
+
 //   // Check if a module is selected for the role
 //   const isModuleChecked = (moduleName) => rolePermissions.includes(moduleName);
 
@@ -585,7 +585,7 @@
 //                     value={itsId}
 //                     onChange={(e) => setItsId(e.target.value)}
 
-                    
+
 //                     onKeyDown={(e) => {
 //                       if (e.key === "Enter") fetchData(); // Trigger validation on Enter
 //                     }}
@@ -951,7 +951,7 @@
 //           const displayedItems = selected.slice(0, 5); // Display up to 6 items
 //           const hiddenItems = selected.slice(5); // Remaining items
 //           const moreCount = hiddenItems.length; // Count of hidden items
-        
+
 //           return (
 //             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
 //               {displayedItems.map((value) => (
@@ -986,7 +986,7 @@
 //             </Box>
 //           );
 //         }}
-        
+
 //         sx={{ border: "1px solid #F4EBD0", borderRadius: "8px" }}
 //         MenuProps={{
 //           PaperProps: {
@@ -1208,21 +1208,21 @@ import { useEffect, useState } from "react";
 
 
 const UserAccess = () => {
-      // Set the document title
-      useEffect(() => {
-        document.title = "Permissions - FMB 52"; // Set the title for the browser tab
-      }, []);
-      const [editUserData, setEditUserData] = useState(null);
-    
+  // Set the document title
+  useEffect(() => {
+    document.title = "Permissions - FMB 52"; // Set the title for the browser tab
+  }, []);
+  const [editUserData, setEditUserData] = useState(null);
+
   return (
     <AppTheme>
       <CssBaseline />
 
       {/* Form Component */}
-      <UserAccessForm  editData={editUserData} setEditData={setEditUserData}/>
+      <UserAccessForm editData={editUserData} setEditData={setEditUserData} />
 
       {/* Table Component */}
-      <UserAccessTable setEditUserData={setEditUserData}/>
+      <UserAccessTable setEditUserData={setEditUserData} />
     </AppTheme>
   );
 };
