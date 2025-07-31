@@ -71,16 +71,17 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
 }, [open, token]);
 
 const handleKeyDown = (e, currentIndex) => {
-  if (e.key === 'Enter' || e.key === 'ArrowDown') {
+  if (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowRight') {
     e.preventDefault();
     const nextInput = inputRefs.current[currentIndex + 1];
     if (nextInput) nextInput.focus();
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
     e.preventDefault();
     const prevInput = inputRefs.current[currentIndex - 1];
     if (prevInput) prevInput.focus();
   }
 };
+
 
 
   useEffect(() => {
@@ -379,6 +380,9 @@ const handleKeyDown = (e, currentIndex) => {
                     },
                   }}
                   inputRef={(el) => (inputRefs.current[2] = el)}
+                   inputProps={{
+    onKeyDown: (e) => handleKeyDown(e, 2)
+  }}
                   onChange={(e) => setPaymentMethod(e.target.value)
                   }
                   onKeyDown={(e) => handleKeyDown(e, 2)}

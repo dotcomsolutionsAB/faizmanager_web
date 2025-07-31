@@ -55,7 +55,6 @@ const MenuContentMumeneen = ({ open }) => {
       subOptions: [
         { label: "Receipts", path: "/receipts", icon: <ReceiptIcon /> },
         { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
-        { label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> },
       ],
     },
     {
@@ -67,11 +66,7 @@ const MenuContentMumeneen = ({ open }) => {
         { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
       ],
     },
-        {
-      label: "Niyaz",
-      icon: <StarIcon />,
-      path: "/niyaz",
-    },
+
     // {
     //   label: "Bookings",
     //   icon: <EventIcon />,
@@ -81,16 +76,7 @@ const MenuContentMumeneen = ({ open }) => {
     //     { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
     //   ],
     // },
-        {
-      label: "Menu",
-      icon: <RestaurantMenuIcon />,
-      path: "/menu",
-    },
-    {
-      label: "Feedback",
-      icon: <HelpRoundedIcon />,
-      path: "/feedback",
-    },
+ 
     // {
     //   label: "Notifications",
     //   icon: <NotificationsIcon />,

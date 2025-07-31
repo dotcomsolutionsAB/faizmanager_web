@@ -237,6 +237,7 @@ export default function LogInWithOtp(props) {
       });
 
       const data = await response.json();
+      console.log("Login", data)
       if (data.success) {
         const { token, photo, currency, jamiat_id,  role,
             permissions,

@@ -70,6 +70,7 @@ function MumeneenTable() {
   const sector = selectedSector.length ? selectedSector : ['all'];
   const subSector = selectedSubSector.length ? selectedSubSector : ['all'];
 
+
   const [rows, setRows] = useState([]);
   const [apiError, setApiError] = useState(null);
 
@@ -147,7 +148,7 @@ function MumeneenTable() {
       const url = `https://api.fmb52.com/api/mumeneen?year=${year}&${sectorParams}&${subSectorParams}`;
 
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
