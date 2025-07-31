@@ -248,7 +248,7 @@ function Receipts() {
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Name:
               <Link
-                to={`/mumeneen/${params.row.id}`}
+                to={`/mumeneen/${params.row.family_id}`}
                 style={{
                   color: yellow[400],
                   textDecoration: 'none',
@@ -419,7 +419,7 @@ function Receipts() {
         }
 
         const data = await response.json();
-        console.log("Receipts:", data);
+        console.log("Receipts", data)
         setRows(data.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);

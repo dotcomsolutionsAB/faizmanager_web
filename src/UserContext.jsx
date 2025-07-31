@@ -17,7 +17,7 @@ export function UserProvider({ children }) {
   const [hofCount, setHofCount] = useState(0);
 
   useEffect(() => {
-    console.log('useEffect triggered in UserContext');
+    // console.log('useEffect triggered in UserContext');
 
     const storedUser = JSON.parse(localStorage.getItem('user'));
     const storedToken = localStorage.getItem('token');
@@ -27,9 +27,12 @@ export function UserProvider({ children }) {
     const storedPermissions = JSON.parse(localStorage.getItem('permissions'));
     const storedHofCount = localStorage.getItem('hof_count');
   
-    console.log('Stored User:', storedUser);
-    console.log('Stored Token:', storedToken);
-    console.log("stored hof count:", storedHofCount);
+    console.log(localStorage.getItem("token"))
+    // console.log('Stored User:', storedUser);
+    // console.log('Stored Token:', storedToken);
+    // console.log("stored hof count:", storedHofCount);
+
+    // console.log("Role in user context: stored role", storedRole);
 
     if (storedUser) {
       setUser(storedUser);
@@ -54,9 +57,10 @@ export function UserProvider({ children }) {
    if (storedHofCount !== null && storedHofCount !== undefined) {
     setHofCount(Number(storedHofCount));
 }
+    console.log("Role in user context: stored role", storedRole);
 
     setLoading(false);
-    console.log("Sending token to MumeneenTable : ", token);
+    // console.log("Sending token to MumeneenTable : ", token);
   }, [token]);
   
 

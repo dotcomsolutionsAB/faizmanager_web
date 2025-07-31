@@ -238,20 +238,42 @@ export default function LogInWithOtp(props) {
 
       const data = await response.json();
       if (data.success) {
-        const token = data.data.token; // Extract the Bearer token from the response
+        const { token, photo, currency, jamiat_id,  role,
+            permissions,
+            hof_count, ...userDetails } = data.data;
 
-        // Save the token and user data in localStorage
-        localStorage.setItem('user', JSON.stringify(data.data));
-        localStorage.setItem('token', token); // Save the Bearer token separately
-        console.log(token)
-        console.log('Token saved in localStorage:', localStorage.getItem('token'));
+            console.log("Login", hof_count);
+            
+            console.log("Login", role)
+
+          // Save the token and user data in localStorage
+          localStorage.setItem('user', JSON.stringify(data.data));
+          localStorage.setItem('token', token); // Save the Bearer token separately
+          localStorage.setItem('currency', JSON.stringify(currency)); // Save currency in localStorage
+          localStorage.setItem('jamiat_id', jamiat_id);
+          localStorage.setItem('role', role); // Save role
+          localStorage.setItem('permissions', JSON.stringify(permissions)); // Save permissions
+          localStorage.setItem('hof_count', hof_count); // Save hof_count
+          // console.log('Token saved in localStorage:', localStorage.getItem('token'));
+
         // Update UserContext with the token and user details
-        updateUser({
-          ...data.data,
-          token,
-          photo: data.data.photo || '/static/images/avatar-placeholder.png', // Default photo if null
-          currency: data.data.currency, // Include currency data
-        });
+        updateUser(
+            {
+              ...userDetails,
+              photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
+              jamiat_id, 
+              role,
+              permissions,
+              hof_count,
+            },
+            token,
+            currency,
+            jamiat_id,
+            role,
+            permissions,
+            hof_count 
+            // Include currency in the UserContext
+          );
         // window.location.reload();
 
         setSnackbarMessage(data.message);

@@ -185,6 +185,7 @@ const handlePasswordChange = (e) => {
             hof_count, ...userDetails } = data.data;
 
             console.log("Login", hof_count);
+            
             console.log("Login", role)
 
           // Save the token and user data in localStorage

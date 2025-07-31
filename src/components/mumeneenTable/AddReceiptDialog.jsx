@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -22,6 +22,8 @@ import { useUser } from '../../UserContext';
 
 const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency }) => {
   const { token } = useUser();
+  const inputRefs = useRef([]);
+  
 
   // Snackbar state variables separated
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -67,6 +69,19 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
     fetchBanks();
   }
 }, [open, token]);
+
+const handleKeyDown = (e, currentIndex) => {
+  if (e.key === 'Enter' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    const nextInput = inputRefs.current[currentIndex + 1];
+    if (nextInput) nextInput.focus();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const prevInput = inputRefs.current[currentIndex - 1];
+    if (prevInput) prevInput.focus();
+  }
+};
+
 
   useEffect(() => {
     if (row) {
@@ -326,6 +341,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                   fullWidth
                   value={receiptName}
                   onChange={(e) => setReceiptName(e.target.value)}
+                  inputRef={(el) => (inputRefs.current[0] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 0)}
                 />
               </Grid>
             </Grid>
@@ -340,6 +357,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                   value={receiptAmount}
                   onChange={(e) => setReceiptAmount(e.target.value)}
                   placeholder="Enter receipt amount"
+                  inputRef={(el) => (inputRefs.current[1] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 1)}
                 />
                 <Typography variant="body2" color="textSecondary" sx={{ mt: 1, ml: 1 }}>
                   {receiptAmount ? `${numberToWords(receiptAmount)}` : 'Enter a valid amount'}
@@ -359,7 +378,10 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                       borderRadius: '4px',
                     },
                   }}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  inputRef={(el) => (inputRefs.current[2] = el)}
+                  onChange={(e) => setPaymentMethod(e.target.value)
+                  }
+                  onKeyDown={(e) => handleKeyDown(e, 2)}
                   renderValue={(selected) =>
                     selected ? selected : <span style={{ color: '#aaa' }}>Select Payment Method</span>
                   }
@@ -403,6 +425,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
       },
     },
   }}
+  inputRef={(el) => (inputRefs.current[3] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 3)}
     onChange={(e) =>
       setBankDetails({ ...bankDetails, bankName: e.target.value })
     }
@@ -424,6 +448,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                     value={bankDetails.chequeNumber}
                     onChange={(e) => setBankDetails({ ...bankDetails, chequeNumber: e.target.value })}
                     fullWidth
+                    inputRef={(el) => (inputRefs.current[4] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 4)}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -434,6 +460,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                     onChange={(e) => setBankDetails({ ...bankDetails, chequeDate: e.target.value })}
                     fullWidth
                     InputLabelProps={{ shrink: true }}
+                     inputRef={(el) => (inputRefs.current[5] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 5)}
                   />
                 </Grid>
               </Grid>
@@ -447,6 +475,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                     value={neftDetails.transactionId}
                     onChange={(e) => setNeftDetails({ ...neftDetails, transactionId: e.target.value })}
                     fullWidth
+                    inputRef={(el) => (inputRefs.current[6] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 6)}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -457,6 +487,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                     onChange={(e) => setNeftDetails({ ...neftDetails, transactionDate: e.target.value })}
                     fullWidth
                     InputLabelProps={{ shrink: true }}
+                    inputRef={(el) => (inputRefs.current[7] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 7)}
                   />
                 </Grid>
               </Grid>
@@ -472,6 +504,8 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Additional notes (optional)"
+                  inputRef={(el) => (inputRefs.current[8] = el)}
+  onKeyDown={(e) => handleKeyDown(e, 8)}
                 />
               </Grid>
             </Grid>
