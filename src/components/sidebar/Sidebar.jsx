@@ -13,6 +13,7 @@ import MenuContentMumeneen from "./MenuContentMumeneen";
 import { useUser } from '../../UserContext';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import MenuContentCoordinator from './MenuContentCoordinator';
 
 
 const drawerWidth = 240;
@@ -90,7 +91,7 @@ export default function Sidebar() {
     } else if (role === "superadmin") {
       return <MenuContentSuperAdmin open={open} />;
     } else if (role === "mumeneen") {
-      return <MenuContentMumeneen open={open} />;
+      return <MenuContentCoordinator open={open} />;
     } else {
       return null; // Render nothing for unsupported roles
     }

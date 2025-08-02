@@ -6,12 +6,13 @@ import { CssBaseline, Box, CircularProgress } from "@mui/material";
 import MumeneenDashboard from "../../components/dashboard/MumeneenDashboard";
 import JamiatAdminDashboard from "../../components/dashboard/JamiatAdminDashboard";
 import SuperAdminDashboard from "../../components/dashboard/SuperAdminDashboard";
+import CoordinatorDashboard from "../../components/dashboard/CoordinatorDashboard";
 import { Snackbar, Alert } from '@mui/material';
 import Button from '@mui/material/Button';
 
 const Dashboard = () => {
   const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
-  const { role, hofCount } = useUser();
+  const { role, hofCount, accessRoleId } = useUser();
     const location = useLocation();
   const { state } = location;
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -24,6 +25,7 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
 
+  console.log("Access: ", accessRoleId)
   console.log("Role in dashboard",role)
 
   useEffect(() => {
@@ -48,6 +50,8 @@ const Dashboard = () => {
     setSnackbarOpen(false);
   };
 
+
+
   if (loading) {
     return (
       <AppTheme>
@@ -67,6 +71,20 @@ const Dashboard = () => {
   }
 
    let dashboardContent;
+
+
+// First, handle Coordinator role via role_access_id
+if (accessRoleId === 4) {
+  dashboardContent = (
+    <CoordinatorDashboard
+      year={year}
+      sector={sector}
+      subSector={subSector}
+      hofCount={hofCount}
+    />
+  );
+} else {
+  // Then handle by role fallback
   switch (role) {
     case "mumeneen":
       dashboardContent = <MumeneenDashboard />;
@@ -108,6 +126,59 @@ const Dashboard = () => {
         </AppTheme>
       );
   }
+}
+
+  // switch (role) {
+  //   case "mumeneen":
+  //     dashboardContent = <MumeneenDashboard />;
+  //     break;
+  //   case "superadmin":
+  //     dashboardContent = <SuperAdminDashboard />;
+  //     break;
+  //   case "jamiat_admin":
+  //     dashboardContent = (
+  //       <JamiatAdminDashboard
+  //         year={year}
+  //         sector={sector}
+  //         subSector={subSector}
+  //         hofCount={hofCount}
+  //       />
+  //     );
+  //     break;
+  //         case "Coordinator":
+  //     dashboardContent = (
+  //       <CoordinatorDashboard
+  //         year={year}
+  //         sector={sector}
+  //         subSector={subSector}
+  //         hofCount={hofCount}
+  //       />
+  //     );
+  //     break;
+  //   default:
+  //     dashboardContent = (
+  //       <AppTheme>
+  //         <CssBaseline />
+  //         <Box
+  //           sx={{
+  //             backgroundColor: "#fff",
+  //             pt: 2,
+  //             px: 3,
+  //             textAlign: "center",
+  //             pb: 3,
+  //             mr: 2,
+  //             ml: 2,
+  //             border: "1px solid #F4EBD0",
+  //             borderRadius: 2,
+  //             boxShadow: 1,
+  //           }}
+  //         >
+  //           <h2>Unauthorized</h2>
+  //           <p>You do not have access to this dashboard.</p>
+  //         </Box>
+  //       </AppTheme>
+  //     );
+  // }
 
   return (
     <>

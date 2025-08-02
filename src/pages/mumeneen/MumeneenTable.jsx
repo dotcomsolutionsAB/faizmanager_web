@@ -145,14 +145,14 @@ function MumeneenTable() {
     try {
       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join('&');
       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join('&');
-      const url = `https://api.fmb52.com/api/mumeneen?year=${year}&${sectorParams}&${subSectorParams}`;
+      const url = `https://api.fmb52.com/api/mumeneen/get?year=${year}&${sectorParams}&${subSectorParams}`;
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-        },
+        }, 
       });
 
       if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);

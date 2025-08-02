@@ -55,8 +55,8 @@ function Receipts() {
       ITS: row.its,
       Mobile: row.mobile,
       'Folio No': row.folio_no,
-      Sector: row.sector,
-      'Sub Sector': row.sub_sector,
+      Sector: row.sector.name,
+      'Sub Sector': row.sub_sector.name,
       Mode: row.mode,
       Date: row.date,
       Year: row.year,
@@ -277,7 +277,8 @@ function Receipts() {
 
             {/* Sector */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector}-{params.row.sub_sector}</span>
+              {console.log("sector in receipts: ", params.row)}
+              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector?.name}-{params.row.sub_sector?.name}</span>
             </Typography>
           </Box>
         </Box>

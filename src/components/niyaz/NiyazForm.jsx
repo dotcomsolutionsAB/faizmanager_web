@@ -24,6 +24,10 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import divider from '../../assets/divider.png';
 import { useEffect } from "react";
 import { useUser } from "../../UserContext";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const NiyazForm = () => {
     const { token, currency } = useUser();
@@ -32,7 +36,7 @@ const NiyazForm = () => {
     const [entries, setEntries] = useState([{ name: "", hub: "" }]); // Repeater state
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
     const [nameOptions, setNameOptions] = useState([]);
-    const [nameList, setNameList] = useState([]); 
+    const [nameList, setNameList] = useState([]);
     const [niyazTypeId, setNiyazTypeId] = useState(null);
     const [date, setDate] = useState("");
 
@@ -60,7 +64,7 @@ const NiyazForm = () => {
             if (selectedUser) {
                 updatedEntries[index].hub = selectedUser.hub_amount; // Automatically populate hub amount
             }
-        
+
             setEntries(updatedEntries);
         }
     };
@@ -81,7 +85,7 @@ const NiyazForm = () => {
             });
 
             const data = await response.json();
-            console.log(data,data)
+            console.log(data, data)
             if (data.success) {
                 setNameList(data.data); // Populate the Name dropdown
             } else {
@@ -111,7 +115,7 @@ const NiyazForm = () => {
             });
             return;
         }
-    
+
         // Extract family IDs from the selected names
         const familyIds = entries
             .map((entry) => {
@@ -119,12 +123,12 @@ const NiyazForm = () => {
                 return selectedUser ? selectedUser.family_id : null;
             })
             .filter((id) => id); // Remove null/undefined values
-    
+
         const payload = {
             hub_slab_id: niyazTypeId,
             family_ids: familyIds,
         };
-    
+
         try {
             const response = await fetch("https://api.fmb52.com/api/niyaz/add", {
                 method: "POST",
@@ -134,16 +138,16 @@ const NiyazForm = () => {
                 },
                 body: JSON.stringify(payload),
             });
-    
+
             const data = await response.json();
-    
+
             if (response.ok && data.success) {
                 setSnackbar({
                     open: true,
                     message: "Niyaz added successfully!",
                     severity: "success",
                 });
-    
+
                 // Clear form fields
                 setNiyazType("");
                 setNiyazTypeId(null);
@@ -161,7 +165,7 @@ const NiyazForm = () => {
             });
         }
     };
-    
+
 
     const fetchNiyazTypes = async () => {
         try {
@@ -192,22 +196,22 @@ const NiyazForm = () => {
         }
     };
 
-     const currencyCode = currency?.currency_code || 'INR';
-  const currencySymbol = currency?.currency_symbol || '₹';
+    const currencyCode = currency?.currency_code || 'INR';
+    const currencySymbol = currency?.currency_symbol || '₹';
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currencyCode,
-    }).format(value || 0);
-  };
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: currencyCode,
+        }).format(value || 0);
+    };
 
 
     useEffect(() => {
         fetchNiyazTypes();
     }, []);
 
-    
+
 
 
     return (
@@ -284,27 +288,28 @@ const NiyazForm = () => {
                     />
                 )}
                 <Collapse in={!collapsed}>
-                    <Grid container spacing={3} sx={{ mt: 2, }}>
-                        {/* Niyaz Type */}
-                        <Grid item xs={12} md={4}>
-                            <FormControl fullWidth>
-                                <InputLabel>Niyaz Type</InputLabel>
-                                <Select
-                                     value={niyazTypeId || ""}
-                                     onChange={handleNiyazTypeChange}
-                                >
-                                    {nameOptions.map((option) => (
-                                        <MenuItem key={option.id} value={option.id}>
-                                           {`${option.name} (${formatCurrency(option.amount)})`}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Grid>
-                        {/* Date Field */}
-                        <Grid container spacing={3} sx={{ mb: 1 }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <Grid container spacing={3} sx={{ mt: 2, }}>
+                            {/* Niyaz Type */}
                             <Grid item xs={12} md={4}>
-                                <TextField
+                                <FormControl fullWidth>
+                                    <InputLabel>Niyaz Type</InputLabel>
+                                    <Select
+                                        value={niyazTypeId || ""}
+                                        onChange={handleNiyazTypeChange}
+                                    >
+                                        {nameOptions.map((option) => (
+                                            <MenuItem key={option.id} value={option.id}>
+                                                {`${option.name} (${formatCurrency(option.amount)})`}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+                            {/* Date Field */}
+                            <Grid container spacing={3} sx={{ mb: 1 }}>
+                                <Grid item xs={12} md={4}>
+                                    {/* <TextField
                                     label="Date"
                                     type="date"
                                     fullWidth
@@ -313,87 +318,114 @@ const NiyazForm = () => {
                                     }}
                                     value={date} // State for date field
                                     onChange={(e) => setDate(e.target.value)} // Handler to update state
-                                />
+                                /> */}
+
+                                    <DatePicker
+                                        label="Date"
+                                        value={date ? dayjs(date) : null}
+                                        onChange={(newValue) => {
+                                            if (newValue?.isValid()) {
+                                                setDate(newValue.format('YYYY-MM-DD'));
+                                            }
+                                        }}
+                                        slotProps={{
+                                            textField: {
+                                                fullWidth: true,
+                                                sx: {
+                                                    '& .MuiIconButton-root': {
+                                                        border: 'none',
+                                                        padding: 0,
+                                                        margin: 0,
+                                                        backgroundColor: 'transparent',
+                                                    },
+                                                },
+                                                onClick: (e) => {
+                                                    e.currentTarget.querySelector('button')?.click();
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </Grid>
                             </Grid>
+
+
+                            {/* Repeater for Name and Hub */}
+                            {entries.map((entry, index) => (
+                                <Grid container spacing={3} key={index} sx={{ mb: 1 }}>
+                                    {/* S. No. Field */}
+                                    <Grid item xs={12} md={2}>
+                                        <TextField
+                                            label="S. No."
+                                            value={index + 1}
+                                            InputProps={{ readOnly: true }}
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    {/* Name Field */}
+                                    <Grid item xs={12} md={4}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>{`Select HOF`}</InputLabel>
+                                            <Select
+                                                value={entry.name}
+                                                onChange={(e) =>
+                                                    handleEntryChange(index, "name", e.target.value)
+                                                }
+                                            >
+                                                {nameList.map((user) => (
+                                                    <MenuItem key={user.id} value={user.name}>
+                                                        {user.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    {/* Hub Field */}
+                                    <Grid item xs={12} md={4}>
+                                        <TextField
+                                            label={`Hub`}
+                                            value={entry.hub}
+                                            onChange={(e) => handleEntryChange(index, "hub", e.target.value)}
+                                            placeholder="Enter hub details..."
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    {/* Remove Entry Button */}
+                                    <Grid item xs={12} md={2} sx={{ display: "flex", alignItems: "center" }}>
+                                        <IconButton onClick={() => handleRemoveEntry(index)}>
+                                            <RemoveCircleOutlineIcon />
+                                        </IconButton>
+                                    </Grid>
+                                </Grid>
+                            ))}
+                            <Button
+                                variant="outlined"
+                                startIcon={<AddCircleOutlineIcon />}
+                                onClick={handleAddEntry}
+                                sx={{ ml: 3 }}
+                            >
+                                Add Niyaz Karnar
+                            </Button>
                         </Grid>
 
-
-                        {/* Repeater for Name and Hub */}
-                        {entries.map((entry, index) => (
-                            <Grid container spacing={3} key={index} sx={{ mb: 1 }}>
-                                {/* S. No. Field */}
-                                <Grid item xs={12} md={2}>
-                                    <TextField
-                                        label="S. No."
-                                        value={index + 1}
-                                        InputProps={{ readOnly: true }}
-                                        fullWidth
-                                    />
-                                </Grid>
-                                {/* Name Field */}
-                                <Grid item xs={12} md={4}>
-                                    <FormControl fullWidth>
-                                        <InputLabel>{`Select HOF`}</InputLabel>
-                                        <Select
-                                            value={entry.name}
-                                            onChange={(e) =>
-                                                handleEntryChange(index, "name", e.target.value)
-                                            }
-                                        >
-                                           {nameList.map((user) => (
-                        <MenuItem key={user.id} value={user.name}>
-                            {user.name}
-                        </MenuItem>
-                    ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                {/* Hub Field */}
-                                <Grid item xs={12} md={4}>
-                                    <TextField
-                                        label={`Hub`}
-                                        value={entry.hub}
-                                        onChange={(e) => handleEntryChange(index, "hub", e.target.value)}
-                                        placeholder="Enter hub details..."
-                                        fullWidth
-                                    />
-                                </Grid>
-                                {/* Remove Entry Button */}
-                                <Grid item xs={12} md={2} sx={{ display: "flex", alignItems: "center" }}>
-                                    <IconButton onClick={() => handleRemoveEntry(index)}>
-                                        <RemoveCircleOutlineIcon />
-                                    </IconButton>
-                                </Grid>
-                            </Grid>
-                        ))}
-                        <Button
-                            variant="outlined"
-                            startIcon={<AddCircleOutlineIcon />}
-                            onClick={handleAddEntry}
-                            sx={{ ml: 3 }}
-                        >
-                            Add Niyaz Karnar
-                        </Button>
-                    </Grid>
-
-                    {/* Submit Button */}
-                    <Box sx={{ textAlign: "right", mt: 3 }}>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleSubmit}
-                            sx={{
-                                color: "white",
-                                backgroundColor: yellow[300],
-                                "&:hover": {
-                                    backgroundColor: yellow[200],
-                                    color: "#000",
-                                },
-                            }}
-                        >
-                            Submit
-                        </Button>
-                    </Box>
+                        {/* Submit Button */}
+                        <Box sx={{ textAlign: "right", mt: 3 }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleSubmit}
+                                sx={{
+                                    color: "white",
+                                    backgroundColor: yellow[300],
+                                    "&:hover": {
+                                        backgroundColor: yellow[200],
+                                        color: "#000",
+                                    },
+                                }}
+                            >
+                                Submit
+                            </Button>
+                        </Box>
+                        </LocalizationProvider>
                 </Collapse>
             </Box>
 

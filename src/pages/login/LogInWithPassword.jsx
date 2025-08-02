@@ -182,7 +182,7 @@ const handlePasswordChange = (e) => {
         if (data.success) {
           const { token, photo, currency, jamiat_id,  role,
             permissions,
-            hof_count, ...userDetails } = data.data;
+            hof_count, access_role_id, ...userDetails } = data.data;
 
             console.log("Login", hof_count);
             
@@ -196,6 +196,7 @@ const handlePasswordChange = (e) => {
           localStorage.setItem('role', role); // Save role
           localStorage.setItem('permissions', JSON.stringify(permissions)); // Save permissions
           localStorage.setItem('hof_count', hof_count); // Save hof_count
+          localStorage.setItem('access_role_id', access_role_id);
           // console.log('Token saved in localStorage:', localStorage.getItem('token'));
 
            // Remember Me logic
@@ -216,13 +217,15 @@ const handlePasswordChange = (e) => {
               role,
               permissions,
               hof_count,
+              access_role_id
             },
             token,
             currency,
             jamiat_id,
             role,
             permissions,
-            hof_count 
+            hof_count ,
+            access_role_id,
             // Include currency in the UserContext
           );
         

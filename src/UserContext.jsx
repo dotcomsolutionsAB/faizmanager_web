@@ -15,6 +15,7 @@ export function UserProvider({ children }) {
   const [role, setRole] = useState(null);
   const [permissions, setPermissions] = useState([]);
   const [hofCount, setHofCount] = useState(0);
+  const [accessRoleId, setAccessRoleId] = useState(null);
 
   useEffect(() => {
     // console.log('useEffect triggered in UserContext');
@@ -26,8 +27,10 @@ export function UserProvider({ children }) {
     const storedRole = localStorage.getItem('role');
     const storedPermissions = JSON.parse(localStorage.getItem('permissions'));
     const storedHofCount = localStorage.getItem('hof_count');
+    const storedAccessRoleId = localStorage.getItem('access_role_id');
   
     console.log(localStorage.getItem("token"))
+    console.log(localStorage.getItem("access_role_id"))
     // console.log('Stored User:', storedUser);
     // console.log('Stored Token:', storedToken);
     // console.log("stored hof count:", storedHofCount);
@@ -57,14 +60,18 @@ export function UserProvider({ children }) {
    if (storedHofCount !== null && storedHofCount !== undefined) {
     setHofCount(Number(storedHofCount));
 }
+if (storedAccessRoleId) {
+  setAccessRoleId(Number(storedAccessRoleId))
+}
     console.log("Role in user context: stored role", storedRole);
 
     setLoading(false);
+    console.log("UserContext",accessRoleId)
     // console.log("Sending token to MumeneenTable : ", token);
   }, [token]);
   
 
-  const updateUser = (newUser, newToken, newCurrency, newJamiatId, newRole, newPermissions, newHofCount) => {
+  const updateUser = (newUser, newToken, newCurrency, newJamiatId, newRole, newPermissions, newHofCount, newAccessRoleId) => {
     setUser(newUser);
     setToken(newToken);
     setCurrency(newCurrency); 
@@ -72,6 +79,7 @@ export function UserProvider({ children }) {
     setRole(newRole);
     setPermissions(newPermissions);
     setHofCount(newHofCount);
+    setAccessRoleId(newAccessRoleId);
     if (newUser) {
       localStorage.setItem('user', JSON.stringify(newUser));
     } else {
@@ -109,6 +117,11 @@ export function UserProvider({ children }) {
       localStorage.removeItem('hof_count');
       setHofCount(null);
     }
+        if (newAccessRoleId) {
+      localStorage.setItem('access_role_id', JSON.stringify(newAccessRoleId));
+    } else {
+      localStorage.removeItem('access_role_id');
+    }
     
   };
 
@@ -120,6 +133,7 @@ export function UserProvider({ children }) {
     setRole(null);
     setPermissions([]);
     setHofCount(null);
+    setAccessRoleId(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('currency'); 
@@ -127,13 +141,14 @@ export function UserProvider({ children }) {
     localStorage.removeItem('role');
     localStorage.removeItem('permissions');
     localStorage.removeItem('hof_count');
+    localStorage.removeItem('access_role_id')
   };
 
 
   return (
     <UserContext.Provider value={{ user, token, currency, jamiatId,   role,
       permissions,
-      hofCount, updateUser, logout }}>
+      hofCount, updateUser, accessRoleId, logout }}>
       {loading ? null : children}
     </UserContext.Provider>
   );
