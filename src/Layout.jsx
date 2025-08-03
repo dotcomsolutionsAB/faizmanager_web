@@ -27,6 +27,8 @@ const Layout = () => {
   const [selectedSector, setSelectedSector] = useState(['all']);
   const [selectedSubSector, setSelectedSubSector] = useState(['all']);
   const [selectedYear, setSelectedYear] = useState([]);
+  const[selectedSectorName, setSelectedSectorName] = useState([]);
+  const [selectedSubSectorName, setSelectedSubSectorName] = useState([]);
 
 
   // console.log("Select sector LAyout", selectedSector)
@@ -67,6 +69,10 @@ const Layout = () => {
               setSelectedSubSector={setSelectedSubSector}
               selectedYear={selectedYear}
               setSelectedYear={setSelectedYear}
+              selectedSectorName={selectedSectorName}
+              setSelectedSectorName={setSelectedSectorName}
+              selectedSubSectorName={selectedSubSectorName}
+              setSelectedSubSectorName={setSelectedSubSectorName}
             />
             <SubHeader
               selectedYear={selectedYear}
@@ -78,6 +84,10 @@ const Layout = () => {
               setSelectedSubSector,
               selectedYear,
               setSelectedYear,
+              selectedSectorName,
+              setSelectedSectorName,
+              selectedSubSectorName,
+              setSelectedSubSectorName
             }} />
           </Box>
         </Box>

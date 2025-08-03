@@ -194,6 +194,8 @@ export default function SectorSubSectorSelect({
   setSelectedSector,
   selectedSubSector,
   setSelectedSubSector,
+  selectedSectorName,
+  setSelectedSectorName
 }) {
   const groupBySectorId = (item) => String(item.sector_id);
 

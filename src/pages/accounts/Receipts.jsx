@@ -25,11 +25,14 @@ const customLocaleText = {
 };
 
 function Receipts() {
-  const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
+  const { selectedSector, selectedSubSector, selectedYear, selectedSectorName, selectedSubSectorName } = useOutletContext();
   const [loadingData, setLoadingData] = useState(false);
   const [modeFilter, setModeFilter] = useState('All'); 
 
-  
+// console.log("selected: ", selectedSectorName)
+
+  // console.log("selectedSector:", selectedSector, typeof selectedSector);
+
 
   const { token, loading } = useUser();
   const [rows, setRows] = useState([]);
@@ -277,8 +280,8 @@ function Receipts() {
 
             {/* Sector */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              {console.log("sector in receipts: ", params.row)}
-              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector?.name}-{params.row.sub_sector?.name}</span>
+              {/* {console.log("sector in receipts: ", params.row)} */}
+              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector_name}-{params.row.sub_sector_name}</span>
             </Typography>
           </Box>
         </Box>
@@ -434,40 +437,51 @@ function Receipts() {
 
 
   // Filter rows based on filterText and filterType
-  const filteredRows = rows.filter((row) => {
-    const matchesFilterText =
-      row.name?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.its?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.mobile?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.folio_no?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.sector?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.sub_sector?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.hof_its?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.mumeneen_type?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.hub_amount?.toString().includes(filterText) ||
-      row.paid_amount?.toString().includes(filterText) ||
-      row.due_amount?.toString().includes(filterText) ||
-      row.overdue?.toString().includes(filterText);
+const filteredRows = rows.filter((row) => {
+  const matchesFilterText =
+    row.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.its?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.mobile?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.folio_no?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.sector_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.sub_sector_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.hof_its?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.mumeneen_type?.toLowerCase().includes(filterText.toLowerCase()) ||
+    row.hub_amount?.toString().includes(filterText) ||
+    row.paid_amount?.toString().includes(filterText) ||
+    row.due_amount?.toString().includes(filterText) ||
+    row.overdue?.toString().includes(filterText);
 
-    //     // Sector condition
-    //   const matchesSector =
-    //   selectedSector === 'all' || !selectedSector || row.sector?.toLowerCase() === selectedSector.toLowerCase();
+  const matchesMode =
+    modeFilter === 'All' || row.mode?.toLowerCase() === modeFilter.toLowerCase();
 
-    // // Sub-Sector condition
-    // const matchesSubSector =
-    //   selectedSubSector === 'all' || !selectedSubSector || row.sub_sector?.toLowerCase() === selectedSubSector.toLowerCase();
+  const selectedSectorValue = Array.isArray(selectedSector) ? selectedSector[0] : selectedSector;
+const selectedSubSectorValue = Array.isArray(selectedSubSector) ? selectedSubSector[0] : selectedSubSector;
 
-    // Year condition
-    // const matchesYear = selectedYear === 'all' || !selectedYear || row.year?.toString() === selectedYear;
+const matchesSector =
+  !selectedSectorName?.length ||
+  selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
 
-
-
-            const matchesMode =
-      modeFilter === 'All' || row.mode?.toLowerCase() === modeFilter.toLowerCase();
+  const matchesSubSector =
+  !selectedSubSectorName?.length ||
+  selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
 
 
-    return matchesFilterText && matchesMode;
-  });
+
+
+// const matchesSubSector =
+//   !selectedSubSectorValue ||
+//   selectedSubSectorValue === 'all' ||
+//   row.sub_sector_name?.toUpperCase() === selectedSubSectorValue.toUpperCase();
+//   console.log("row.sector_name:", row.sector_name);
+// console.log("comparing with:", selectedSectorValue);
+
+
+
+  return matchesFilterText && matchesMode && matchesSector && matchesSubSector;
+
+});
+
 
   return (
     <AppTheme>

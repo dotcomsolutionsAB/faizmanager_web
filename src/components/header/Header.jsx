@@ -130,7 +130,12 @@ export default function Header({ selectedSector,
   selectedSubSector,
   setSelectedSubSector,
   selectedYear,
-  setSelectedYear }) {
+  setSelectedYear,
+  selectedSectorName,
+  setSelectedSectorName,
+  selectedSubSectorName,
+  setSelectedSubSectorName
+}) {
   const context = useUser();
   const user = context?.user || {};
   const theme = useTheme();
@@ -405,6 +410,37 @@ export default function Header({ selectedSector,
   //   }
   // }, [token, selectedSector]);
 
+  useEffect(() => {
+  if (selectedSector.length && sectors.length) {
+    const names = selectedSector
+      .map((id) => {
+        const sector = sectors.find((s) => s.id === id);
+        return sector?.name || null;
+      })
+      .filter((name) => name !== null); // filter out any unmatched ids
+
+    setSelectedSectorName(names); // set the array of sector names
+  } else {
+    setSelectedSectorName([]); // clear if no sectors selected
+  }
+}, [selectedSector, sectors]);
+
+useEffect(() => {
+  if (selectedSubSector.length && subSectors.length) {
+    const names = selectedSubSector
+      .map((id) => {
+        const subSector = subSectors.find((ss) => ss.id === id);
+        return subSector?.sub_sector_name || null;
+      })
+      .filter((name) => name !== null); // Remove unmatched/null names
+
+    setSelectedSubSectorName(names);
+  } else {
+    setSelectedSubSectorName([]);
+  }
+}, [selectedSubSector, subSectors]);
+
+
   // Fetch years
   useEffect(() => {
     if (token) {
@@ -443,7 +479,7 @@ export default function Header({ selectedSector,
     }
   }, [token]);
 
-  console.log("year", years);
+  console.log("name: ", selectedSubSectorName)
   return (
     <AppTheme>
       <CssBaseline />
@@ -481,272 +517,7 @@ export default function Header({ selectedSector,
             <Box sx={{ flexGrow: 1 }} />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
 
-              {/* <div>
-                <FormControl
-                  sx={{
-                    m: 1,
-                    width: { xs: "100%", sm: "22ch", md: "25ch" },
-                    position: "relative",
-                  }}
-                >
-                  <InputLabel id="sector-select-label">Select Sector</InputLabel>
-                  <Select
-                    label="Select Sector"
-                    labelId="sector-select-label"
-                    multiple
-                    value={selectedSector}
-                    onChange={(e) => {
-                      const value = e.target.value;
-
-                      if (value.includes("all")) {
-                        // If "All" is selected, select/deselect all
-                        if (selectedSector.includes("all")) {
-                          setSelectedSector([]); // Clear all
-                          setSelectedSubSector([]); // Clear sub-sectors
-                        } else {
-                          setSelectedSector(["all", ...sectors.map((sector) => sector.id)]);
-                        }
-                      } else {
-                        // Normal selection
-                        const filteredValue = value.filter((v) => v !== "all");
-                        setSelectedSector(filteredValue);
-                      }
-                    }}
-                    input={<OutlinedInput label="Sector" />}
-                    renderValue={(selected) => {
-                      if (selected.includes("all")) {
-                        return "All"; // Display "All" if 'all' is in the array
-                      }
-
-                      if (selected.length === 0) {
-                        return "Select Sector"; // Default placeholder
-                      }
-
-                      return selected.map((sectorId) => {
-                        const sector = sectors.find((s) => s.id === sectorId);
-                        return (
-                          <Box
-                            key={sectorId}
-                            sx={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              background: "#ddd",
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              m: 0.3,
-                              fontSize: "0.85rem",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {sector?.name}
-                            <IconButton
-                              size="small"
-                              onMouseDown={(e) => e.stopPropagation()}
-                              onClick={() => {
-                                setSelectedSector((prev) =>
-                                  prev.filter((item) => item !== sectorId)
-                                );
-                              }}
-                              sx={{
-                                ml: 0.5,
-                                width: "20px",
-                                height: "20px",
-                                color: "#555",
-                                borderRadius: "50%",
-                                "&:hover": { background: "transparent" },
-                              }}
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        );
-                      });
-                    }}
-                  >
-                    <MenuItem value="all">All</MenuItem>
-                    {sectors.map((sector) => (
-                      <MenuItem key={sector.id} value={sector.id}>
-                        {sector.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {/* Clear all icon */}
-                 {/*  {selectedSector.length > 0 && (
-                    <IconButton
-                      size="small"
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={() => {
-                        setSelectedSector([]); // Clear all selections
-                        setSelectedSubSector([]);
-                      }}
-                      sx={{
-                        position: "absolute",
-                        top: "6px",
-                        right: "30px",
-                        zIndex: 10,
-                        background: "#fff",
-                        "&:hover": { background: "#f5f5f5" },
-                      }}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  )}
-                </FormControl>
-
-
-
-
-
-
-
-              </div> */}
-              {/* <div>
-                <FormControl
-                  sx={{
-                    m: 1,
-                    width: { xs: "100%", sm: "22ch", md: "25ch" },
-                    position: "relative",
-                  }}
-                >
-                  <InputLabel id="sub-sector-select-label">Select Sub-Sector</InputLabel>
-                  <Select
-                    label="Select Sub-Sector"
-                    labelId="sub-sector-select-label"
-                    multiple
-                    value={selectedSubSector}
-                    onChange={(event) => {
-                      const value = event.target.value;
-
-                      if (value.includes("all")) {
-                        // Get all sub-sectors for the selected sectors
-                        const allSubSectors = subSectors
-                          .filter((subSector) => selectedSector.includes(subSector.sector_id))
-                          .map((subSector) => subSector.id);
-
-                        if (selectedSubSector.length === allSubSectors.length) {
-                          setSelectedSubSector([]); // Clear all sub-sectors
-                        } else {
-                          setSelectedSubSector(["all", ...allSubSectors]); // Select all
-                        }
-                      } else {
-                        setSelectedSubSector(value.filter((item) => item !== "all")); // Normal selection
-                      }
-                    }}
-                    input={<OutlinedInput label="Sub-Sector" />}
-                    renderValue={(selected) => {
-                      // Get all sub-sector IDs for the selected sectors
-                      const allSubSectorIds = subSectors
-                        .filter((subSector) => selectedSector.includes(subSector.sector_id))
-                        .map((subSector) => subSector.id);
-
-                      // If 'all' exists or all sub-sectors are selected
-                      if (selected.includes("all") || selected.length === allSubSectorIds.length) {
-                        return "All";
-                      }
-
-                      if (selected.length === 0) {
-                        return "Select Sub-Sector"; // Default placeholder
-                      }
-
-                      // Default behavior: display selected sub-sectors
-                      return selected.map((subSectorId) => {
-                        const subSector = subSectors.find((s) => s.id === subSectorId);
-                        return (
-                          <Box
-                            key={subSectorId}
-                            sx={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              background: "#ddd",
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              m: 0.3,
-                              fontSize: "0.85rem",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            {subSector?.sub_sector_name}
-                            <IconButton
-                              size="small"
-                              onMouseDown={(e) => e.stopPropagation()}
-                              onClick={() =>
-                                setSelectedSubSector((prev) =>
-                                  prev.filter((item) => item !== subSectorId)
-                                )
-                              }
-                              sx={{
-                                ml: 0.5,
-                                width: "20px",
-                                height: "20px",
-                                color: "#555",
-                                borderRadius: "50%",
-                                "&:hover": { background: "transparent" },
-                              }}
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        );
-                      });
-                    }}
-                    disabled={!selectedSector.length} // Disable if no sectors are selected
-                  >
-                    <MenuItem value="all">All</MenuItem>
-                    {selectedSector.reduce((acc, sectorId) => {
-                      const sectorSubSectors = subSectors.filter(
-                        (subSector) => subSector.sector_id === sectorId
-                      );
-                      return acc.concat(
-                        <ListSubheader
-                          key={sectorId}
-                          sx={{
-                            fontWeight: "bold",
-                            position: "sticky",
-                            top: 0,
-                            backgroundColor: yellow[100],
-                            zIndex: 1,
-                            color: brown[700],
-                          }}
-                        >
-                          {sectors.find((sector) => sector.id === sectorId)?.name}
-                        </ListSubheader>,
-                        sectorSubSectors.map((subSector) => (
-                          <MenuItem key={subSector.id} value={subSector.id}>
-                            {subSector.sub_sector_name}
-                          </MenuItem>
-                        ))
-                      );
-                    }, [])}
-                  </Select>
-
-                  {selectedSubSector.length > 0 && (
-                    <IconButton
-                      size="small"
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={() => setSelectedSubSector([])} // Clear all
-                      sx={{
-                        position: "absolute",
-                        top: "6px",
-                        right: "30px",
-                        zIndex: 10,
-                        background: "#fff",
-                        "&:hover": { background: "#f5f5f5" },
-                      }}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </FormControl>
-
-
-
-
-
-
-              </div> */}
+             
 <SectorSubSectorSelect
   sectors={sectors}                 // Array of sector objects {id, name, ...}
   subSectors={subSectors}           // Array of sub-sector objects {id, sub_sector_name, sector_id, ...}
@@ -754,6 +525,10 @@ export default function Header({ selectedSector,
   setSelectedSector={setSelectedSector} // setter function to update sectors
   selectedSubSector={selectedSubSector} // state array of selected sub-sector ids
   setSelectedSubSector={setSelectedSubSector} // setter function to update sub-sectors
+  selectedSectorName={selectedSectorName}
+  setSelectedSectorName={setSelectedSectorName}
+  selectedSubSectorName={selectedSubSectorName}
+  setSelectedSubSectorName={setSelectedSubSectorName}
 />
 
 
