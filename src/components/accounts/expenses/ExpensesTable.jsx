@@ -26,9 +26,10 @@ const customLocaleText = {
   noResultsOverlayLabel: '', // Remove default "No results" text for filtered data
 };
 
-function ExpensesTable() {
+function ExpensesTable({ onEdit }) {
   const { token, loading, currency } = useUser();
   const [rows, setRows] = useState([]);
+  const [selectedRow, setSelectedRow] = useState(null); 
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
   const [filteredRows, setFilteredRows] = useState([]); 
@@ -36,6 +37,9 @@ function ExpensesTable() {
     page: 0,
     pageSize: 10,
   });
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('');
 
   const navigate = useNavigate();
 
@@ -53,7 +57,8 @@ const truncateText = (text, maxLength = 30) => {
 
 
 
-  const ActionButtonWithOptions = ({ onActionClick,  receiptId  }) => {
+  
+  const ActionButtonWithOptions = ({ onActionClick,  expenseId, rowData  }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
 
@@ -68,16 +73,24 @@ const truncateText = (text, maxLength = 30) => {
     };
 
     const handlePrintClick = () => {
-      const printUrl = `https://api.fmb52.com/api/receipt_print/${receiptId}`;
-      window.open(printUrl, '_blank'); // Opens in new tab
-      handleClose();
+      // const printUrl = `https://api.fmb52.com/api/receipt_print/${receiptId}`;
+      // window.open(printUrl, '_blank'); // Opens in new tab
+      // handleClose();
+      console.log("Print")
     };
 
+    const handleEditClick = () => {
+      // console.log(rowData)
+    onEdit(rowData);  // Pass the expense data to the parent component
+    handleClose();
+  };
+
      const handleDeleteClick = () => {
-      setDeleteId(receiptId); // Set the ID of the receipt to be deleted
+      setDeleteId(expenseId); // Set the ID of the receipt to be deleted
       setOpenDeleteDialog(true); // Open the delete dialog
       handleClose();
     };
+
 
     // Set the document title
     useEffect(() => {
@@ -124,7 +137,7 @@ const truncateText = (text, maxLength = 30) => {
 
 
           {/* Edit Option */}
-          <MenuItem onClick={() => { onActionClick('Edit Hub'); handleClose(); }}>
+          <MenuItem onClick={handleEditClick}>
             <Tooltip title="Edit" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                 <EditIcon sx={{ color: brown[200] }} />
@@ -369,7 +382,7 @@ const truncateText = (text, maxLength = 30) => {
             height: '100%',
           }}
         >
-          <ActionButtonWithOptions receiptId={params.row.id} />
+          <ActionButtonWithOptions expenseId={params.row.id} rowData={params.row} onEdit={onEdit}/>
         </Box>
       ),
     },
@@ -379,37 +392,65 @@ const truncateText = (text, maxLength = 30) => {
 
 
 
-  useEffect(() => {
-    if (loading || !token) return;
+  // useEffect(() => {
+  //   if (loading || !token) return;
 
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://api.fmb52.com/api/expense', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await fetch('https://api.fmb52.com/api/expense', {
+  //         method: 'GET',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
 
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
+  //       if (!response.ok) {
+  //         throw new Error(`Error ${response.status}: ${response.statusText}`);
+  //       }
 
-        const data = await response.json();
-        // console.log("Recipts:", data);
-        // console.log(data.data)
-        setRows(data.data || []);
-        setFilteredRows(data.data || []);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+  //       const data = await response.json();
+  //       // console.log("Recipts:", data);
+  //       // console.log(data.data)
+  //       setRows(data.data || []);
+  //       setFilteredRows(data.data || []);
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   };
 
-    fetchData();
-  }, [token, loading]);
+  //   fetchData();
+  // }, [token, loading]);
 
   // Filter function to search the data
+  
+   const fetchData = async () => {
+    try {
+      const response = await fetch('https://api.fmb52.com/api/expense', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setRows(data.data || []);
+      setFilteredRows(data.data || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (loading || !token) return;
+    fetchData(); // Fetch data on initial load
+  }, [token, loading]);
+  
   const handleSearch = (e) => {
     const searchText = e.target.value.toLowerCase();
     setFilterText(searchText);
@@ -426,6 +467,13 @@ const truncateText = (text, maxLength = 30) => {
       );
     });
     setFilteredRows(filteredData);
+  };
+
+  
+const handleDeleteConfirm = () => {
+    // After confirming deletion, just refetch the data.
+    setOpenDeleteDialog(false);
+    fetchData(); // Refetch the data after deletion
   };
   
 
@@ -528,13 +576,11 @@ const truncateText = (text, maxLength = 30) => {
       <DeleteExpenseDialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
-        receiptId={deleteId}
-        onConfirm={() => {
-          // Handle the actual deletion here, for example:
-          // Delete the item from the state
-          setRows(rows.filter(row => row.id !== deleteId));
-          setOpenDeleteDialog(false);
-        }}
+        expenseId={deleteId}
+        onConfirm={handleDeleteConfirm}
+        setSnackbarOpen={setSnackbarOpen}
+        setSnackbarMessage={setSnackbarMessage}
+        setSnackbarSeverity={setSnackbarSeverity}
       />
 
        <Dialog open={openDescDialog} onClose={() => setOpenDescDialog(false)}>

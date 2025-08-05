@@ -24,3 +24,5 @@ yarn-error.log*
 
 txt.txt
 samples/
+
+.nvmrc

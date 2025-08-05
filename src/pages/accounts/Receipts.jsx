@@ -568,7 +568,7 @@ const matchesSector =
               pageSizeOptions={[5, 10, 25, 50, 100]}
               sortModel={sortModel}
               onSortModelChange={(model) => setSortModel(model)}
-              ggetRowId={(row) => row.id}
+              getRowId={(row) => row.id}
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   color: yellow[400],

@@ -24,6 +24,7 @@ const PaymentsForm = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
 
+
   // Controlled form states
   const [date, setDate] = useState(""); // e.g. '2025-05-17'
   const [remarks, setRemarks] = useState("");
@@ -32,6 +33,7 @@ const PaymentsForm = () => {
   useEffect(() => {
     const fetchReceipts = async () => {
       try {
+  
         const response = await fetch("https://api.fmb52.com/api/receipts/pending", {
           method: "POST",
           headers: {

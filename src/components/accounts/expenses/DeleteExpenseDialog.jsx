@@ -14,7 +14,7 @@ import { useUser } from '../../../UserContext';
 
 const DeleteExpenseDialog = ({ open,
   onClose,
-  receiptId,
+  expenseId,
   onConfirm,
   setSnackbarOpen,
   setSnackbarMessage,
@@ -24,12 +24,12 @@ const DeleteExpenseDialog = ({ open,
   const [error, setError] = useState(null);
 
   const handleSave = async () => {
-    if (!receiptId) return;
+    if (!expenseId) return;
 
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`https://api.fmb52.com/api/receipts/${receiptId}`, {
+      const response = await fetch(`https://api.fmb52.com/api/expense/${expenseId}`, {
         method: 'DELETE',  // Assuming DELETE is used to cancel receipt; if POST or PUT, change accordingly
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -47,7 +47,7 @@ const DeleteExpenseDialog = ({ open,
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
 
-      onConfirm(receiptId);
+      onConfirm(expenseId);
       onClose();
     } catch (err) {
       setError(err.message);

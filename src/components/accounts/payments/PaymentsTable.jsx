@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Paper, TextField,Menu,  MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline } from '@mui/material';
+import { Box, Paper, TextField, Menu, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../../UserContext';
 import { Link } from 'react-router-dom';
-import {yellow, brown} from "../../../styles/ThemePrimitives";
+import { yellow, brown } from "../../../styles/ThemePrimitives";
 import EditIcon from '@mui/icons-material/Edit';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -34,11 +34,13 @@ const customLocaleText = {
 };
 
 function PaymentsTable() {
-    const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
-    const [loadingData, setLoadingData] = useState(false);
-      const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
-      const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
-  
+  const { selectedSector, selectedSubSector, selectedYear, selectedSectorName, selectedSubSectorName } = useOutletContext();
+  const [loadingData, setLoadingData] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
+  const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
+
+  console.log("paynebts", selectedSectorName)
+
   const { token, loading } = useUser();
   const [rows, setRows] = useState([]);
   const [filterText, setFilterText] = useState('');
@@ -50,41 +52,41 @@ function PaymentsTable() {
   });
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-const [snackbarMessage, setSnackbarMessage] = useState('');
-const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-const handleSnackbarClose = () => {
-  setSnackbarOpen(false);
-};
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
 
   const navigate = useNavigate();
 
 
-  const ActionButtonWithOptions = ({ onActionClick,  paymentId  }) => {
+  const ActionButtonWithOptions = ({ onActionClick, paymentId }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
-  
+
     // Open the menu
     const handleClick = (event) => {
       setAnchorEl(event.currentTarget);
     };
-  
+
     // Close the menu
     const handleClose = () => {
       setAnchorEl(null);
     };
 
-         const handleDeleteClick = () => {
+    const handleDeleteClick = () => {
       setDeleteId(paymentId); // Set the ID of the receipt to be deleted
       setOpenDeleteDialog(true); // Open the delete dialog
       handleClose();
     };
-  
-        // Set the document title
-        useEffect(() => {
-          document.title = "Receipts - FMB 52"; // Set the title for the browser tab
-        }, []);
-      
+
+    // Set the document title
+    useEffect(() => {
+      document.title = "Payments - FMB 52"; // Set the title for the browser tab
+    }, []);
+
     return (
       <Box>
         {/* Actions Button */}
@@ -97,7 +99,7 @@ const handleSnackbarClose = () => {
           {/* <MoreVertIcon /> */}
 
         </Button>
-  
+
         {/* Dropdown Menu */}
         <Menu
           anchorEl={anchorEl}
@@ -113,26 +115,26 @@ const handleSnackbarClose = () => {
             horizontal: 'left',
           }}
         >
-  
+
           {/* Edit Hub Option */}
           <MenuItem onClick={() => { onActionClick('Edit'); handleClose(); }}>
             <Tooltip title="Edit Hub" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{pr: 2}}>
-                <EditIcon sx={{color: brown[200]}} />
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <EditIcon sx={{ color: brown[200] }} />
                 Edit
               </Box>
             </Tooltip>
           </MenuItem>
-  
-           {/* Delete Option */}
-                    <MenuItem onClick={handleDeleteClick}>
-                      <Tooltip title="Delete" placement="left">
-                        <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                          <DeleteIcon sx={{ color: brown[200] }} />
-                          Delete
-                        </Box>
-                      </Tooltip>
-                    </MenuItem>
+
+          {/* Delete Option */}
+          <MenuItem onClick={handleDeleteClick}>
+            <Tooltip title="Delete" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <DeleteIcon sx={{ color: brown[200] }} />
+                Delete
+              </Box>
+            </Tooltip>
+          </MenuItem>
         </Menu>
       </Box>
     );
@@ -166,7 +168,7 @@ const handleSnackbarClose = () => {
               }}
             />
           </div>
-  
+
           {/* Mumeneen Info (Text) */}
           <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: 1 }}>
             {/* Name */}
@@ -184,25 +186,25 @@ const handleSnackbarClose = () => {
                 {params.row.name}
               </Link>
             </Typography>
-  
+
             {/* ITS */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               ITS: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its}</span>
             </Typography>
-  
+
             {/* Mobile */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Mobile: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mobile}</span>
             </Typography>
-  
+
             {/* Folio No */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Folio No: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.folio_no}</span>
             </Typography>
-  
+
             {/* Sector */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector}-{params.row.sub_sector}</span>
+              Sector: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.sector_name}-{params.row.sub_sector_name}</span>
             </Typography>
           </Box>
         </Box>
@@ -236,7 +238,7 @@ const handleSnackbarClose = () => {
         </Box>
       ),
     },
-    
+
     {
       field: 'receipt', // Updated to exclude Receipt No
       headerName: 'Receipt Details',
@@ -248,17 +250,17 @@ const handleSnackbarClose = () => {
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Mode: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mode}</span>
             </Typography>
-  
+
             {/* Date */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Date: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.date}</span>
             </Typography>
-  
+
             {/* Year */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Year: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.year}</span>
             </Typography>
-  
+
             {/* Comments */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Comments: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.comments}</span>
@@ -277,7 +279,7 @@ const handleSnackbarClose = () => {
           style: 'currency',
           currency: 'INR',
         }).format(params.row.amount);
-  
+
         return (
           <Typography
             variant="body2"
@@ -317,7 +319,7 @@ const handleSnackbarClose = () => {
       ),
     },
   ];
-  
+
 
 
 
@@ -331,7 +333,7 @@ const handleSnackbarClose = () => {
         setLoadingData(true);
 
         const response = await fetch('https://api.fmb52.com/api/payments/all', {
-                    method: 'POST',
+          method: 'POST',
 
           headers: {
             'Content-Type': 'application/json',
@@ -351,7 +353,7 @@ const handleSnackbarClose = () => {
         setRows(data.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
-      }finally {
+      } finally {
         setLoadingData(false); // <-- End loading
       }
     };
@@ -364,41 +366,43 @@ const handleSnackbarClose = () => {
     const matchesFilterText =
       row.name?.toLowerCase().includes(filterText.toLowerCase()) ||
       row.its?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.mobile?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.folio_no?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.sector?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.sub_sector?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.hof_its?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.mumeneen_type?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.hub_amount?.toString().includes(filterText) ||
-      row.paid_amount?.toString().includes(filterText) ||
-      row.due_amount?.toString().includes(filterText) ||
-      row.overdue?.toString().includes(filterText);
+      // row.mobile?.toLowerCase().includes(filterText.toLowerCase()) ||
+      // row.folio_no?.toLowerCase().includes(filterText.toLowerCase()) ||
+      row.sector_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      row.sub_sector_name?.toLowerCase().includes(filterText.toLowerCase());
+      // row.hof_its?.toLowerCase().includes(filterText.toLowerCase()) ||
+      // row.mumeneen_type?.toLowerCase().includes(filterText.toLowerCase()) ||
+      // row.hub_amount?.toString().includes(filterText) ||
+      // row.paid_amount?.toString().includes(filterText) ||
+      // row.due_amount?.toString().includes(filterText) ||
+      // row.overdue?.toString().includes(filterText);
 
-    //     // Sector condition
-    //   const matchesSector =
-    //   selectedSector === 'all' || !selectedSector || row.sector?.toLowerCase() === selectedSector.toLowerCase();
+      
 
-    // // Sub-Sector condition
-    // const matchesSubSector =
-    //   selectedSubSector === 'all' || !selectedSubSector || row.sub_sector?.toLowerCase() === selectedSubSector.toLowerCase();
+ const matchesSector =
+      !selectedSectorName?.length ||
+      selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
 
-    // Year condition
-    // const matchesYear = selectedYear === 'all' || !selectedYear || row.year?.toString() === selectedYear;
+    const matchesSubSector =
+      !selectedSubSectorName?.length ||
+      selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
 
 
-    const matchesFilterType =
-      filterType === 'All' ||
-      (row.mumeneen_type &&
-        row.mumeneen_type.trim().toUpperCase() === filterType.trim().toUpperCase());
+  
 
-    return matchesFilterText && matchesFilterType;
+//  console.log("Rows:", rows);
+
+
+
+
+    return matchesFilterText && matchesSector && matchesSubSector;
   });
+// console.log("Filtered Rows:", filteredRows);
 
   return (
     <AppTheme>
       <CssBaseline />
-      <Box sx={{ width: '100%', overflowX: 'auto',  mt: 1, pt: 1, pr: 2, pb: 3, pl: 2 }}>
+      <Box sx={{ width: '100%', overflowX: 'auto', mt: 1, pt: 1, pr: 2, pb: 3, pl: 2 }}>
         <Paper
           sx={{
             width: '100%',
@@ -439,7 +443,7 @@ const handleSnackbarClose = () => {
           </Box>
           <div style={{ height: 700, width: '100%', overflow: 'auto' }}>
             <DataGridPro
-              rows={rows}
+              rows={filteredRows}
               columns={columns}
               components={{ Toolbar: GridToolbar }}
               localeText={customLocaleText}
@@ -453,7 +457,7 @@ const handleSnackbarClose = () => {
               pageSizeOptions={[5, 10, 25, 50, 100]}
               sortModel={sortModel}
               onSortModelChange={(model) => setSortModel(model)}
-              ggetRowId={(row) => row.id}
+              getRowId={(row) => row.id}
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   color: yellow[400],
@@ -491,37 +495,37 @@ const handleSnackbarClose = () => {
           </div>
         </Paper>
         <DeletePaymentsDialog
-                open={openDeleteDialog}
-                onClose={() => setOpenDeleteDialog(false)}
-                paymentId={deleteId}
-                onConfirm={() => {
-                  // Handle the actual deletion here, for example:
-                  // Delete the item from the state
-                  setRows(rows.filter(row => row.id !== deleteId));
-                  setOpenDeleteDialog(false);
-                }}
-                setSnackbarOpen={setSnackbarOpen}
-  setSnackbarMessage={setSnackbarMessage}
-  setSnackbarSeverity={setSnackbarSeverity}
-              />
-              <Snackbar
-  open={snackbarOpen}
-  autoHideDuration={6000}
-  onClose={handleSnackbarClose}
-sx={{ height: "100%" }}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
->
-  <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-    {snackbarMessage}
-  </Alert>
-</Snackbar>
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+          paymentId={deleteId}
+          onConfirm={() => {
+            // Handle the actual deletion here, for example:
+            // Delete the item from the state
+            setRows(rows.filter(row => row.id !== deleteId));
+            setOpenDeleteDialog(false);
+          }}
+          setSnackbarOpen={setSnackbarOpen}
+          setSnackbarMessage={setSnackbarMessage}
+          setSnackbarSeverity={setSnackbarSeverity}
+        />
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleSnackbarClose}
+          sx={{ height: "100%" }}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
       <Backdrop
-              sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-              open={loadingData}
-            >
-              <CircularProgress color="inherit" />
-            </Backdrop>
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loadingData}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
 
     </AppTheme>
   );
