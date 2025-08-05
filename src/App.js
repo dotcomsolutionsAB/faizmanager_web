@@ -28,7 +28,6 @@ import ForgotPassword from './pages/login/ForgotPassword';
 import JamaatTable from './pages/jamaat/Jamaat';
 import Niyaz from './pages/niyaz/Niyaz';
 import Menu from './pages/menu/Menu';
-import ExpensesTrial from './pages/accounts/ExpensesTrial';
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -87,7 +86,6 @@ function App() {
             <Route path="/jamaat" element={<JamaatTable />} />
             <Route path="/niyaz" element={<Niyaz />} />
             <Route path="/menu" element={<Menu />} />
-            <Route path='/expense-trial' element={<ExpensesTrial />} />
           </Route>
           {/* Optional: Catch-all for unknown routes */}
           {/* <Route path="*" element={<NotFound />} /> */}
