@@ -19,7 +19,7 @@ import Collapse from "@mui/material/Collapse";
 import { useUser } from "../../../UserContext";
 import { useOutletContext, useLocation } from "react-router-dom";
 
-const ExpensesForm = ({ expenseData }) => { // Accept expenseData as prop
+const ExpensesForm = ({ expenseData, fetchData }) => { // Accept expenseData as prop
   const [collapsed, setCollapsed] = useState(false);
   const { token } = useUser();
   const { selectedYear } = useOutletContext();
@@ -108,6 +108,7 @@ const handleSubmit = async () => {
           setDescription("");
           setDate(new Date().toISOString().split("T")[0]);
         }
+        fetchData()
       } else {
         setSnackbarMessage(data.message || "Failed to create/update expense");
         setSnackbarSeverity("error");

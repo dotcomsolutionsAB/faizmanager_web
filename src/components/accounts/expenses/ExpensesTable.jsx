@@ -26,9 +26,9 @@ const customLocaleText = {
   noResultsOverlayLabel: '', // Remove default "No results" text for filtered data
 };
 
-function ExpensesTable({ onEdit }) {
-  const { token, loading, currency } = useUser();
-  const [rows, setRows] = useState([]);
+function ExpensesTable({ expenses, onEdit, fetchData }) {
+  const {currency} = useUser();
+
   const [selectedRow, setSelectedRow] = useState(null); 
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
@@ -55,6 +55,11 @@ const truncateText = (text, maxLength = 30) => {
   return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
 };
 
+  // Check if expenses are passed and log
+  useEffect(() => {
+    // Log expenses to see if data is passed correctly
+    setFilteredRows(expenses); // Update filteredRows whenever expenses change
+  }, [expenses]);
 
 
   
@@ -392,82 +397,32 @@ const truncateText = (text, maxLength = 30) => {
 
 
 
-  // useEffect(() => {
-  //   if (loading || !token) return;
 
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await fetch('https://api.fmb52.com/api/expense', {
-  //         method: 'GET',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
 
-  //       if (!response.ok) {
-  //         throw new Error(`Error ${response.status}: ${response.statusText}`);
-  //       }
-
-  //       const data = await response.json();
-  //       // console.log("Recipts:", data);
-  //       // console.log(data.data)
-  //       setRows(data.data || []);
-  //       setFilteredRows(data.data || []);
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, [token, loading]);
-
-  // Filter function to search the data
-  
-   const fetchData = async () => {
-    try {
-      const response = await fetch('https://api.fmb52.com/api/expense', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setRows(data.data || []);
-      setFilteredRows(data.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  useEffect(() => {
-    if (loading || !token) return;
-    fetchData(); // Fetch data on initial load
-  }, [token, loading]);
   
   const handleSearch = (e) => {
     const searchText = e.target.value.toLowerCase();
     setFilterText(searchText);
 
-    // Filter the rows based on the search text across all relevant columns
-    const filteredData = rows.filter((row) => {
+    // Filter the rows based on search text
+    const filteredData = expenses.filter((row) => {
+      const description = row.description || ""; // Default to an empty string if description is undefined or null
       return (
         row.voucher_no.toString().toLowerCase().includes(searchText) ||
         row.name.toLowerCase().includes(searchText) ||
         row.date.toLowerCase().includes(searchText) ||
-        row.amount.toString().toLowerCase().includes(searchText) ||
-        row.cheque_no.toString().toLowerCase().includes(searchText) ||
-        row.description.toLowerCase().includes(searchText)
+        row.amount.toString().includes(searchText) ||
+        row.cheque_no.toString().includes(searchText) ||
+        description.toLowerCase().includes(searchText) // Filter by description as well
       );
     });
+
+    // Log the filtered data to see what is being returned
+
+    // Set the filtered rows
     setFilteredRows(filteredData);
   };
+
 
   
 const handleDeleteConfirm = () => {

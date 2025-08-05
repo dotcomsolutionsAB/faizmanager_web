@@ -26,3 +26,7 @@ txt.txt
 samples/
 
 .nvmrc
+
+ExpensesTrial.jsx
+ExpensesFormTrial.jsx
+ExpensesTableTrial.jsx
