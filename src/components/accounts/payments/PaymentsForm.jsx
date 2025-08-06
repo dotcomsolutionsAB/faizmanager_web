@@ -3,7 +3,7 @@ import {
   Box, Typography, Grid, TextField, Button, Snackbar, Alert,
   IconButton, Collapse, CssBaseline, FormControl,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  List, ListItem, Checkbox, Chip
+  List, ListItem, Checkbox, Chip, InputLabel, Select, MenuItem
 } from "@mui/material";
 import AppTheme from "../../../styles/AppTheme";
 import { yellow } from "../../../styles/ThemePrimitives";
@@ -22,13 +22,37 @@ const PaymentsForm = () => {
   const [receiptNos, setReceiptNos] = useState([]);
   const [selectedReceipts, setSelectedReceipts] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
+  const { selectedSubSector, selectedYear } = useOutletContext();
+  const [sectors, setSectors] = useState([]);
+  const [selectedSector, setSelectedSector] = useState("");
 
 
   // Controlled form states
   const [date, setDate] = useState(""); // e.g. '2025-05-17'
   const [remarks, setRemarks] = useState("");
   const [year, setYear] = useState(""); // e.g. '1446-1447'
+
+  useEffect(() => {
+    const fetchSectors = async () => {
+      try {
+        const response = await fetch("https://api.fmb52.com/api/sector", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        const data = await response.json();
+        if (data?.data) {
+          setSectors(data.data);
+          setSelectedSector(data.data[0].id);
+        }
+      } catch (err) {
+        console.error("Error fetching sectors:", err);
+      }
+    };
+    fetchSectors();
+  }, [token]);
 
   useEffect(() => {
     const fetchReceipts = async () => {
@@ -43,7 +67,7 @@ const PaymentsForm = () => {
           body: JSON.stringify({
             mode: "cash",
             sector: selectedSector,
-            sub_sector: selectedSubSector
+            sub_sector: ""
           })
         });
         const data = await response.json();
@@ -120,6 +144,7 @@ const PaymentsForm = () => {
     }
   };
 
+  
   return (
     <AppTheme>
       <CssBaseline />
@@ -134,9 +159,27 @@ const PaymentsForm = () => {
           <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1, p: "8px 16px", borderRadius: 1 }}>
             Add Payment
           </Typography>
+          <Box>
+          <FormControl sx={{ minWidth: 150, mr: 2 }}>
+            <InputLabel id="sector-label">Sector</InputLabel>
+            <Select
+              labelId="sector-label"
+              value={selectedSector}
+              onChange={(e) => setSelectedSector(e.target.value)}
+              label="Sector"
+              sx={{ height: "40px" }}
+            >
+              {sectors.map((sector) => (
+                <MenuItem key={sector.id} value={sector.id}>
+                  {sector.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <IconButton onClick={() => setCollapsed((prev) => !prev)} sx={{ color: yellow[300], "&:hover": { color: yellow[400] } }}>
             {collapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
           </IconButton>
+        </Box>
         </Box>
 
         {!collapsed && (
