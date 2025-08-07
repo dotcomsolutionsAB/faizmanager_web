@@ -7,7 +7,8 @@ import PaymentsForm from "../../components/accounts/payments/PaymentsForm";
 import PaymentsTable from "../../components/accounts/payments/PaymentsTable";
 
 
-const Sector = () => {
+const Payments = () => {
+  
       // Set the document title
       useEffect(() => {
         document.title = "Payments - FMB 52"; // Set the title for the browser tab
@@ -26,4 +27,4 @@ const Sector = () => {
   );
 };
 
-export default Sector;
+export default Payments;

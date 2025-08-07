@@ -18,12 +18,17 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
 import { useUser } from "../../../UserContext";
 import { useOutletContext, useLocation } from "react-router-dom";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+
 
 const ExpensesForm = ({ expenseData, fetchData }) => { // Accept expenseData as prop
   const [collapsed, setCollapsed] = useState(false);
   const { token } = useUser();
   const { selectedYear } = useOutletContext();
-console.log("Form", expenseData)
+// console.log("Form", expenseData)
   // States for form fields
   
   const [name, setName] = useState(expenseData ? expenseData.name : "");
@@ -120,6 +125,7 @@ const handleSubmit = async () => {
       setSnackbarOpen(true);
     }
   };
+  
 
 
 
@@ -139,9 +145,36 @@ const handleSubmit = async () => {
           <Box sx={{ width: "calc(100% + 48px)", position: "relative", height: 15, backgroundImage: `url(${divider})`, backgroundSize: "contain", backgroundRepeat: "repeat-x", backgroundPosition: "center", mb: 2, marginLeft: "-24px", marginRight: "-24px" }} />
         )}
         <Collapse in={!collapsed}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
             <Grid item xs={12} md={3}>
-              <TextField fullWidth label="Date" type="date" InputLabelProps={{ shrink: true }} value={date} onChange={(e) => setDate(e.target.value)} required />
+              {/* <TextField fullWidth label="Date" type="date" InputLabelProps={{ shrink: true }} value={date} onChange={(e) => setDate(e.target.value)} required /> */}
+                                                  <DatePicker
+                                                      label="Date"
+                                                      value={date ? dayjs(date) : null}
+                                                      onChange={(newValue) => {
+                                                          if (newValue?.isValid()) {
+                                                              setDate(newValue.format('YYYY-MM-DD'));
+                                                          }
+                                                      }}
+                                                      slotProps={{
+                                                          textField: {
+                                                              fullWidth: true,
+                                                              sx: {
+                                                                  '& .MuiIconButton-root': {
+                                                                      border: 'none',
+                                                                      padding: 0,
+                                                                      margin: 0,
+                                                                      backgroundColor: 'transparent',
+                                                                  },
+                                                              },
+                                                              onClick: (e) => {
+                                                                  e.currentTarget.querySelector('button')?.click();
+                                                              },
+                                                          },
+                                                      }}
+                                                      required
+                                                  />
             </Grid>
             <Grid item xs={12} md={3}>
               <TextField fullWidth label="Amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} required />
@@ -163,6 +196,7 @@ const handleSubmit = async () => {
               </Button>
             </Grid>
           </Grid>
+          </LocalizationProvider>
         </Collapse>
       </Box>
 

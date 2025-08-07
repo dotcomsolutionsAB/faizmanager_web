@@ -479,7 +479,6 @@ useEffect(() => {
     }
   }, [token]);
 
-  console.log("name: ", selectedSubSectorName)
   return (
     <AppTheme>
       <CssBaseline />

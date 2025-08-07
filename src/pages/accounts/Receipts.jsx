@@ -423,7 +423,6 @@ function Receipts() {
         }
 
         const data = await response.json();
-        console.log("Receipts", data)
         setRows(data.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);

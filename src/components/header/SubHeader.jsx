@@ -24,7 +24,6 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
   const showYearSelect = ['/dashboard', '/receipts', '/payments', '/expenses'].includes(location.pathname);
 
 
-  console.log("years", years);
 const handleYearChange = (event) => {
   setSelectedYear(event.target.value); // now a string, not an array
 };

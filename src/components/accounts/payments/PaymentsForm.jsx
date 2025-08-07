@@ -3,7 +3,8 @@ import {
   Box, Typography, Grid, TextField, Button, Snackbar, Alert,
   IconButton, Collapse, CssBaseline, FormControl,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  List, ListItem, Checkbox, Chip, InputLabel, Select, MenuItem
+  List, ListItem, Checkbox, Chip, InputLabel, Select, MenuItem,
+  Divider
 } from "@mui/material";
 import AppTheme from "../../../styles/AppTheme";
 import { yellow } from "../../../styles/ThemePrimitives";
@@ -13,6 +14,10 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useUser } from "../../../UserContext";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useOutletContext, useLocation } from "react-router-dom";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 
 const PaymentsForm = () => {
@@ -25,6 +30,8 @@ const PaymentsForm = () => {
   const { selectedSubSector, selectedYear } = useOutletContext();
   const [sectors, setSectors] = useState([]);
   const [selectedSector, setSelectedSector] = useState("");
+
+  
 
 
   // Controlled form states
@@ -57,7 +64,7 @@ const PaymentsForm = () => {
   useEffect(() => {
     const fetchReceipts = async () => {
       try {
-  
+
         const response = await fetch("https://api.fmb52.com/api/receipts/pending", {
           method: "POST",
           headers: {
@@ -98,7 +105,7 @@ const PaymentsForm = () => {
   }, 0);
 
   // Submit handler to call POST /payments API
- const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!date) {
       setSnackbar({ open: true, message: "Please select a date", severity: "error" });
       return;
@@ -111,13 +118,27 @@ const PaymentsForm = () => {
       setSnackbar({ open: true, message: "Please select at least one receipt", severity: "error" });
       return;
     }
+
+    // Map selectedReceipts to send the receipt ids
+  const receiptIds = selectedReceipts.map((receiptNo) => {
+    const receipt = receiptNos.find((r) => r.receipt_no === receiptNo);
+    return receipt ? receipt.id : null;
+  }).filter(id => id !== null);
+
+  if (receiptIds.length === 0) {
+    setSnackbar({ open: true, message: "No valid receipts selected", severity: "error" });
+    return;
+  }
     const payload = {
       date,
-      receipt_ids: selectedReceipts,
+      receipt_ids: receiptIds,
       amount: totalSelectedAmount,
-      year: selectedYear,
-      remarks
+      year: selectedYear[0],
+      remarks,
+      mode: "cash"
     };
+    // console.log("id", receiptIds)
+    // console.log(selectedYear[0])
 
     try {
       const response = await fetch("https://api.fmb52.com/api/payments", {
@@ -144,7 +165,7 @@ const PaymentsForm = () => {
     }
   };
 
-  
+
   return (
     <AppTheme>
       <CssBaseline />
@@ -160,26 +181,26 @@ const PaymentsForm = () => {
             Add Payment
           </Typography>
           <Box>
-          <FormControl sx={{ minWidth: 150, mr: 2 }}>
-            <InputLabel id="sector-label">Sector</InputLabel>
-            <Select
-              labelId="sector-label"
-              value={selectedSector}
-              onChange={(e) => setSelectedSector(e.target.value)}
-              label="Sector"
-              sx={{ height: "40px" }}
-            >
-              {sectors.map((sector) => (
-                <MenuItem key={sector.id} value={sector.id}>
-                  {sector.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <IconButton onClick={() => setCollapsed((prev) => !prev)} sx={{ color: yellow[300], "&:hover": { color: yellow[400] } }}>
-            {collapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
-          </IconButton>
-        </Box>
+            <FormControl sx={{ minWidth: 150, mr: 2 }}>
+              <InputLabel id="sector-label">Sector</InputLabel>
+              <Select
+                labelId="sector-label"
+                value={selectedSector}
+                onChange={(e) => setSelectedSector(e.target.value)}
+                label="Sector"
+                sx={{ height: "40px" }}
+              >
+                {sectors.map((sector) => (
+                  <MenuItem key={sector.id} value={sector.id}>
+                    {sector.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <IconButton onClick={() => setCollapsed((prev) => !prev)} sx={{ color: yellow[300], "&:hover": { color: yellow[400] } }}>
+              {collapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />}
+            </IconButton>
+          </Box>
         </Box>
 
         {!collapsed && (
@@ -197,10 +218,11 @@ const PaymentsForm = () => {
         )}
 
         <Collapse in={!collapsed}>
-          <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
 
-            <Grid item xs={12} md={4}>
-              <TextField
+              <Grid item xs={12} md={4}>
+                {/* <TextField
                 fullWidth
                 type="date"
                 value={date}
@@ -212,155 +234,201 @@ const PaymentsForm = () => {
                     border: `1px solid ${yellow[400]}`,
                   },
                 }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <Box
-                  sx={{
-                    border: `1px solid ${yellow[400]}`,
-                    borderRadius: "8px",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    px: 1,
-                    py: '12px',
-                    mb: '7px',
-                    minHeight: '52px',
-                    cursor: "pointer",
+              /> */}
+                <DatePicker
+                  label="Date"
+                  value={date ? dayjs(date) : null}
+                  onChange={(newValue) => {
+                    if (newValue?.isValid()) {
+                      setDate(newValue.format('YYYY-MM-DD'));
+                    }
                   }}
-                  onClick={() => setDialogOpen(true)}
-                  aria-haspopup="true"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter') setDialogOpen(true); }}
-                >
-                  {selectedReceipts.length === 0 ? (
-                    <Typography sx={{ color: "#aaa" }}>Click to select receipts</Typography>
-                  ) : (
-                    selectedReceipts.map((val) => (
-                      <Chip
-                        key={val}
-                        label={val}
-                        onDelete={() => setSelectedReceipts((prev) => prev.filter((v) => v !== val))}
-                        deleteIcon={<CancelIcon />}
-                      />
-                    ))
-                  )}
-                </Box>
-              </FormControl>
 
-              <Dialog
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-                fullWidth
-                maxWidth="lg"
-              >
-                <DialogTitle>Select Receipt No(s)</DialogTitle>
-                <Box
-                  sx={{
-                    width: '100%',
-                    position: 'relative',
-                    height: '50vh',
-                    backgroundImage: `url(${divider})`,
-                    backgroundSize: 'contain',
-                    backgroundRepeat: 'repeat-x',
-                    backgroundPosition: 'center',
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      sx: {
+                                             '& .MuiIconButton-root': {
+                        border: 'none',
+                        padding: 0,
+                        margin: 0,
+                        backgroundColor: 'transparent',
+                      },
+                        '& .MuiOutlinedInput-root': {
+                          height: '52px',
+                          mb: '7px',
+                          border: `1px solid ${yellow[400]}`,
+                        },
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: yellow[400], // Ensures the outline gets the correct color
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: yellow[400], // Ensures border color on hover as well
+                        },
+                      },
+ 
+
+                      onClick: (e) => {
+                        e.currentTarget.querySelector('button')?.click();
+                      },
+
+                    },
+                  }}
+
+                />
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <Box
+                    sx={{
+                      border: `1px solid ${yellow[400]}`,
+                      borderRadius: "8px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      px: 1,
+                      py: '12px',
+                      mb: '7px',
+                      minHeight: '52px',
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setDialogOpen(true)}
+                    aria-haspopup="true"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter') setDialogOpen(true); }}
+                  >
+                    {selectedReceipts.length === 0 ? (
+                      <Typography sx={{ color: "#aaa" }}>Click to select receipts</Typography>
+                    ) : (
+                      selectedReceipts.map((val) => (
+                        <Chip
+                          key={val}
+                          label={val}
+                          onDelete={() => setSelectedReceipts((prev) => prev.filter((v) => v !== val))}
+                          deleteIcon={<CancelIcon />}
+                        />
+                      ))
+                    )}
+                  </Box>
+                </FormControl>
+
+                <Dialog
+                  open={dialogOpen}
+                  onClose={() => setDialogOpen(false)}
+                  fullWidth
+                  maxWidth="lg"
+                >
+                  <DialogTitle>Select Receipt No(s)</DialogTitle>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      position: 'relative',
+                      height: '50vh',
+                      backgroundImage: `url(${divider})`,
+                      backgroundSize: 'contain',
+                      backgroundRepeat: 'repeat-x',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                  <DialogContent>
+                    <List>
+                      {receiptNos.map((r) => {
+                        const isChecked = selectedReceipts.includes(r.receipt_no);
+                        return (
+                          <>
+                            <ListItem
+                              key={r.id}
+                              onClick={() => toggleReceipt(r.receipt_no)}
+                              dense
+                            >
+                              <Checkbox
+                                edge="start"
+                                checked={isChecked}
+                                tabIndex={-1}
+                                disableRipple
+                                inputProps={{ 'aria-labelledby': `checkbox-list-label-${r.id}` }}
+                              />
+                              <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", pr: 1 }}>
+                                <Typography id={`checkbox-list-label-${r.id}`} component="span" variant="body1" sx={{ fontWeight: 'medium' }}>
+                                  {r.receipt_no} - {r.name}
+                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: "bold", minWidth: 80, textAlign: "right" }}>
+                                  ₹{r.amount}
+                                </Typography>
+                              </Box>
+
+                            </ListItem>
+                            <Divider sx={{ margin: '10px 0' }} />
+                          </>
+                        );
+                      })}
+
+                    </List>
+                  </DialogContent>
+                  <DialogActions sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: yellow[400] }}>
+                      Total Selected Amount: ₹{totalSelectedAmount.toFixed(2)}
+                    </Typography>
+                    <Button onClick={() => setDialogOpen(false)} color="primary" variant="contained">
+                      Done
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Amount"
+                  value={totalSelectedAmount.toFixed(2)}
+                  InputProps={{
+                    sx: {
+                      height: '52px',
+                      mb: '7px',
+                      border: `1px solid ${yellow[400]}`,
+                    },
+                    readOnly: true,
                   }}
                 />
-                <DialogContent>
-                  <List>
-                    {receiptNos.map((r) => {
-                      const isChecked = selectedReceipts.includes(r.receipt_no);
-                      return (
-                        <ListItem
-                          key={r.id}
-                          button
-                          onClick={() => toggleReceipt(r.receipt_no)}
-                          dense
-                        >
-                          <Checkbox
-                            edge="start"
-                            checked={isChecked}
-                            tabIndex={-1}
-                            disableRipple
-                            inputProps={{ 'aria-labelledby': `checkbox-list-label-${r.id}` }}
-                          />
-                          <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", pr: 1 }}>
-                            <Typography id={`checkbox-list-label-${r.id}`} component="span" variant="body1" sx={{ fontWeight: 'medium' }}>
-                              {r.receipt_no} - {r.name}
-                            </Typography>
-                            <Typography variant="body2" sx={{ fontWeight: "bold", minWidth: 80, textAlign: "right" }}>
-                              ₹{r.amount}
-                            </Typography>
-                          </Box>
-                        </ListItem>
-                      );
-                    })}
-                  </List>
-                </DialogContent>
-                <DialogActions sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: yellow[400] }}>
-                    Total Selected Amount: ₹{totalSelectedAmount.toFixed(2)}
-                  </Typography>
-                  <Button onClick={() => setDialogOpen(false)} color="primary" variant="contained">
-                    Done
-                  </Button>
-                </DialogActions>
-              </Dialog>
-            </Grid>
+              </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Amount"
-                value={totalSelectedAmount.toFixed(2)}
-                InputProps={{
-                  sx: {
-                    height: '52px',
-                    mb: '7px',
-                    border: `1px solid ${yellow[400]}`,
-                  },
-                  readOnly: true,
-                }}
-              />
-            </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Comments"
+                  multiline
+                  rows={1}
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  InputProps={{
+                    sx: {
+                      height: '52px',
+                      mb: '7px',
+                      border: `1px solid ${yellow[400]}`,
+                    },
+                  }}
+                />
+              </Grid>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Comments"
-                multiline
-                rows={1}
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                InputProps={{
-                  sx: {
-                    height: '52px',
-                    mb: '7px',
-                    border: `1px solid ${yellow[400]}`,
-                  },
-                }}
-              />
-            </Grid>
+              <Grid item xs={12} sx={{ textAlign: "right" }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    color: "white",
+                    backgroundColor: yellow[300],
+                    "&:hover": { backgroundColor: yellow[200], color: "#000" }
+                  }}
+                  onClick={handleSubmit}
+                >
+                  Submit
+                </Button>
+              </Grid>
 
-            <Grid item xs={12} sx={{ textAlign: "right" }}>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{
-                  color: "white",
-                  backgroundColor: yellow[300],
-                  "&:hover": { backgroundColor: yellow[200], color: "#000" }
-                }}
-                onClick={handleSubmit}
-              >
-                Submit
-              </Button>
             </Grid>
-
-          </Grid>
+          </LocalizationProvider>
         </Collapse>
       </Box>
 

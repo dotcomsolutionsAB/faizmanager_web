@@ -78,9 +78,9 @@ const truncateText = (text, maxLength = 30) => {
     };
 
     const handlePrintClick = () => {
-      // const printUrl = `https://api.fmb52.com/api/receipt_print/${receiptId}`;
-      // window.open(printUrl, '_blank'); // Opens in new tab
-      // handleClose();
+      const printUrl = `https://api.fmb52.com/api/expense/print/${expenseId}`;
+      window.open(printUrl, '_blank'); // Opens in new tab
+      handleClose();
       console.log("Print")
     };
 

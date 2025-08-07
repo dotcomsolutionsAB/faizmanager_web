@@ -51,7 +51,6 @@ export default function UserMenu() {
     navigate('/'); // Redirect to the login page
   };
 
-  console.log("user initial", userInitial)
   return (
 
     <AppTheme>

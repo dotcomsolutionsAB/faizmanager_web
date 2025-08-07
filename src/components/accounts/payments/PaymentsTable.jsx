@@ -33,13 +33,13 @@ const customLocaleText = {
   noResultsOverlayLabel: '', // Remove default "No results" text for filtered data
 };
 
-function PaymentsTable() {
+function PaymentsTable({paymentsData}) {
   const { selectedSector, selectedSubSector, selectedYear, selectedSectorName, selectedSubSectorName } = useOutletContext();
   const [loadingData, setLoadingData] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
   const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
 
-  console.log("paynebts", selectedSectorName)
+  // console.log("paynebts", selectedSectorName)
 
   const { token, loading } = useUser();
   const [rows, setRows] = useState([]);
