@@ -20,12 +20,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
 
-const PaymentsForm = () => {
+const PaymentsForm = ({paymentData, fetchData}) => {
   const { token } = useUser();
   const [collapsed, setCollapsed] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [receiptNos, setReceiptNos] = useState([]);
-  const [selectedReceipts, setSelectedReceipts] = useState([]);
+//   const [selectedReceipts, setSelectedReceipts] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { selectedSubSector, selectedYear } = useOutletContext();
   const [sectors, setSectors] = useState([]);
@@ -35,9 +35,40 @@ const PaymentsForm = () => {
 
 
   // Controlled form states
-  const [date, setDate] = useState(""); // e.g. '2025-05-17'
-  const [remarks, setRemarks] = useState("");
-  const [year, setYear] = useState(""); // e.g. '1446-1447'
+//   const [date, setDate] = useState(""); // e.g. '2025-05-17'
+//   const [remarks, setRemarks] = useState("");
+//   const [year, setYear] = useState(""); // e.g. '1446-1447'
+
+const [date, setDate] = useState(paymentData ? paymentData.date : "");
+const [remarks, setRemarks] = useState(paymentData ? paymentData.comments: "");
+const [selectedReceipts, setSelectedReceipts] = useState(
+  paymentData ? paymentData.receipts.map((receipt) => (receipt.receipt_no) ): []
+);
+const [totalSelectedAmount, setTotalSelectedAmount] = useState(0);
+
+const [year, setYear] = useState(paymentData ? paymentData.year : "");
+
+
+
+// console.log("year", paymentData? paymentData.year: "");
+
+
+
+useEffect(() => {
+    if (paymentData) {
+      // Prefill the form with the selected payment data
+      setDate(paymentData.date);
+      setRemarks(paymentData.comments);
+      setSelectedReceipts(paymentData.receipts.map((receipt) => receipt.receipt_no));
+      setYear(paymentData.year);
+
+      // Calculate the initial total amount from paymentData.receipts
+      const initialTotal = paymentData.receipts.reduce((total, receipt) => total + Number(receipt.amount), 0);
+      setTotalSelectedAmount(initialTotal);  // Set the initial total
+    }
+  }, [paymentData]);
+
+
 
   useEffect(() => {
     const fetchSectors = async () => {
@@ -88,21 +119,41 @@ const PaymentsForm = () => {
     fetchReceipts();
   }, [token, selectedSector, selectedSubSector]);
 
-  const toggleReceipt = (receiptNo) => {
-    setSelectedReceipts((prev) => {
-      if (prev.includes(receiptNo)) {
-        return prev.filter((r) => r !== receiptNo);
-      } else {
-        return [...prev, receiptNo];
-      }
-    });
-  };
+const toggleReceipt = (receiptNo) => {
+  setSelectedReceipts((prev) => {
+    let updatedReceipts;
+    let newTotalAmount = totalSelectedAmount; // Start with the existing total
 
-  // Calculate total amount of selected receipts
-  const totalSelectedAmount = selectedReceipts.reduce((total, receiptNo) => {
-    const receipt = receiptNos.find(r => r.receipt_no === receiptNo);
-    return receipt ? total + Number(receipt.amount) : total;
-  }, 0);
+    if (prev.includes(receiptNo)) {
+      // Receipt is being deselected, so subtract its amount
+      updatedReceipts = prev.filter((r) => r !== receiptNo);
+      const receipt = receiptNos.find((r) => r.receipt_no === receiptNo);
+      if (receipt) {
+        newTotalAmount -= Number(receipt.amount); // Decrease amount
+      }
+    } else {
+      // Receipt is being selected, so add its amount
+      updatedReceipts = [...prev, receiptNo];
+      const receipt = receiptNos.find((r) => r.receipt_no === receiptNo);
+      if (receipt) {
+        newTotalAmount += Number(receipt.amount); // Increase amount
+      }
+    }
+
+    // Update the total selected amount
+    setTotalSelectedAmount(newTotalAmount);
+
+    return updatedReceipts;
+  });
+};
+
+// console.log(selectedYear)
+
+//   // Calculate total amount of selected receipts
+//   const totalSelectedAmount = selectedReceipts.reduce((total, receiptNo) => {
+//     const receipt = receiptNos.find(r => r.receipt_no === receiptNo);
+//     return receipt ? total + Number(receipt.amount) : total;
+//   }, 0);
 
   // Submit handler to call POST /payments API
   const handleSubmit = async () => {
@@ -133,15 +184,17 @@ const PaymentsForm = () => {
       date,
       receipt_ids: receiptIds,
       amount: totalSelectedAmount,
-      year: selectedYear[0],
+      year: selectedYear,
       remarks,
       mode: "cash"
     };
     // console.log("id", receiptIds)
     // console.log(selectedYear[0])
+    // console.log(payload)
 
     try {
-      const response = await fetch("https://api.fmb52.com/api/payments", {
+        const url= paymentData ? `https://api.fmb52.com/api/payments/update/${paymentData.id}` : "https://api.fmb52.com/api/payments";
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,10 +206,13 @@ const PaymentsForm = () => {
       if (response.ok) {
         setSnackbar({ open: true, message: data.message || "Payment created successfully!", severity: "success" });
         // Optionally reset form here:
-        setSelectedReceipts([]);
-        setDate("");
-        setRemarks("");
-        setYear("");
+      setSelectedReceipts([]);  // Clear selected receipts
+      setDate("");  // Clear date
+      setRemarks("");  // Clear remarks
+      setYear("");  // Clear year
+      setTotalSelectedAmount(0);
+        fetchData()
+
       } else {
         setSnackbar({ open: true, message: data.message || "Failed to create payment", severity: "error" });
       }
@@ -165,6 +221,7 @@ const PaymentsForm = () => {
     }
   };
 
+  console.log(selectedYear)
 
   return (
     <AppTheme>

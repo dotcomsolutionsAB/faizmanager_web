@@ -30,3 +30,7 @@ samples/
 ExpensesTrial.jsx
 ExpensesFormTrial.jsx
 ExpensesTableTrial.jsx
+
+PaymentsTrial.jsx
+PaymentsFormTrial.jsx
+PaymentsTableTrial.jsx

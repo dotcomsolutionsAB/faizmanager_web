@@ -33,16 +33,18 @@ const customLocaleText = {
   noResultsOverlayLabel: '', // Remove default "No results" text for filtered data
 };
 
-function PaymentsTable({paymentsData}) {
+function PaymentsTable({payments, onEdit, fetchData}) {
   const { selectedSector, selectedSubSector, selectedYear, selectedSectorName, selectedSubSectorName } = useOutletContext();
   const [loadingData, setLoadingData] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
   const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
 
-  // console.log("paynebts", selectedSectorName)
+
+
+
 
   const { token, loading } = useUser();
-  const [rows, setRows] = useState([]);
+  const [filteredRows, setFilteredRows] = useState(payments);
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
   const [filterType, setFilterType] = useState('HOF');
@@ -61,8 +63,33 @@ function PaymentsTable({paymentsData}) {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // console.log("Payments data: ", payments);
+    setFilteredRows(payments);
+  },[payments]);
 
-  const ActionButtonWithOptions = ({ onActionClick, paymentId }) => {
+  const handleSearch = (e) => {
+    const searchText = e.target.value.toLowerCase();
+    setFilterText(searchText);
+    const filteredData = payments.filter((row) => {
+        return (
+             row.name?.toLowerCase().includes(searchText) ||
+        row.its?.toLowerCase().includes(searchText) ||
+        row.sector_name?.toLowerCase().includes(searchText) ||
+        row.sub_sector_name?.toLowerCase().includes(searchText)
+
+        );
+    });
+    setFilteredRows(filteredData)
+  }
+
+    // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    setOpenDeleteDialog(false);
+    fetchData(); // Refetch the data after deletion
+  };
+
+  const ActionButtonWithOptions = ({ onActionClick, paymentId, rowData }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
     const open = Boolean(anchorEl);
 
@@ -76,9 +103,16 @@ function PaymentsTable({paymentsData}) {
       setAnchorEl(null);
     };
 
+        const handleEditClick = () => {
+            // console.log(rowData)
+            
+      onEdit(rowData); // Pass the expense data to the parent component for editing
+      handleClose();
+    };
+
     const handleDeleteClick = () => {
-      setDeleteId(paymentId); // Set the ID of the receipt to be deleted
-      setOpenDeleteDialog(true); // Open the delete dialog
+      setDeleteId(paymentId);
+      setOpenDeleteDialog(true);
       handleClose();
     };
 
@@ -117,7 +151,7 @@ function PaymentsTable({paymentsData}) {
         >
 
           {/* Edit Hub Option */}
-          <MenuItem onClick={() => { onActionClick('Edit'); handleClose(); }}>
+          <MenuItem onClick={handleEditClick}>
             <Tooltip title="Edit Hub" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                 <EditIcon sx={{ color: brown[200] }} />
@@ -260,7 +294,7 @@ function PaymentsTable({paymentsData}) {
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Year: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.year}</span>
             </Typography>
-
+            {/* {console.log(params.row.receipts)} */}
             {/* Comments */}
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Comments: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.comments}</span>
@@ -314,7 +348,7 @@ function PaymentsTable({paymentsData}) {
             height: '100%',
           }}
         >
-          <ActionButtonWithOptions paymentId={params.row.id} />
+          <ActionButtonWithOptions paymentId={params.row.id} rowData={params.row}/>
         </Box>
       ),
     },
@@ -324,79 +358,44 @@ function PaymentsTable({paymentsData}) {
 
 
 
-  useEffect(() => {
-    if (loading || !token) return;
 
-    const fetchData = async () => {
-      if (loading || !token || !selectedYear?.length) return;
-      try {
-        setLoadingData(true);
-
-        const response = await fetch('https://api.fmb52.com/api/payments/all', {
-          method: 'POST',
-
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          }, body: JSON.stringify({
-            year: selectedYear,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Recipts:", data);
-        // console.log(data.data)
-        setRows(data.data || []);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoadingData(false); // <-- End loading
-      }
-    };
-
-    fetchData();
-  }, [token, loading, selectedYear]);
 
   // Filter rows based on filterText and filterType
-  const filteredRows = rows.filter((row) => {
-    const matchesFilterText =
-      row.name?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.its?.toLowerCase().includes(filterText.toLowerCase()) ||
-      // row.mobile?.toLowerCase().includes(filterText.toLowerCase()) ||
-      // row.folio_no?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.sector_name?.toLowerCase().includes(filterText.toLowerCase()) ||
-      row.sub_sector_name?.toLowerCase().includes(filterText.toLowerCase());
-      // row.hof_its?.toLowerCase().includes(filterText.toLowerCase()) ||
-      // row.mumeneen_type?.toLowerCase().includes(filterText.toLowerCase()) ||
-      // row.hub_amount?.toString().includes(filterText) ||
-      // row.paid_amount?.toString().includes(filterText) ||
-      // row.due_amount?.toString().includes(filterText) ||
-      // row.overdue?.toString().includes(filterText);
+//   const filteredRows = rows.filter((row) => {
+//     const matchesFilterText =
+//       row.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       row.its?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       // row.mobile?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       // row.folio_no?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       row.sector_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       row.sub_sector_name?.toLowerCase().includes(filterText.toLowerCase());
+//       // row.hof_its?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       // row.mumeneen_type?.toLowerCase().includes(filterText.toLowerCase()) ||
+//       // row.hub_amount?.toString().includes(filterText) ||
+//       // row.paid_amount?.toString().includes(filterText) ||
+//       // row.due_amount?.toString().includes(filterText) ||
+//       // row.overdue?.toString().includes(filterText);
 
       
 
- const matchesSector =
-      !selectedSectorName?.length ||
-      selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
+//  const matchesSector =
+//       !selectedSectorName?.length ||
+//       selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
 
-    const matchesSubSector =
-      !selectedSubSectorName?.length ||
-      selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
+//     const matchesSubSector =
+//       !selectedSubSectorName?.length ||
+//       selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
 
 
   
 
-//  console.log("Rows:", rows);
+// //  console.log("Rows:", rows);
 
 
 
 
-    return matchesFilterText && matchesSector && matchesSubSector;
-  });
+//     return matchesFilterText && matchesSector && matchesSubSector;
+//   });
 // console.log("Filtered Rows:", filteredRows);
 
   return (
@@ -429,7 +428,7 @@ function PaymentsTable({paymentsData}) {
               label="Search"
               variant="outlined"
               value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
+               onChange={handleSearch}
               sx={{ width: { xs: '100%', sm: '300px' } }}
               InputProps={{
                 sx: {
@@ -457,7 +456,7 @@ function PaymentsTable({paymentsData}) {
               pageSizeOptions={[5, 10, 25, 50, 100]}
               sortModel={sortModel}
               onSortModelChange={(model) => setSortModel(model)}
-              getRowId={(row) => row.id}
+              
               sx={{
                 '& .MuiDataGrid-columnHeaders': {
                   color: yellow[400],
@@ -495,15 +494,10 @@ function PaymentsTable({paymentsData}) {
           </div>
         </Paper>
         <DeletePaymentsDialog
-          open={openDeleteDialog}
-          onClose={() => setOpenDeleteDialog(false)}
-          paymentId={deleteId}
-          onConfirm={() => {
-            // Handle the actual deletion here, for example:
-            // Delete the item from the state
-            setRows(rows.filter(row => row.id !== deleteId));
-            setOpenDeleteDialog(false);
-          }}
+       open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        paymentId={deleteId}
+        onConfirm={handleDeleteConfirm}
           setSnackbarOpen={setSnackbarOpen}
           setSnackbarMessage={setSnackbarMessage}
           setSnackbarSeverity={setSnackbarSeverity}
