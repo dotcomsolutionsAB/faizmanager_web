@@ -52,6 +52,7 @@ function PaymentsTable({payments, onEdit, fetchData}) {
     page: 0,
     pageSize: 10,
   });
+  const [filterMode, setFilterMode] = useState('');
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -82,6 +83,21 @@ function PaymentsTable({payments, onEdit, fetchData}) {
     });
     setFilteredRows(filteredData)
   }
+
+  const handleModeFilter = (event) => {
+    const selectedMode = event.target.value;
+    setFilterMode(selectedMode);
+    const filteredData = payments.filter((row) => {
+      return (
+        (selectedMode ? row.mode === selectedMode : true) && // Filter by mode if selected
+        (row.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+          row.its?.toLowerCase().includes(filterText.toLowerCase()) ||
+          row.sector_name?.toLowerCase().includes(filterText.toLowerCase()) ||
+          row.sub_sector_name?.toLowerCase().includes(filterText.toLowerCase()))
+      );
+    });
+    setFilteredRows(filteredData);
+  };
 
     // Handle delete confirmation
   const handleDeleteConfirm = () => {
@@ -439,6 +455,21 @@ function PaymentsTable({payments, onEdit, fetchData}) {
                 },
               }}
             />
+            {/* Filter by Mode Dropdown */}
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>Mode</InputLabel>
+              <Select
+                value={filterMode}
+                label="Mode"
+                onChange={handleModeFilter}
+                sx={{ height: '52px' }}
+              >
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="cash">Cash</MenuItem>
+                <MenuItem value="cheque">Cheque</MenuItem>
+                <MenuItem value="neft">NEFT</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
           <div style={{ height: 700, width: '100%', overflow: 'auto' }}>
             <DataGridPro
