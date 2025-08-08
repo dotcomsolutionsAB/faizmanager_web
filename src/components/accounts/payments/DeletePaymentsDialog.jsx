@@ -61,7 +61,7 @@ const DeletePaymentsDialog = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Delete Expense</DialogTitle>
+      <DialogTitle>Delete Payments</DialogTitle>
       <Box
         sx={{
           width: 'calc(100% + 24px)',
@@ -89,7 +89,7 @@ const DeletePaymentsDialog = ({
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
-            Are you sure you want to delete this expense?
+            Are you sure you want to delete this payments?
           </Typography>
           {error && (
             <Typography color="error" variant="body2">
