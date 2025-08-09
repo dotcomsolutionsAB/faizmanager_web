@@ -62,10 +62,16 @@ useEffect(() => {
       setSelectedReceipts(paymentData.receipts.map((receipt) => receipt.receipt_no));
       setYear(paymentData.year);
 
+      // Pre-populate receiptNos with the existing data
+      setReceiptNos(paymentData.receipts);
+
       // Calculate the initial total amount from paymentData.receipts
       const initialTotal = paymentData.receipts.reduce((total, receipt) => total + Number(receipt.amount), 0);
       setTotalSelectedAmount(initialTotal);  // Set the initial total
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
   }, [paymentData]);
 
 
@@ -92,32 +98,35 @@ useEffect(() => {
     fetchSectors();
   }, [token]);
 
-  useEffect(() => {
-    const fetchReceipts = async () => {
-      try {
-
-        const response = await fetch("https://api.fmb52.com/api/receipts/pending", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            mode: "cash",
-            sector: selectedSector,
-            sub_sector: ""
-          })
-        });
-        const data = await response.json();
-        if (data?.data) {
-          setReceiptNos(data.data);
+        const fetchReceipts = async () => {
+        try {
+          const response = await fetch("https://api.fmb52.com/api/receipts/pending", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              mode: "cash",
+              sector: selectedSector,
+              sub_sector: ""
+            })
+          });
+          const data = await response.json();
+          if (data?.data) {
+            setReceiptNos(data.data);
+          }
+        } catch (err) {
+          console.error("Error fetching receipt numbers:", err);
         }
-      } catch (err) {
-        console.error("Error fetching receipt numbers:", err);
-      }
-    };
-    fetchReceipts();
-  }, [token, selectedSector, selectedSubSector]);
+      };
+
+useEffect(() => {
+    if (!paymentData) {
+
+      fetchReceipts();
+    }
+  }, [token, selectedSector, selectedSubSector, paymentData]);
 
 const toggleReceipt = (receiptNo) => {
   setSelectedReceipts((prev) => {
@@ -180,17 +189,20 @@ const toggleReceipt = (receiptNo) => {
     setSnackbar({ open: true, message: "No valid receipts selected", severity: "error" });
     return;
   }
+
+  const yearToSend = Array.isArray(selectedYear) ? selectedYear[0] : selectedYear;
+
     const payload = {
       date,
       receipt_ids: receiptIds,
       amount: totalSelectedAmount,
-      year: selectedYear,
+      year: yearToSend,
       remarks,
       mode: "cash"
     };
     // console.log("id", receiptIds)
     // console.log(selectedYear[0])
-    // console.log(payload)
+    console.log(payload)
 
     try {
         const url= paymentData ? `https://api.fmb52.com/api/payments/update/${paymentData.id}` : "https://api.fmb52.com/api/payments";
@@ -211,6 +223,7 @@ const toggleReceipt = (receiptNo) => {
       setRemarks("");  // Clear remarks
       setYear("");  // Clear year
       setTotalSelectedAmount(0);
+      fetchReceipts();
         fetchData()
 
       } else {
@@ -221,7 +234,7 @@ const toggleReceipt = (receiptNo) => {
     }
   };
 
-  console.log(selectedYear)
+  console.log(selectedReceipts)
 
   return (
     <AppTheme>
