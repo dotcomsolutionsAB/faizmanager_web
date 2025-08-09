@@ -28,7 +28,9 @@ import ForgotPassword from './pages/login/ForgotPassword';
 import JamaatTable from './pages/jamaat/Jamaat';
 import Niyaz from './pages/niyaz/Niyaz';
 import Menu from './pages/menu/Menu';
-import NiyazCalendar from './pages/calendar/NiyazCalendar';
+import NiyazCalendar from './pages/niyazCalendar/NiyazCalendar';
+import './App.css'
+import ContextWrapper from './contexts/ContextWrapper';
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -57,6 +59,7 @@ function App() {
 
   return (
     <UserProvider>
+      <ContextWrapper>
       <Router>
         <Routes>
           <Route path="/" element={<LogInWithPassword />} />
@@ -93,6 +96,7 @@ function App() {
           {/* <Route path="*" element={<NotFound />} /> */}
         </Routes>
       </Router>
+      </ContextWrapper>
 
     </UserProvider>
   );
