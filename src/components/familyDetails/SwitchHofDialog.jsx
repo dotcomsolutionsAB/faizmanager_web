@@ -13,7 +13,7 @@ import {
   Snackbar,
   Alert,
 } from '@mui/material';
-import { useUser } from '../../UserContext'; // User context to get token
+import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 
 const SwitchHofDialog = ({ open, onClose, row, onSave }) => {

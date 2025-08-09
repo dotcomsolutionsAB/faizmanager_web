@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import divider from '../../assets/divider.png';
 import Avatar from '@mui/material/Avatar';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

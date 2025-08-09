@@ -81,6 +81,11 @@ const MenuContentJamiatAdmin = ({ open }) => {
     //     { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
     //   ],
     // },
+            {
+      label: "Niyaz Calendar",
+      icon: <EventIcon />,
+      path: "/niyaz-calendar",
+    },
         {
       label: "Menu",
       icon: <RestaurantMenuIcon />,

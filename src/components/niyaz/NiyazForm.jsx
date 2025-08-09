@@ -23,7 +23,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import divider from '../../assets/divider.png';
 import { useEffect } from "react";
-import { useUser } from "../../UserContext";
+import { useUser } from "../../contexts/UserContext";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

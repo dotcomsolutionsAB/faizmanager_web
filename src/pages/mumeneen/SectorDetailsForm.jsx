@@ -9,7 +9,7 @@ import {
   Stack,
 } from '@mui/material';
 import { yellow } from '../../styles/ThemePrimitives';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 
 function SectorDetailsForm({familyId}) {  // default user ID or pass as prop
   const [sectorDetails, setSectorDetails] = useState({

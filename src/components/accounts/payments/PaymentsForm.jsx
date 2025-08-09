@@ -11,7 +11,7 @@ import { yellow } from "../../../styles/ThemePrimitives";
 import divider from '../../../assets/divider.png';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { useUser } from "../../../UserContext";
+import { useUser } from "../../../contexts/UserContext";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { useOutletContext, useLocation } from "react-router-dom";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -25,6 +25,7 @@ const PaymentsForm = ({paymentData, fetchData}) => {
   const [collapsed, setCollapsed] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [receiptNos, setReceiptNos] = useState([]);
+  const [allReceipts, setAllReceipts] = useState([]);
 //   const [selectedReceipts, setSelectedReceipts] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { selectedSubSector, selectedYear } = useOutletContext();
@@ -114,7 +115,9 @@ useEffect(() => {
           });
           const data = await response.json();
           if (data?.data) {
-            setReceiptNos(data.data);
+            // setReceiptNos(data.data);
+             setAllReceipts(data.data);  // Set all receipts, including unselected
+        setReceiptNos(data.data.filter(receipt => selectedReceipts.includes(receipt.receipt_no))); // Only the selected ones
           }
         } catch (err) {
           console.error("Error fetching receipt numbers:", err);
@@ -129,32 +132,26 @@ useEffect(() => {
   }, [token, selectedSector, selectedSubSector, paymentData]);
 
 const toggleReceipt = (receiptNo) => {
-  setSelectedReceipts((prev) => {
-    let updatedReceipts;
-    let newTotalAmount = totalSelectedAmount; // Start with the existing total
-
-    if (prev.includes(receiptNo)) {
-      // Receipt is being deselected, so subtract its amount
-      updatedReceipts = prev.filter((r) => r !== receiptNo);
-      const receipt = receiptNos.find((r) => r.receipt_no === receiptNo);
-      if (receipt) {
-        newTotalAmount -= Number(receipt.amount); // Decrease amount
+    setSelectedReceipts((prev) => {
+      let updatedReceipts;
+      let newTotalAmount = totalSelectedAmount;
+      if (prev.includes(receiptNo)) {
+        updatedReceipts = prev.filter((r) => r !== receiptNo);
+        const receipt = allReceipts.find((r) => r.receipt_no === receiptNo);
+        if (receipt) {
+          newTotalAmount -= Number(receipt.amount);
+        }
+      } else {
+        updatedReceipts = [...prev, receiptNo];
+        const receipt = allReceipts.find((r) => r.receipt_no === receiptNo);
+        if (receipt) {
+          newTotalAmount += Number(receipt.amount);
+        }
       }
-    } else {
-      // Receipt is being selected, so add its amount
-      updatedReceipts = [...prev, receiptNo];
-      const receipt = receiptNos.find((r) => r.receipt_no === receiptNo);
-      if (receipt) {
-        newTotalAmount += Number(receipt.amount); // Increase amount
-      }
-    }
-
-    // Update the total selected amount
-    setTotalSelectedAmount(newTotalAmount);
-
-    return updatedReceipts;
-  });
-};
+      setTotalSelectedAmount(newTotalAmount);
+      return updatedReceipts;
+    });
+  };
 
 // console.log(selectedYear)
 
@@ -403,38 +400,29 @@ const toggleReceipt = (receiptNo) => {
                     }}
                   />
                   <DialogContent>
-                    <List>
-                      {receiptNos.map((r) => {
+  <List>
+                      {allReceipts.map((r) => {
                         const isChecked = selectedReceipts.includes(r.receipt_no);
                         return (
-                          <>
-                            <ListItem
-                              key={r.id}
-                              onClick={() => toggleReceipt(r.receipt_no)}
-                              dense
-                            >
-                              <Checkbox
-                                edge="start"
-                                checked={isChecked}
-                                tabIndex={-1}
-                                disableRipple
-                                inputProps={{ 'aria-labelledby': `checkbox-list-label-${r.id}` }}
-                              />
-                              <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", pr: 1 }}>
-                                <Typography id={`checkbox-list-label-${r.id}`} component="span" variant="body1" sx={{ fontWeight: 'medium' }}>
-                                  {r.receipt_no} - {r.name}
-                                </Typography>
-                                <Typography variant="body2" sx={{ fontWeight: "bold", minWidth: 80, textAlign: "right" }}>
-                                  ₹{r.amount}
-                                </Typography>
-                              </Box>
-
-                            </ListItem>
-                            <Divider sx={{ margin: '10px 0' }} />
-                          </>
+                          <ListItem key={r.id} onClick={() => toggleReceipt(r.receipt_no)} dense>
+                            <Checkbox
+                              edge="start"
+                              checked={isChecked}
+                              tabIndex={-1}
+                              disableRipple
+                              inputProps={{ 'aria-labelledby': `checkbox-list-label-${r.id}` }}
+                            />
+                            <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", pr: 1 }}>
+                              <Typography id={`checkbox-list-label-${r.id}`} component="span" variant="body1" sx={{ fontWeight: 'medium' }}>
+                                {r.receipt_no} - {r.name}
+                              </Typography>
+                              <Typography variant="body2" sx={{ fontWeight: "bold", minWidth: 80, textAlign: "right" }}>
+                                ₹{r.amount}
+                              </Typography>
+                            </Box>
+                          </ListItem>
                         );
                       })}
-
                     </List>
                   </DialogContent>
                   <DialogActions sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

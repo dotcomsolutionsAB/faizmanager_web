@@ -19,7 +19,7 @@ import Typography from '@mui/material/Typography';
 import { yellow } from '../../styles/ThemePrimitives';
 import { Visibility, VisibilityOff } from '@mui/icons-material'; // Import Visibility icons
 import { InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import fmb52 from '../../assets/fmb52.png';
 
 

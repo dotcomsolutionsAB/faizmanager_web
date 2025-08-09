@@ -40,7 +40,7 @@ import { Box, CssBaseline } from '@mui/material';
 import AppTheme from "../../styles/AppTheme";
 import ExpensesForm from '../../components/accounts/expenses/ExpensesFrom';
 import ExpensesTable from '../../components/accounts/expenses/ExpensesTable';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 
 const Expenses = () => {
     const {token} = useUser()

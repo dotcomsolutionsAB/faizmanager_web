@@ -19,7 +19,7 @@ import bg1 from '../../assets/bg1.jpg';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 // import Dashboard from '../dashboard/index';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { useTheme } from '@mui/material/styles';
 import { yellow } from '../../styles/ThemePrimitives';
 import fmb52 from '../../assets/fmb52.png';

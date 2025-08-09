@@ -4,7 +4,7 @@ import {
   CssBaseline, Dialog, DialogActions, DialogContent, DialogTitle, Button, MenuItem, Tooltip, Menu
 } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
-import { useUser } from '../../UserContext'; // Assuming useUser is in the correct path
+import { useUser } from '../../contexts/UserContext';
 import { yellow, brown } from '../../styles/ThemePrimitives';
 import AppTheme from '../../styles/AppTheme';
 import { Link } from 'react-router-dom';

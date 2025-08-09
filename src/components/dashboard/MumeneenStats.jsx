@@ -16,7 +16,7 @@ import ChildCareIcon from '@mui/icons-material/ChildCare';
 import HouseIcon from '@mui/icons-material/House';
 import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 import PublicIcon from '@mui/icons-material/Public';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { useState, useEffect } from 'react';
 import GroupsIcon from '@mui/icons-material/Groups';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';

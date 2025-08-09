@@ -9,7 +9,7 @@ import NavbarBreadcrumbs from './NavbarBreadcrumbs';
 import { useState, useEffect } from 'react';
 import { Select, InputLabel, OutlinedInput, CssBaseline } from '@mui/material';
 import AppTheme from '../../styles/AppTheme';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { useLocation } from 'react-router-dom';
 
 export default function SubHeader({ selectedYear, setSelectedYear }) {

@@ -16,7 +16,7 @@ import {
     Snackbar,
     Alert,
 } from '@mui/material';
-import { useUser } from '../../UserContext'; // Assuming this is the context for user info
+import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 import Avatar from '@mui/material/Avatar';
 

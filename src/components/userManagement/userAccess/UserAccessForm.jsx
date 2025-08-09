@@ -29,7 +29,7 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AppTheme from "../../../styles/AppTheme";
 import divider from '../../../assets/divider.png';
 import { yellow } from "../../../styles/ThemePrimitives";
-import { useUser } from "../../../UserContext";
+import { useUser } from "../../../contexts/UserContext";
 import CancelIcon from "@mui/icons-material/Cancel";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";

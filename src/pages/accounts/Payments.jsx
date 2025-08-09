@@ -5,7 +5,7 @@ import ExpensesForm from "../../components/accounts/expenses/ExpensesFrom";
 import ExpensesTable from "../../components/accounts/expenses/ExpensesTable";
 import PaymentsForm from "../../components/accounts/payments/PaymentsForm";
 import PaymentsTable from "../../components/accounts/payments/PaymentsTable";
-import { useUser } from "../../UserContext";
+import { useUser } from "../../contexts/UserContext";
 import { ContinuousColorLegend } from "@mui/x-charts";
 
 import { useOutletContext } from "react-router-dom";

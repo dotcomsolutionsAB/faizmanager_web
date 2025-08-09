@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Paper, TextField, Menu, MenuItem, Select, FormControl, InputLabel, Typography, IconButton, Button, CssBaseline } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../../UserContext';
+import { useUser } from '../../../contexts/UserContext';
 import { Link } from 'react-router-dom';
 import { yellow, brown } from "../../../styles/ThemePrimitives";
 import EditIcon from '@mui/icons-material/Edit';

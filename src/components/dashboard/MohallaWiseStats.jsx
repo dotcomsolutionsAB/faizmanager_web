@@ -272,7 +272,7 @@ import {
   Button,
 } from "@mui/material";
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useUser } from "../../UserContext";
+import { useUser } from "../../contexts/UserContext";
 import divider from "../../assets/divider.png";
 import MohallaWiseDialog from "./MohallaWiseStatsDialog";
 

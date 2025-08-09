@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Box, Button, Card, CardContent, Typography, Grid, CircularProgress } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 
 export default function HubDistributionStats({ year, sector, subSector }) {

@@ -21,7 +21,7 @@ import {
   Divider
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 
 export default function NiyazUsersDialog({ open, handleClose, slabId, slabName }) {

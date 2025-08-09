@@ -20,7 +20,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import BadgeIcon from '@mui/icons-material/Badge';
 import HofDetailsForm from './HofDetailsForm';
 import SectorDetailsForm from './SectorDetailsForm';

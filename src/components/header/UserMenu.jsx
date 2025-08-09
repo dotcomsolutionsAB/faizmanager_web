@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import SettingsIcon from '@mui/icons-material/Settings'; // Icon for Profile Settings
 import LogoutIcon from '@mui/icons-material/Logout'; // Icon for Logout
 import { useNavigate } from 'react-router-dom'; // For navigation
-import { useUser } from '../../UserContext'; // Import your UserContext
+import { useUser } from '../../contexts/UserContext';
 import AppTheme from '../../styles/AppTheme';
 
 const StyledMenu = styled(Menu)(({ theme }) => ({

@@ -22,7 +22,7 @@ import divider from '../../../assets/divider.png';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
-import { useUser } from "../../../UserContext";
+import { useUser } from "../../../contexts/UserContext";
 
 
 const SectorForm = () => {

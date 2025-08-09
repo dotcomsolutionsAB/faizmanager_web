@@ -165,7 +165,7 @@ import Grid from '@mui/material/Grid';
 import { PieChart } from '@mui/x-charts/PieChart';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CircularProgress from '@mui/material/CircularProgress';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { useState, useEffect } from 'react';
 import divider from '../../assets/divider.png';
 

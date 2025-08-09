@@ -68,7 +68,7 @@ import * as XLSX from "xlsx";
 import { yellow, brown } from "../../styles/ThemePrimitives";
 import { useState } from "react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import { useUser } from "../../UserContext";
+import { useUser } from "../../contexts/UserContext";
 import { CircularProgress, Alert, Snackbar } from '@mui/material';
 const SettingsPage = () => {
   const {token} = useUser();

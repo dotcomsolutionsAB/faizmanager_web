@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useOutletContext, useLocation } from "react-router-dom";
-import { useUser } from "../../UserContext";
+import { useUser } from "../../contexts/UserContext";
 import AppTheme from "../../styles/AppTheme";
 import { CssBaseline, Box, CircularProgress } from "@mui/material";
 import MumeneenDashboard from "../../components/dashboard/MumeneenDashboard";

@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import AppTheme from '../../styles/AppTheme';
 import { yellow } from '../../styles/ThemePrimitives';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 
 function HofDetailsForm({ familyId, id }) {
   const [hofDetails, setHofDetails] = useState({

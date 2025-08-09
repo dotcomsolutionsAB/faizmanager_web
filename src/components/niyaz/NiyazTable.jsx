@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import AppTheme from "../../styles/AppTheme";
-import { useUser } from "../../UserContext";
+import { useUser } from "../../contexts/UserContext";
 import { yellow, brown } from "../../styles/ThemePrimitives";
 import divider from '../../assets/divider.png';
 

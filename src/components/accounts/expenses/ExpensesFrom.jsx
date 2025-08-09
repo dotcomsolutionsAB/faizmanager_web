@@ -16,7 +16,7 @@ import divider from "../../../assets/divider.png";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
-import { useUser } from "../../../UserContext";
+import { useUser } from "../../../contexts/UserContext";
 import { useOutletContext, useLocation } from "react-router-dom";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';

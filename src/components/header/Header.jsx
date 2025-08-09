@@ -24,7 +24,7 @@ import { yellow, brown } from '../../styles/ThemePrimitives';
 import AppTheme from '../../styles/AppTheme';
 import { CssBaseline } from '@mui/material';
 import UserMenu from './UserMenu';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { useTheme } from '@mui/material/styles';
 import NavbarBreadcrumbs from './NavbarBreadcrumbs';
 import { useState, useEffect } from 'react';

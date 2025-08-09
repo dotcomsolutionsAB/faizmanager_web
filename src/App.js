@@ -12,7 +12,7 @@ import Sector from './pages/grouping/Sector';
 import SubSector from './pages/grouping/SubSector';
 import Transfers from './pages/grouping/Transfers';
 // import Dashboard from './samples/pages/dashboard/Dashboard';
-import { UserProvider } from './UserContext';
+import { UserProvider } from './contexts/UserContext';
 import { LicenseInfo } from '@mui/x-license-pro';
 import Layout from './Layout';
 import NiyazDate from './pages/bookings/NiyazDate';
@@ -28,6 +28,7 @@ import ForgotPassword from './pages/login/ForgotPassword';
 import JamaatTable from './pages/jamaat/Jamaat';
 import Niyaz from './pages/niyaz/Niyaz';
 import Menu from './pages/menu/Menu';
+import NiyazCalendar from './pages/calendar/NiyazCalendar';
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -86,6 +87,7 @@ function App() {
             <Route path="/jamaat" element={<JamaatTable />} />
             <Route path="/niyaz" element={<Niyaz />} />
             <Route path="/menu" element={<Menu />} />
+            <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
           </Route>
           {/* Optional: Catch-all for unknown routes */}
           {/* <Route path="*" element={<NotFound />} /> */}

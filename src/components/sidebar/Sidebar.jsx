@@ -10,7 +10,7 @@ import AppTheme from '../../styles/AppTheme';
 import MenuContentJamiatAdmin from "./MenuContentJamiatAdmin";
 import MenuContentSuperAdmin from "./MenuContentSuperAdmin";
 import MenuContentMumeneen from "./MenuContentMumeneen";
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import MenuContentCoordinator from './MenuContentCoordinator';

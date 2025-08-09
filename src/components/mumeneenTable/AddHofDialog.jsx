@@ -18,7 +18,7 @@ import {
     InputLabel,
     FormControl,
 } from '@mui/material';
-import { useUser } from '../../UserContext'; // Assuming this is the context for user info
+import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 
 const AddHofDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => {

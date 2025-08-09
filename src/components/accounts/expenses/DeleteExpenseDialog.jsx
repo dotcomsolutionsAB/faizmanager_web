@@ -10,7 +10,7 @@ import {
   Paper,
 } from '@mui/material';
 import divider from '../../../assets/divider.png';
-import { useUser } from '../../../UserContext';
+import { useUser } from '../../../contexts/UserContext';
 
 const DeleteExpenseDialog = ({ open,
   onClose,

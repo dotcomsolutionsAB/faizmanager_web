@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate, useOutletContext, Link, useSearchParams } from 'react-router-dom';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { yellow, brown } from '../../styles/ThemePrimitives';
 import AppTheme from '../../styles/AppTheme';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';

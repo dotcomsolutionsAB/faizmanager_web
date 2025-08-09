@@ -12,7 +12,7 @@ import {
 import PrintIcon from '@mui/icons-material/Print';
 import { styled } from '@mui/system';
 import { yellow } from '../../styles/ThemePrimitives';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import { useOutletContext } from "react-router-dom";
 import { useAppStore } from '../../appStore';
 

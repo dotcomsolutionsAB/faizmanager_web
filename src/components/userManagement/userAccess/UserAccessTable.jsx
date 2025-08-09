@@ -535,7 +535,7 @@ import {
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import { yellow, brown } from "../../../styles/ThemePrimitives";
-import { useUser } from "../../../UserContext";
+import { useUser } from "../../../contexts/UserContext";
 import divider from "../../../assets/divider.png";
 import AppTheme from "../../../styles/AppTheme";
 import CloseIcon from "@mui/icons-material/Close";

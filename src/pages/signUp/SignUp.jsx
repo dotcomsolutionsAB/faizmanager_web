@@ -524,7 +524,7 @@ import { useNavigate } from 'react-router-dom';
 import { yellow, brown } from '../../styles/ThemePrimitives';
 import bg1 from '../../assets/bg1.jpg';
 import Link from '@mui/material/Link';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import CircularProgress from '@mui/material/CircularProgress';
 
 

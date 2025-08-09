@@ -16,7 +16,7 @@ import {
 import RefreshIcon from '@mui/icons-material/Refresh';
 import CssBaseline from '@mui/material/CssBaseline';
 import AppTheme from '../../styles/AppTheme';
-import { useUser } from '../../UserContext';
+import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 
 
