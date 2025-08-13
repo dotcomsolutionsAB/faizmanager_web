@@ -10,17 +10,40 @@ import dayjs from "dayjs";
 function savedEventsReducer(state, { type, payload }) {
   switch (type) {
     case "push":
+      if (!payload) {
+        console.error("Invalid payload in 'push' action", payload);
+        return state;
+      }
       return [...state, payload];
+    
     case "update":
-      return state.map((evt) =>
-        evt.id === payload.id ? payload : evt
-      );
+      if (!payload || !payload.id) {
+        console.error("Invalid payload in 'update' action", payload);
+        return state;
+      }
+      return state.map((evt) => evt.id === payload.id ? payload : evt);
+    
     case "delete":
+      if (!payload || !payload.id) {
+        console.error("Invalid payload in 'delete' action", payload);
+        return state;
+      }
       return state.filter((evt) => evt.id !== payload.id);
+    
+    case "set":
+      // Handle the 'set' action type to directly set the events
+      if (!Array.isArray(payload)) {
+        console.error("Invalid payload in 'set' action. Expected an array of events.", payload);
+        return state;
+      }
+      return payload; // Set the state to the payload (new list of events)
+    
     default:
-      throw new Error();
+      console.error("Unknown action type:", type);
+      return state; // Return the current state if the action type is unknown
   }
 }
+
 function initEvents() {
   const storageEvents = localStorage.getItem("savedEvents");
   const parsedEvents = storageEvents ? JSON.parse(storageEvents) : [];
