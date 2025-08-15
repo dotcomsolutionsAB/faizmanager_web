@@ -18,6 +18,8 @@ const Payments = () => {
     const {selectedYear} = useOutletContext();
 
     // console.log(selectedYear)
+    const yearToSend = Array.isArray(selectedYear) ? selectedYear[0] : selectedYear;
+    // console.log(yearToSend)
   
       // Set the document title
       useEffect(() => {
@@ -32,9 +34,10 @@ const Payments = () => {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 }, body: JSON.stringify({
-                    year: selectedYear,
+                    year: yearToSend,
                 })
             })
+            // console.log(selectedYear)
             if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`);
                 
@@ -56,6 +59,7 @@ const Payments = () => {
         fetchData();
       },[]);
     
+      // console.log("Payments", payments)
   return (
     <AppTheme>
       <CssBaseline />
