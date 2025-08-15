@@ -97,6 +97,7 @@ export default function EventModal() {
       setSelectedLabel(labelsClasses.find((lbl) => lbl === selectedEvent.label) || labelsClasses[0]);
     }
   }, [selectedEvent]);
+  // console.log(selectedEvent.id)
 
   const classes = useStyles();
 
@@ -188,6 +189,7 @@ function handleSubmit(e) {
       console.error("Error fetching events:", error);
     }
   };
+
 
   function handleDelete() {
   // Get the event ID from the selectedEvent
@@ -296,7 +298,6 @@ function handleSubmit(e) {
                 fullWidth
                 variant="standard"
                 className={classes.inputField}
-                required
               />
             </Grid>
           </Grid>

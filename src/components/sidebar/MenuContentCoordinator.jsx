@@ -68,6 +68,11 @@ const MenuContentCoordinator = ({ open }) => {
         { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
       ],
     },
+                {
+          label: "Niyaz Calendar",
+          icon: <EventIcon />,
+          path: "/niyaz-calendar",
+        },
 
     // {
     //   label: "Bookings",
