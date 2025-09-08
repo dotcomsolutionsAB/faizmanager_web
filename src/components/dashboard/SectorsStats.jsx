@@ -235,49 +235,44 @@ const SectorsStats = ({ year, sector, subSector }) => {
           }}
         />
 
-        <TableContainer component={Paper} sx={{ boxShadow: 0, borderRadius: 2 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell><strong>Sector</strong></TableCell>
-                <TableCell><strong>Cash</strong></TableCell>
-                <TableCell><strong>Progress</strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row) => {
-                const cash = parseInt(row.cash || "0", 10);
-                const deposited = parseInt(row.deposited || "0", 10);
-                const inHand = parseInt(row.in_hand || "0", 10);
+<TableContainer component={Paper} sx={{ boxShadow: 0, borderRadius: 2 }}>
+  <Table>
+    <TableHead>
+      <TableRow>
+        <TableCell><strong>Sector</strong></TableCell>
+        <TableCell align="right"><strong>Cash</strong></TableCell>
+        <TableCell align="right"><strong>Deposited</strong></TableCell>
+        <TableCell align="right"><strong>Cash in Hand</strong></TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {data.map((row) => {
+        const cash = parseInt(row.cash || "0", 10);
+        const deposited = parseInt(row.deposited || "0", 10);
+        const inHand = parseInt(row.in_hand || "0", 10);
 
-                return (
-                  <TableRow key={row.sector_id}>
-                    <TableCell sx={{width: '200px'}}>{row.sector_name}</TableCell>
-                    <TableCell sx={{ width: '150px', textAlign: 'right'}}>{formatCurrency(cash)}</TableCell>
-                    <TableCell>
-                      <ProgressBar cash={cash} deposited={deposited} inHand={inHand} formatCurrency={formatCurrency} />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-            <TableBody>
-              {/* Total row for all sectors */}
-              <TableRow>
-                <TableCell><strong>Total</strong></TableCell>
-                <TableCell sx={{textAlign: 'right'}}>{formatCurrency(totalCash)}</TableCell>
-                <TableCell>
-                  <ProgressBar
-                    cash={totalCash}
-                    deposited={totalDeposited}
-                    inHand={totalCashInHand}
-                    formatCurrency={formatCurrency}
-                  />
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
+        return (
+          <TableRow key={row.sector_id}>
+            <TableCell sx={{ width: '200px' }}>{row.sector_name}</TableCell>
+            <TableCell align="right">{formatCurrency(cash)}</TableCell>
+            <TableCell align="right">{formatCurrency(deposited)}</TableCell>
+            <TableCell align="right">{formatCurrency(inHand)}</TableCell>
+          </TableRow>
+        );
+      })}
+    </TableBody>
+    <TableBody>
+      {/* Total row for all sectors */}
+      <TableRow>
+        <TableCell><strong>Total</strong></TableCell>
+        <TableCell align="right">{formatCurrency(totalCash)}</TableCell>
+        <TableCell align="right">{formatCurrency(totalDeposited)}</TableCell>
+        <TableCell align="right">{formatCurrency(totalCashInHand)}</TableCell>
+      </TableRow>
+    </TableBody>
+  </Table>
+</TableContainer>
+
       </Card>
     </AppTheme>
   );

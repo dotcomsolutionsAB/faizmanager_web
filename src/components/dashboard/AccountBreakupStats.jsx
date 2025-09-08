@@ -202,12 +202,12 @@ export default function AccountBreakupStats({ year, sector, subSector }) {
 
       const data = await response.json();
       setAccountBreakupStats({
-        payment_breakdown: {
-          cheque: Number(data.payment_breakdown.cheque.replace(/,/g, '')) || 0,
-          cash: Number(data.payment_breakdown.cash.replace(/,/g, '')) || 0,
-          neft: Number(data.payment_breakdown.neft.replace(/,/g, '')) || 0,
-        },
-      });
+  payment_breakdown: {
+    cheque: Number(data?.payment_breakdown?.cheque) || 0,
+    cash:   Number(data?.payment_breakdown?.cash)   || 0,
+    neft:   Number(data?.payment_breakdown?.neft)   || 0,
+  },
+});
     } catch (error) {
       console.error("Error fetching account stats:", error);
     } finally {
@@ -243,16 +243,12 @@ export default function AccountBreakupStats({ year, sector, subSector }) {
 
   // Value formatter to show percentage
   const valueFormatter = (value, datum) => {
-    console.log("datum:", datum); // Log datum
-    console.log("value:", value); // Log value
     
     if (!value || !value.value) return '0%'; // Ensure value exists
     const percentage = value.percentage || ((value.value / total) * 100).toFixed(2); // Calculate percentage if not pre-calculated
     return `${percentage}%`;
   };
     
-//   console.log("Data being passed to PieChart:", data);
-console.log("Cash", accountBreakupStats.payment_breakdown.cash)
 
   return (
     // <Card

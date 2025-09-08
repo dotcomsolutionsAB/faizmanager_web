@@ -15,6 +15,7 @@ import divider from '../../assets/divider.png';
 export default function AccountStats({ year, sector, subSector }) {
   const { token,  currency } = useUser();
 
+
   const [accountStats, setAccountStats] = useState({
     total_hub_amount: 0,
     total_paid_amount: 0,
@@ -39,13 +40,15 @@ export default function AccountStats({ year, sector, subSector }) {
       });
 
       if (!response.ok) throw new Error("Error fetching data");
+  
 
       const data = await response.json();
-      console.log("Acoount stats:", data)
+
+   
       setAccountStats({
-        total_hub_amount: Number(String(data.total_hub_amount).replace(/,/g, '')) || 0,
-      total_paid_amount: Number(String(data.total_paid_amount).replace(/,/g, '')) || 0,
-      total_due_amount: Number(String(data.total_due_amount).replace(/,/g, '')) || 0,
+        total_hub_amount: Number(data?.total_hub_amount) || 0,
+      total_paid_amount: Number(data?.total_paid_amount) || 0,
+      total_due_amount: Number(data?.total_due_amount) || 0,
       });
     } catch (error) {
       console.error("Error fetching Account stats:", error);
@@ -83,15 +86,13 @@ export default function AccountStats({ year, sector, subSector }) {
 
     // Value formatter for PieChart
     const valueFormatter = (value, datum) => {
-        console.log("datum:", datum); // Log datum
-        console.log("value:", value); // Log value
+
         
         if (!value || !value.value) return '0%'; // Ensure value exists
         const percentage = value.percentage || ((value.value / totalAmount) * 100).toFixed(2); // Calculate percentage if not pre-calculated
         return `${percentage}%`;
       };
     
-  console.log("Data being passed to PieChart:", data);
 
   return (
     <Card

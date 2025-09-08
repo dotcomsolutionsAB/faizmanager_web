@@ -87,7 +87,12 @@ if (accessRoleId === 4) {
   // Then handle by role fallback
   switch (role) {
     case "mumeneen":
-      dashboardContent = <MumeneenDashboard />;
+      dashboardContent = <MumeneenDashboard 
+                year={year}
+          sector={sector}
+          subSector={subSector}
+          hofCount={hofCount}
+      />;
       break;
     case "superadmin":
       dashboardContent = <SuperAdminDashboard />;
