@@ -36,6 +36,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import { yellow } from "../../styles/ThemePrimitives";
 import MenuBase from "./MenuBase"; // Base component to handle rendering logic
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 const MenuContentJamiatAdmin = ({ open }) => {
   const menuItems = [
@@ -85,6 +86,11 @@ const MenuContentJamiatAdmin = ({ open }) => {
       label: "Niyaz Calendar",
       icon: <EventIcon />,
       path: "/niyaz-calendar",
+    },
+        {
+      label: "Hierarchy",
+      icon: <AccountTreeIcon />,
+      path: "/hierarchy",
     },
         {
       label: "Menu",

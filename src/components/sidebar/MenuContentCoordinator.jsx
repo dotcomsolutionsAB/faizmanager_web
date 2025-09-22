@@ -55,19 +55,19 @@ const MenuContentCoordinator = ({ open }) => {
       subOptions: [
         { label: "Receipts", path: "/receipts", icon: <ReceiptIcon /> },
         { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
-        { label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> },
+        // { label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> },
         
       ],
     },
-    {
-      label: "Groupings",
-      icon: <PeopleRoundedIcon />,
-      subOptions: [
-        { label: "Sector", path: "/sector", icon: <ApartmentIcon /> },
-        { label: "Sub-Sector", path: "/sub_sector", icon: <BusinessIcon /> },
-        { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
-      ],
-    },
+    // {
+    //   label: "Groupings",
+    //   icon: <PeopleRoundedIcon />,
+    //   subOptions: [
+    //     { label: "Sector", path: "/sector", icon: <ApartmentIcon /> },
+    //     { label: "Sub-Sector", path: "/sub_sector", icon: <BusinessIcon /> },
+    //     { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
+    //   ],
+    // },
                 {
           label: "Niyaz Calendar",
           icon: <EventIcon />,
@@ -94,14 +94,14 @@ const MenuContentCoordinator = ({ open }) => {
     //   icon: <SettingsRoundedIcon />,
     //   path: "/settings",
     // },
-    {
-      label: "User Management",
-      icon: <AdminPanelSettingsIcon />,
-      subOptions: [
-        // { label: "Roles", path: "/roles", icon: <GroupIcon /> },
-        { label: "User Access", path: "/user_access", icon: <SecurityIcon /> },
-      ],
-    },
+    // {
+    //   label: "User Management",
+    //   icon: <AdminPanelSettingsIcon />,
+    //   subOptions: [
+    //     // { label: "Roles", path: "/roles", icon: <GroupIcon /> },
+    //     { label: "User Access", path: "/user_access", icon: <SecurityIcon /> },
+    //   ],
+    // },
   ];
 
   return <MenuBase open={open} menuItems={menuItems} />;

@@ -41,7 +41,8 @@ export default function NavbarBreadcrumbs() {
     '/user_access': 'User Access',
     '/niyaz': 'Niyaz',
     '/menu': 'Menu',
-    '/niyaz-calendar': 'Niyaz Calendar'
+    '/niyaz-calendar': 'Niyaz Calendar',
+    '/hierarchy': 'Hierarchy'
     // Add more paths and labels as needed
   };
 

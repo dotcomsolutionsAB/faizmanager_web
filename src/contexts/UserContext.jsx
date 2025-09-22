@@ -29,8 +29,8 @@ export function UserProvider({ children }) {
     const storedHofCount = localStorage.getItem('hof_count');
     const storedAccessRoleId = localStorage.getItem('access_role_id');
   
-    console.log(localStorage.getItem("token"))
-    console.log(localStorage.getItem("access_role_id"))
+    // console.log(localStorage.getItem("token"))
+    // console.log(localStorage.getItem("access_role_id"))
     // console.log('Stored User:', storedUser);
     // console.log('Stored Token:', storedToken);
     // console.log("stored hof count:", storedHofCount);
@@ -63,10 +63,10 @@ export function UserProvider({ children }) {
 if (storedAccessRoleId) {
   setAccessRoleId(Number(storedAccessRoleId))
 }
-    console.log("Role in user context: stored role", storedRole);
+    // console.log("Role in user context: stored role", storedRole);
 
     setLoading(false);
-    console.log("UserContext",accessRoleId)
+    // console.log("UserContext",accessRoleId)
     // console.log("Sending token to MumeneenTable : ", token);
   }, [token]);
   

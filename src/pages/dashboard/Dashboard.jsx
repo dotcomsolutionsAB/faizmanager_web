@@ -25,8 +25,6 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
 
-  console.log("Access: ", accessRoleId)
-  console.log("Role in dashboard",role)
 
   useEffect(() => {
     document.title = "Dashboard - FMB 52";

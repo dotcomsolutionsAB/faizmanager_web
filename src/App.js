@@ -31,6 +31,10 @@ import Menu from './pages/menu/Menu';
 import NiyazCalendar from './pages/niyazCalendar/NiyazCalendar';
 import './App.css'
 import ContextWrapper from './contexts/ContextWrapper';
+
+import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
+import Hierarchy from './pages/hierarchy/Hierarchy';
+        
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -60,6 +64,7 @@ function App() {
   return (
     <UserProvider>
       <ContextWrapper>
+         <PrimeReactProvider>
       <Router>
         <Routes>
           <Route path="/" element={<LogInWithPassword />} />
@@ -91,11 +96,14 @@ function App() {
             <Route path="/niyaz" element={<Niyaz />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
+            <Route path="/hierarchy" element={<Hierarchy />} />
+
           </Route>
           {/* Optional: Catch-all for unknown routes */}
           {/* <Route path="*" element={<NotFound />} /> */}
         </Routes>
       </Router>
+      </PrimeReactProvider>
       </ContextWrapper>
 
     </UserProvider>

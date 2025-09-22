@@ -14,9 +14,7 @@ import divider from '../../assets/divider.png';
 
 export default function ThaaliStats({ year, sector, subSector }) {
   const { token } = useUser();
-  console.log("year in thaalistats", year);
-  console.log("sector in thaalistats", sector)
-  console.log("seub sector in thaalistats", subSector)
+
 
   const [thaaliStats, setThaaliStats] = useState({
     total_houses: 0,
@@ -44,7 +42,7 @@ export default function ThaaliStats({ year, sector, subSector }) {
       if (!response.ok) throw new Error("Error fetching data");
 
       const data = await response.json();
-      console.log("Full api response:", data)
+  
       setThaaliStats(data);
     } catch (error) {
       console.error("Error fetching Thaali stats:", error);
@@ -71,8 +69,7 @@ export default function ThaaliStats({ year, sector, subSector }) {
   const total = validTotalHouses > 0 ? validTotalHouses : 1;
   const takingPercentage = ((validThaaliTaking / total) * 100).toFixed(2);
   const notTakingPercentage = ((notTaking / total) * 100).toFixed(2);
-  console.log("taking percentage", takingPercentage)
-  console.log("not taking percentage", notTakingPercentage)
+
 
   const data = [
     { name: 'Taking', value: validThaaliTaking, color: '#2A9D8F', percentage: takingPercentage }, // Green for 'Taking'
@@ -82,8 +79,7 @@ export default function ThaaliStats({ year, sector, subSector }) {
   // Value formatter to display only the percentage
   // Fixed valueFormatter
   const valueFormatter = (value, datum) => {
-    console.log("datum:", datum); // Log datum
-    console.log("value:", value); // Log value
+
     
     if (!value || !value.value) return '0%'; // Ensure value exists
     const percentage = value.percentage || ((value.value / total) * 100).toFixed(2); // Calculate percentage if not pre-calculated
@@ -92,7 +88,7 @@ export default function ThaaliStats({ year, sector, subSector }) {
   
   
 
-  console.log("Data being passed to PieChart:", data);
+  
 
   return (
 
