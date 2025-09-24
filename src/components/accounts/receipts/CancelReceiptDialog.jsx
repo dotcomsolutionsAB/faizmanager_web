@@ -24,6 +24,7 @@ const CancelReceiptDialog = ({ open,
   const [error, setError] = useState(null);
 
   const handleSave = async () => {
+    console.log(receiptId)
     if (!receiptId) return;
 
     setLoading(true);

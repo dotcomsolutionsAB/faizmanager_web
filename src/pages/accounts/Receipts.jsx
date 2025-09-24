@@ -163,7 +163,7 @@ function Receipts() {
         <CancelReceiptDialog
           open={openCancelDialog}
           onClose={() => setOpenCancelDialog(false)}
-          receiptId={row.hashed_id}
+          receiptId={row.id}
           onConfirm={handleConfirmCancel}
           setSnackbarOpen={setSnackbarOpen}
           setSnackbarMessage={setSnackbarMessage}
