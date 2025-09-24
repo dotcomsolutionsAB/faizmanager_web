@@ -30,7 +30,7 @@ const CancelReceiptDialog = ({ open,
     setError(null);
     try {
       const response = await fetch(`https://api.fmb52.com/api/receipts/cancel/${receiptId}`, {
-        method: 'DELETE',  // Assuming DELETE is used to cancel receipt; if POST or PUT, change accordingly
+        method: 'POST',  // Assuming DELETE is used to cancel receipt; if POST or PUT, change accordingly
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
