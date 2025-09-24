@@ -36,8 +36,11 @@ import SecurityIcon from '@mui/icons-material/Security';
 import { yellow } from "../../styles/ThemePrimitives";
 import MenuBase from "./MenuBase"; // Base component to handle rendering logic
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import  { useUser } from "../../contexts/UserContext";
 
 const MenuContentCoordinator = ({ open }) => {
+  const {user} = useUser();
+  console.log("User", user)
   const menuItems = [
     {
       label: "Dashboard",
@@ -56,6 +59,9 @@ const MenuContentCoordinator = ({ open }) => {
         { label: "Receipts", path: "/receipts", icon: <ReceiptIcon /> },
         { label: "Payments", path: "/payments", icon: <PaymentIcon /> },
         // { label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> },
+                ...(user?.id === 473
+          ? [{ label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> }]
+          : []),
         
       ],
     },
