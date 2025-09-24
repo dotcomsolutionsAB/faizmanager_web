@@ -39,7 +39,8 @@ import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import  { useUser } from "../../contexts/UserContext";
 
 const MenuContentCoordinator = ({ open }) => {
-
+  const {user} = useUser();
+  // console.log("User", user)
   const menuItems = [
     {
       label: "Dashboard",
