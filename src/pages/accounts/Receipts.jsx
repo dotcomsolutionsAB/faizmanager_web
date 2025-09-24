@@ -373,12 +373,8 @@ function Receipts() {
       row.folio_no?.toLowerCase().includes(t) ||
       row.sector_name?.toLowerCase().includes(t) ||
       row.sub_sector_name?.toLowerCase().includes(t) ||
-      row.hof_its?.toLowerCase().includes(t) ||
-      row.mumeneen_type?.toLowerCase().includes(t) ||
-      row.hub_amount?.toString().includes(filterText) ||
-      row.paid_amount?.toString().includes(filterText) ||
-      row.due_amount?.toString().includes(filterText) ||
-      row.overdue?.toString().includes(filterText);
+      row.hof_its?.toLowerCase().includes(t)
+ 
 
     const matchesMode = modeFilter === 'All' || row.mode?.toLowerCase() === modeFilter.toLowerCase();
 
@@ -386,11 +382,11 @@ function Receipts() {
       !selectedSectorName?.length ||
       selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
 
-    const matchesSubSector =
-      !selectedSubSectorName?.length ||
-      selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
+    // const matchesSubSector =
+    //   !selectedSubSectorName?.length ||
+    //   selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
 
-    return matchesFilterText && matchesMode && matchesSector && matchesSubSector;
+    return matchesFilterText && matchesMode && matchesSector;
   });
 
   // After successful save from dialog, update the grid row

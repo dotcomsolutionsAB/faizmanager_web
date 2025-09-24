@@ -514,6 +514,8 @@ function MumeneenTable() {
               } else if (action === 'Out of jamiat') {
                 setSelectedRowForTransfer(row);
                 setOtherJamiatTransferDialogOpen(true);
+              } else if (action === "Update Tiffin Segment") {
+                console.log("Tiffin")
               }
             }}
           />
@@ -632,6 +634,14 @@ function MumeneenTable() {
               </MenuItem>
             </>
           )}
+          <MenuItem>
+                      <Tooltip title="Update Tiffin Segment" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <ReceiptIcon sx={{ color: brown[200] }} />
+                <Typography>Update Tiffin Segment</Typography>
+              </Box>
+            </Tooltip>
+          </MenuItem>
         </Menu>
       </Box>
     );
