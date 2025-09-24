@@ -237,19 +237,52 @@ function Receipts() {
         </Box>
       ),
     },
-    {
-      field: 'receipt_no',
-      headerName: 'Receipt No',
-      width: 150,
-      sortable: true,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
-          <Typography variant="body2" sx={{ textAlign: 'center', color: brown[700] }}>
-            {params.row.receipt_no}
+   {
+  field: 'receipt_no',
+  headerName: 'Receipt No',
+  width: 170,
+  sortable: true,
+  renderCell: (params) => {
+    const status = String(params.row.status || '').toLowerCase(); // e.g. "cancelled"
+    const isCancelled = status === 'cancelled' || status === 'canceled'; // handle both spellings
+
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{
+            textAlign: 'center',
+            color: brown[700],
+            textDecoration: isCancelled ? 'line-through' : 'none',
+            opacity: isCancelled ? 0.7 : 1,
+            fontWeight: 600,
+          }}
+          title={isCancelled ? 'This receipt is cancelled' : ''}
+        >
+          {params.row.receipt_no}
+        </Typography>
+
+        {isCancelled && (
+          <Typography
+            variant="caption"
+            sx={{ mt: 0.5, color: '#d32f2f', fontWeight: 700, letterSpacing: 0.3 }}
+          >
+            {params.row.status} {/* shows whatever the API sent, e.g. "cancelled" */}
           </Typography>
-        </Box>
-      ),
-    },
+        )}
+      </Box>
+    );
+  },
+},
     {
       field: 'receipt',
       headerName: 'Receipt Details',
