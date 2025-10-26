@@ -139,36 +139,37 @@ export function UserProvider({ children }) {
 // ---------- NEW: switchRole(roleId) ----------
 // No API call needed. We just flip the active access role locally.
 // Your other fetchers already use accessRoleId in their URLs.
-const switchRole = async (roleId) => {
-  // normalize
-  const idNum = Number(roleId);
+const switchRole = async (access) => {
+  // 1️⃣ normalize
+  const idNum = Number(access);
 
-  // 1) update accessRoleId
+  // 2️⃣ update accessRoleId
   setAccessRoleId(idNum);
   localStorage.setItem("access_role_id", idNum);
 
-  // 2) update readable role label (if you keep it)
-  const r = Array.isArray(roles) ? roles.find(r => String(r.id) === String(roleId)) : null;
+  // 3️⃣ update readable role label using access_role_id
+  const r = Array.isArray(roles)
+    ? roles.find(r => String(r.access_role_id) === String(access))
+    : null;
+
   if (r) {
-    const label = r.access_role_name ?? r.name ?? r.slug ?? String(roleId);
+    const label = r.access_role_name ?? r.name ?? r.slug ?? String(access);
     setRole(label);
     localStorage.setItem("role", label);
   }
 
-  // 3) clear cached access lists so dependent effects refetch for the new role
+  // 4️⃣ clear cached access lists so dependent effects refetch for the new role
   setSectorAccessIds([]);
   setSubSectorAccessIds([]);
   localStorage.removeItem("sector_access_ids");
   localStorage.removeItem("sub_sector_access_ids");
 
-  // 4) token doesn't change; permissions may be role-scoped only if your API enforces it server-side.
-  // If you later add an endpoint to fetch permissions for a role, do it here.
-
-  // 5) Optional: let the app know a role change happened
+  // 5️⃣ token stays the same, this is just switching local role context
   try {
-    window.dispatchEvent(new CustomEvent("role:changed", { detail: { roleId: String(roleId) } }));
+    window.dispatchEvent(new CustomEvent("role:changed", { detail: { access_role_id: String(access) } }));
   } catch (_) {}
 };
+
 
 // ...everything below stays the same
 
