@@ -94,9 +94,11 @@ export default function Sidebar() {
       return <MenuContentJamiatAdmin open={open} />;
     } else if (role === "superadmin") {
       return <MenuContentSuperAdmin open={open} />;
-    } else if (role === "mumeneen") {
-      return <MenuContentMumeneen open={open} />;
-    } else if (role === "Sector Admin") {
+    } 
+    // else if (role === "mumeneen") {
+    //   return <MenuContentMumeneen open={open} />;
+    // } 
+    else if (role === "Sector Admin") {
       return <MenuContentSectorAdmin open={open} />;
     } else if (role === "Coordinator") {
       return <MenuContentCoordinator open={open} />;
