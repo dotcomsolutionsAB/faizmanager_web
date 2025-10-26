@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import divider from '../../assets/divider.png';
 
 export default function AccountStats({ year, sector, subSector }) {
-  const { token,  currency } = useUser();
+  const { token,  currency, accessRoleId } = useUser();
 
 
   const [accountStats, setAccountStats] = useState({
@@ -29,7 +29,7 @@ export default function AccountStats({ year, sector, subSector }) {
       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
 
-      const url = `https://api.fmb52.com/api/dashboard/stats?year=${year}&${sectorParams}&${subSectorParams}`;
+      const url = `https://api.fmb52.com/api/dashboard/stats?year=${year}&${sectorParams}&${subSectorParams}&${accessRoleId}`;
 
       const response = await fetch(url, {
         method: "GET",

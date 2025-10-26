@@ -482,7 +482,7 @@ export default function UserAccessForm({ editData, setEditData }) {
     useEffect(() => {
         const fetchSubSectors = async () => {
             try {
-                const response = await fetch("https://api.fmb52.com/api/sub_sector", {
+                const response = await fetch("https://api.fmb52.com/api/sub_sector/4", {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,
