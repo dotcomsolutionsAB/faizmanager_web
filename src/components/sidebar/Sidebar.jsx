@@ -85,8 +85,10 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 export default function Sidebar() {
   const theme = useTheme();
   const open = useAppStore((state) => state.dopen);
-  const { role } = useUser();
-  console.log("role",role)
+  const { roles, accessRoleId } = useUser();
+  
+  const sidebarContentToShow = accessRoleId
+  console.log(sidebarContentToShow)
 
   // Function to dynamically render the correct menu content based on the user's role
   const renderMenuContent = () => {
@@ -98,13 +100,13 @@ export default function Sidebar() {
     // else if (role === "mumeneen") {
     //   return <MenuContentMumeneen open={open} />;
     // } 
-    if (role === "Sector Admin") {
+    if (sidebarContentToShow === 1) {
       return <MenuContentSectorAdmin open={open} />;
-    } else if (role === "Coordinator") {
+    } else if (sidebarContentToShow === 4) {
       return <MenuContentCoordinator open={open} />;
-    } else if (role === "Masool") {
+    } else if (sidebarContentToShow === 2) {
       return <MenuContentMasool open={open} />;
-    } else if (role === "Musaid") {
+    } else if (sidebarContentToShow === 3) {
       return <MenuContentMusaid open={open} />;
     }
     else {
