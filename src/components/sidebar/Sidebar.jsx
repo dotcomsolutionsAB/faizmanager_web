@@ -90,15 +90,15 @@ export default function Sidebar() {
 
   // Function to dynamically render the correct menu content based on the user's role
   const renderMenuContent = () => {
-    if (role === "jamiat_admin") {
-      return <MenuContentJamiatAdmin open={open} />;
-    } else if (role === "superadmin") {
-      return <MenuContentSuperAdmin open={open} />;
-    } 
+    // if (role === "jamiat_admin") {
+    //   return <MenuContentJamiatAdmin open={open} />;
+    // } else if (role === "superadmin") {
+    //   return <MenuContentSuperAdmin open={open} />;
+    // } 
     // else if (role === "mumeneen") {
     //   return <MenuContentMumeneen open={open} />;
     // } 
-    else if (role === "Sector Admin") {
+    if (role === "Sector Admin") {
       return <MenuContentSectorAdmin open={open} />;
     } else if (role === "Coordinator") {
       return <MenuContentCoordinator open={open} />;
