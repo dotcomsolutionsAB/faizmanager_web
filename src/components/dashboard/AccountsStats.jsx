@@ -28,8 +28,10 @@ export default function AccountStats({ year, sector, subSector }) {
     try {
       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
+     
 
-      const url = `https://api.fmb52.com/api/dashboard/stats?year=${year}&${sectorParams}&${subSectorParams}&${accessRoleId}`;
+
+      const url = `https://api.fmb52.com/api/dashboard/stats?year=${year}&${sectorParams}&${subSectorParams}&role_id=${accessRoleId}`;
 
       const response = await fetch(url, {
         method: "GET",

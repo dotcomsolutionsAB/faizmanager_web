@@ -119,7 +119,7 @@ const ProgressBar = ({ deposited, inHand, cash, formatCurrency }) => {
 
 // Main Table component
 const SectorsStats = ({ year, sector, subSector }) => {
-  const { token, currency } = useUser();
+  const { token, currency, accessRoleId } = useUser();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -129,7 +129,7 @@ const SectorsStats = ({ year, sector, subSector }) => {
       const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
       const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
 
-      const url = `https://api.fmb52.com/api/dashboard/cash-summary?${sectorParams}&${subSectorParams}`;
+      const url = `https://api.fmb52.com/api/dashboard/cash-summary?${sectorParams}&${subSectorParams}&role_id=${accessRoleId}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -141,8 +141,9 @@ const SectorsStats = ({ year, sector, subSector }) => {
 
       const result = await response.json();
 
+      console.log(result)
 
-      if (response.ok && result.success) {
+      if (response.ok) {
         setData(result.data || []);
       } else {
         throw new Error(result.message || "Failed to fetch");
@@ -178,9 +179,11 @@ const SectorsStats = ({ year, sector, subSector }) => {
   }
 
   // Calculate total cash in hand and total deposited across all sectors
-  const totalCashInHand = data.reduce((sum, row) => sum + parseInt(row.in_hand || "0", 10), 0);
-  const totalDeposited = data.reduce((sum, row) => sum + parseInt(row.deposited || "0", 10), 0);
-  const totalCash = data.reduce((sum, row) => sum + parseInt(row.cash || "0", 10), 0);
+  const totalCashInHand = data.reduce((sum, row) => sum + parseInt(row.cash_in_hand || "0", 10), 0);
+  const totalDeposited = data.reduce((sum, row) => sum + parseInt(row.cash_deposited || "0", 10), 0);
+  const totalCash = data.reduce((sum, row) => sum + parseInt(row.total_cash || "0", 10), 0);
+  const totalPending = data.reduce((sum, row) => sum + parseInt(row.pending_approval || "0", 10), 0);
+
 
   return (
     <AppTheme>
@@ -239,23 +242,29 @@ const SectorsStats = ({ year, sector, subSector }) => {
   <Table>
     <TableHead>
       <TableRow>
-        <TableCell><strong>Sector</strong></TableCell>
+        <TableCell><strong>Name</strong></TableCell>
         <TableCell align="right"><strong>Cash</strong></TableCell>
         <TableCell align="right"><strong>Deposited</strong></TableCell>
+        <TableCell align="right"><strong>Pending</strong></TableCell>
+
         <TableCell align="right"><strong>Cash in Hand</strong></TableCell>
       </TableRow>
     </TableHead>
     <TableBody>
       {data.map((row) => {
-        const cash = parseInt(row.cash || "0", 10);
-        const deposited = parseInt(row.deposited || "0", 10);
-        const inHand = parseInt(row.in_hand || "0", 10);
+        const cash = parseInt(row.total_cash || "0", 10);
+        const deposited = parseInt(row.cash_deposited || "0", 10);
+        const pending = parseInt(row.pending_approval || "0", 10);
+
+        const inHand = parseInt(row.cash_in_hand || "0", 10);
 
         return (
           <TableRow key={row.sector_id}>
-            <TableCell sx={{ width: '200px' }}>{row.sector_name}</TableCell>
+            <TableCell sx={{ width: '200px' }}>{row.user_name}</TableCell>
             <TableCell align="right">{formatCurrency(cash)}</TableCell>
             <TableCell align="right">{formatCurrency(deposited)}</TableCell>
+            <TableCell align="right">{formatCurrency(pending)}</TableCell>
+
             <TableCell align="right">{formatCurrency(inHand)}</TableCell>
           </TableRow>
         );
@@ -267,6 +276,8 @@ const SectorsStats = ({ year, sector, subSector }) => {
         <TableCell><strong>Total</strong></TableCell>
         <TableCell align="right">{formatCurrency(totalCash)}</TableCell>
         <TableCell align="right">{formatCurrency(totalDeposited)}</TableCell>
+        <TableCell align="right">{formatCurrency(totalPending)}</TableCell>
+
         <TableCell align="right">{formatCurrency(totalCashInHand)}</TableCell>
       </TableRow>
     </TableBody>

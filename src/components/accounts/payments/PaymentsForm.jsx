@@ -200,7 +200,7 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
             {paymentData ? "Edit Payment" : "Add Payment"}
           </Typography>
           <Box>
-            <FormControl sx={{ minWidth: 150, mr: 2 }}>
+            {/* <FormControl sx={{ minWidth: 150, mr: 2 }}>
               <InputLabel id="sector-label">Sector</InputLabel>
               <Select
                 labelId="sector-label"
@@ -215,7 +215,7 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
                   </MenuItem>
                 ))}
               </Select>
-            </FormControl>
+            </FormControl> */}
             <IconButton
               onClick={() => setCollapsed((prev) => !prev)}
               sx={{ color: yellow[300], "&:hover": { color: yellow[400] } }}
