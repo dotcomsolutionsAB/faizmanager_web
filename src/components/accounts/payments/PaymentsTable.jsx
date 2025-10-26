@@ -15,6 +15,8 @@ import Alert from '@mui/material/Alert';
 import { useOutletContext } from "react-router-dom";
 import AppTheme from "../../../styles/AppTheme";
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ApprovePaymentDialog from './ApprovePaymentDialog';
 
 
 const customLocaleText = {
@@ -28,12 +30,15 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
-  const { token, loading } = useUser();
+  const { token, loading, user } = useUser();
   const [filteredRows, setFilteredRows] = useState(payments);
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
   const [filterMode, setFilterMode] = useState('');
+
+  const canApprove = user?.id === 473;
+
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -90,76 +95,121 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
     fetchData && fetchData();
   };
 
-  const ActionButtonWithOptions = ({ paymentId, rowData, paymentHashedId }) => {
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
+const ActionButtonWithOptions = ({ paymentId, rowData, paymentHashedId }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+  const { token } = useUser(); // use token for API in the dialog
 
-    const handleClick = (event) => setAnchorEl(event.currentTarget);
-    const handleClose = () => setAnchorEl(null);
+  // approve / cancel dialog state
+  const [approveOpen, setApproveOpen] = useState(false);
 
-    const handleEditClick = () => {
-      onEdit(rowData);
-      handleClose();
-    };
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
-    const handleDeleteClick = () => {
-      setDeleteId(paymentId);
-      setOpenDeleteDialog(true);
-      handleClose();
-    };
- const handlePrintClick = () => {
-        const printUrl = `https://api.fmb52.com/api/payment_print/${paymentHashedId}`;
+  const handleEditClick = () => {
+    onEdit(rowData);
+    handleClose();
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteId(paymentId);
+    setOpenDeleteDialog(true);
+    handleClose();
+  };
+
+  const handlePrintClick = () => {
+    const printUrl = `https://api.fmb52.com/api/payment_print/${paymentHashedId}`;
     window.open(printUrl, '_blank');  // Opens in new tab
     handleClose();
   };
 
-    useEffect(() => {
-      document.title = "Payments - FMB 52";
-    }, []);
-
-    return (
-      <Box>
-        <Button variant="contained" color="primary" onClick={handleClick}>
-          Actions
-        </Button>
-
-        <Menu
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        >
-          <MenuItem onClick={handleEditClick}>
-            <Tooltip title="Edit Hub" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <EditIcon sx={{ color: brown[200] }} />
-                Edit
-              </Box>
-            </Tooltip>
-          </MenuItem>
-
-          <MenuItem onClick={handleDeleteClick}>
-            <Tooltip title="Delete" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <DeleteIcon sx={{ color: brown[200] }} />
-                Delete
-              </Box>
-            </Tooltip>
-          </MenuItem>
-
-                    <MenuItem onClick={handlePrintClick}>
-            <Tooltip title="Print" placement="left">
-              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <LocalPrintshopIcon sx={{ color: brown[200] }} />
-                Print
-              </Box>
-            </Tooltip>
-          </MenuItem>
-        </Menu>
-      </Box>
-    );
+  // open the approve/cancel dialog
+  const handleApproveOpen = () => {
+    setApproveOpen(true);
+    handleClose();
   };
+
+  const handleApproveClose = () => setApproveOpen(false);
+
+  const handleApproveSuccess = () => {
+    // refresh table + snackbar
+    fetchData && fetchData();
+    setSnackbarMessage('Payment status updated successfully.');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
+  useEffect(() => {
+    document.title = "Payments - FMB 52";
+  }, []);
+
+  return (
+    <Box>
+      <Button variant="contained" color="primary" onClick={handleClick}>
+        Actions
+      </Button>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      >
+        <MenuItem onClick={handleEditClick}>
+          <Tooltip title="Edit" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <EditIcon sx={{ color: brown[200] }} />
+              Edit
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        <MenuItem onClick={handleDeleteClick}>
+          <Tooltip title="Delete" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <DeleteIcon sx={{ color: brown[200] }} />
+              Delete
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        <MenuItem onClick={handlePrintClick}>
+          <Tooltip title="Print" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <LocalPrintshopIcon sx={{ color: brown[200] }} />
+              Print
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        {/* ✅ Approve/Cancel (opens dialog) */}
+       {canApprove && (
+          <MenuItem onClick={handleApproveOpen}>
+            <Tooltip title="Approve / Cancel" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <CheckCircleIcon sx={{ color: brown[200] }} />
+                Approve
+              </Box>
+            </Tooltip>
+          </MenuItem>
+        )}
+      </Menu>
+
+      {/* Mount dialog only when allowed */}
+      {canApprove && (
+        <ApprovePaymentDialog
+          open={approveOpen}
+          onClose={handleApproveClose}
+          onSuccess={handleApproveSuccess}
+          token={token}
+          paymentId={paymentId}
+        />
+      )}
+    </Box>
+  );
+};
+
 
   const columns = [
     {
@@ -217,6 +267,42 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
         </Box>
       ),
     },
+{
+  field: 'status',
+  headerName: 'Status',
+  width: 150,
+  sortable: true,
+  renderCell: (params) => {
+    const status = params.row.status?.toLowerCase();
+    let color;
+
+    switch (status) {
+      case 'pending':
+        color = '#f1c40f'; // yellow
+        break;
+      case 'cancelled':
+        color = '#e74c3c'; // red
+        break;
+      case 'approved':
+      case 'completed':
+      case 'active':
+        color = '#27ae60'; // green
+        break;
+      default:
+        color = '#5d4037'; // brown[700] fallback
+        break;
+    }
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
+        <Typography variant="body2" sx={{ color, fontWeight: 600, textTransform: 'capitalize' }}>
+          {params.row.status}
+        </Typography>
+      </Box>
+    );
+  },
+},
+
     {
       field: 'receipt',
       headerName: 'Receipt Details',

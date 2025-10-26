@@ -11,7 +11,10 @@ import { Outlet } from "react-router-dom"; // Import Outlet to render nested rou
 import SubHeader from "./components/header/SubHeader";
 
 
-const drawerWidth = 240; // Adjust this to match your Sidebar's width
+const DRAWER_WIDTH = 240;
+const COLLAPSED_WIDTH = 72;
+
+
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -29,6 +32,7 @@ const Layout = () => {
   const [selectedYear, setSelectedYear] = useState([]);
   const[selectedSectorName, setSelectedSectorName] = useState([]);
   const [selectedSubSectorName, setSelectedSubSectorName] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
 
   // console.log("Select sector LAyout", selectedSector)

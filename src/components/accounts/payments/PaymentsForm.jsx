@@ -19,7 +19,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
 const PaymentsForm = ({ paymentData, fetchData }) => {
-  const { token } = useUser();
+  const { token, accessRoleId } = useUser();
   const { selectedSubSector, selectedYear } = useOutletContext();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -54,7 +54,7 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
   useEffect(() => {
     const fetchSectors = async () => {
       try {
-        const resp = await fetch("https://api.fmb52.com/api/sector", {
+        const resp = await fetch(`https://api.fmb52.com/api/sector/${accessRoleId}`, {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         });
         const data = await resp.json();
