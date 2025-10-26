@@ -14,6 +14,9 @@ import { useUser } from '../../contexts/UserContext';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import MenuContentCoordinator from './MenuContentCoordinator';
+import MenuContentSectorAdmin from './MenuContentSectorAdmin';
+import MenuContentMasool from './MenuContentMasool';
+import MenuContentMusaid from './MenuContentMusaid';
 
 
 const drawerWidth = 240;
@@ -83,6 +86,7 @@ export default function Sidebar() {
   const theme = useTheme();
   const open = useAppStore((state) => state.dopen);
   const { role } = useUser();
+  console.log("role",role)
 
   // Function to dynamically render the correct menu content based on the user's role
   const renderMenuContent = () => {
@@ -92,9 +96,19 @@ export default function Sidebar() {
       return <MenuContentSuperAdmin open={open} />;
     } else if (role === "mumeneen") {
       return <MenuContentCoordinator open={open} />;
-    } else {
-      return null; // Render nothing for unsupported roles
+    } else if (role === "Sector Admin") {
+      return <MenuContentSectorAdmin open={open} />;
+    } else if (role === "Coordinator") {
+      return <MenuContentCoordinator open={open} />;
+    } else if (role === "Masool") {
+      return <MenuContentMasool open={open} />;
+    } else if (role === "Musaid") {
+      return <MenuContentMusaid open={open} />;
     }
+    else {
+      return null; // Render nothing for unsupported roles
+    } 
+
   };
  
 
