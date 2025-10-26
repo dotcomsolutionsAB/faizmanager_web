@@ -138,6 +138,8 @@ export default function Header({ selectedSector,
 }) {
   const context = useUser();
   const user = context?.user || {};
+  const access_role_id = context?.accessRoleId || {};
+// console.log("role_id", access_role_id)
   const theme = useTheme();
   const userName = user?.name || 'User';
   const token = context?.token;
@@ -156,6 +158,8 @@ export default function Header({ selectedSector,
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
+ 
+// console.log("role id", user)
 
   const handleSectorChange = (event) => {
     setSelectedSector(event.target.value);
@@ -272,14 +276,13 @@ export default function Header({ selectedSector,
     </Menu>
   );
 
-
   // Fetch sectors
   useEffect(() => {
     if (token) {
       const fetchSectors = async () => {
         setLoadingSectors(true);
         try {
-          const response = await fetch('https://api.fmb52.com/api/sector', {
+          const response = await fetch(`https://api.fmb52.com/api/sector/${access_role_id}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -292,6 +295,8 @@ export default function Header({ selectedSector,
           }
 
           const data = await response.json();
+          console.log("Sectors:", data?.data)
+          // console.log("Sectors header", data)
           if (data?.data) {
           // Convert IDs to string for consistency
           const filteredSectors = data.data
@@ -311,58 +316,78 @@ export default function Header({ selectedSector,
       };
       fetchSectors();
     }
-  }, [token]);
+  }, [token, access_role_id]);
 
    // Fetch sub-sectors for all selected sectors
-  useEffect(() => {
-    if (!token) return;
-    if (!selectedSector.length) {
-      setSubSectors([]);
-      return;
-    }
-    
-    const fetchSubSectors = async () => {
-      setLoadingSubSectors(true);
-      try {
-        // Join sector IDs as comma-separated string for API call
-        const sectorsQuery = selectedSector.join(',');
+useEffect(() => {
+  if (!token) return;
+  if (!selectedSector.length) {
+    setSubSectors([]);
+    return;
+  }
 
-        const response = await fetch(
-          `https://api.fmb52.com/api/sub_sector?sectors=${sectorsQuery}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) throw new Error('Failed to fetch sub-sectors');
-        const data = await response.json();
-        if (data?.data) {
-          // Convert IDs to strings and sector_id to string
-          const convertedSubSectors = data.data.map((ss) => ({
-            ...ss,
-            id: String(ss.id),
-            sector_id: String(ss.sector_id),
-          }));
-          setSubSectors(convertedSubSectors);
+  const fetchSubSectors = async () => {
+    setLoadingSubSectors(true);
+    try {
+      const base = 'https://api.fmb52.com/api';
 
-          // Initialize selected sub-sectors if none selected yet
-          if (!selectedSubSector.length) {
-            setSelectedSubSector(convertedSubSectors.map((ss) => ss.id));
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching sub-sectors:', error);
-        setSubSectors([]);
-      } finally {
-        setLoadingSubSectors(false);
+      // If you support an "all" option, keep it; otherwise join IDs
+      const sectorsQuery = selectedSector.includes('all')
+        ? 'all'
+        : selectedSector.join(',');
+
+      // access_role_id as PATH param; sectors as QUERY param (optional)
+      const url =
+        sectorsQuery === 'all'
+          ? `${base}/sub_sector/${encodeURIComponent(access_role_id)}`
+          : `${base}/sub_sector/${encodeURIComponent(access_role_id)}?sectors=${encodeURIComponent(sectorsQuery)}`;
+
+      // console.log('Fetching sub-sectors from:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+          // No Content-Type for GET
+        },
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        console.error('Sub-sectors failed:', response.status, text);
+        throw new Error(`Failed to fetch sub-sectors: ${response.status}`);
       }
-    };
 
-    fetchSubSectors();
-  }, [token, selectedSector]);
+      const data = JSON.parse(text);
+      // console.log('subsectors:', data?.data);
+
+      if (data?.data) {
+        const converted = data.data.map(ss => ({
+          ...ss,
+          id: String(ss.id),
+          sector_id: String(ss.sector_id),
+        }));
+        setSubSectors(converted);
+
+        if (!selectedSubSector.length) {
+          setSelectedSubSector(converted.map(ss => ss.id));
+        }
+      } else {
+        setSubSectors([]);
+      }
+    } catch (err) {
+      console.error('Error fetching sub-sectors:', err);
+      setSubSectors([]);
+    } finally {
+      setLoadingSubSectors(false);
+    }
+  };
+
+  // Guard: need both
+  if (access_role_id) fetchSubSectors();
+}, [token, selectedSector, access_role_id]);
+
 
   // Fetch sub-sectors based on selected sector
   // useEffect(() => {

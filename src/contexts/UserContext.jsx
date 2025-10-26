@@ -1,154 +1,223 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from "react";
 
 const UserContext = createContext();
-
-export const useUser = () => {
-  return useContext(UserContext);
-};
+export const useUser = () => useContext(UserContext);
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [currency, setCurrency] = useState(null); 
+  const [currency, setCurrency] = useState(null);
   const [jamiatId, setJamiatId] = useState(null);
-  const [role, setRole] = useState(null);
+
+  const [role, setRole] = useState(null);       // main active/default role (name/slug as you store)
+  const [roles, setRoles] = useState([]);       // full array of roles
+
   const [permissions, setPermissions] = useState([]);
-  const [hofCount, setHofCount] = useState(0);
   const [accessRoleId, setAccessRoleId] = useState(null);
+  const [hofCount, setHofCount] = useState(0);
+
+  // 🔥 New: store sector / sub-sector access lists after role switch
+  const [sectorAccessIds, setSectorAccessIds] = useState([]);
+  const [subSectorAccessIds, setSubSectorAccessIds] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+
+  // ---------- Hydrate from localStorage ----------
+  useEffect(() => {
+    const storedUser         = JSON.parse(localStorage.getItem("user") || "null");
+    const storedToken        = localStorage.getItem("token");
+    const storedCurrency     = JSON.parse(localStorage.getItem("currency") || "null");
+    const storedJamiatId     = localStorage.getItem("jamiat_id");
+    const storedRole         = localStorage.getItem("role");
+    const storedRoles        = JSON.parse(localStorage.getItem("roles") || "[]");
+    const storedPermissions  = JSON.parse(localStorage.getItem("permissions") || "[]");
+    const storedAccessRoleId = localStorage.getItem("access_role_id");
+    const storedHofCount     = localStorage.getItem("hof_count");
+
+    const storedSectorIds    = JSON.parse(localStorage.getItem("sector_access_ids") || "[]");
+    const storedSubSectorIds = JSON.parse(localStorage.getItem("sub_sector_access_ids") || "[]");
+
+    if (storedUser) setUser(storedUser);
+    if (storedToken) setToken(storedToken);
+    if (storedCurrency) setCurrency(storedCurrency);
+    if (storedJamiatId) setJamiatId(storedJamiatId);
+    if (storedRole) setRole(storedRole);
+    if (storedRoles) setRoles(storedRoles);
+    if (storedPermissions) setPermissions(storedPermissions);
+    if (storedAccessRoleId) setAccessRoleId(Number(storedAccessRoleId));
+    if (storedHofCount) setHofCount(Number(storedHofCount));
+
+    if (Array.isArray(storedSectorIds)) setSectorAccessIds(storedSectorIds.map(String));
+    if (Array.isArray(storedSubSectorIds)) setSubSectorAccessIds(storedSubSectorIds.map(String));
+
+    console.log("Access Role ID loaded from localStorage:", storedAccessRoleId);
+    setLoading(false);
+  }, []);
+
+  // ---------- Persist to localStorage when these change ----------
+  useEffect(() => {
+    if (token) localStorage.setItem("token", token);
+    else localStorage.removeItem("token");
+  }, [token]);
 
   useEffect(() => {
-    // console.log('useEffect triggered in UserContext');
-
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    const storedToken = localStorage.getItem('token');
-    const storedCurrency = JSON.parse(localStorage.getItem('currency'));
-    const storedJamiatId = localStorage.getItem('jamiat_id');
-    const storedRole = localStorage.getItem('role');
-    const storedPermissions = JSON.parse(localStorage.getItem('permissions'));
-    const storedHofCount = localStorage.getItem('hof_count');
-    const storedAccessRoleId = localStorage.getItem('access_role_id');
-  
-    // console.log(localStorage.getItem("token"))
-    // console.log(localStorage.getItem("access_role_id"))
-    // console.log('Stored User:', storedUser);
-    // console.log('Stored Token:', storedToken);
-    // console.log("stored hof count:", storedHofCount);
-
-    // console.log("Role in user context: stored role", storedRole);
-
-    if (storedUser) {
-      setUser(storedUser);
+    if (accessRoleId !== null && accessRoleId !== undefined) {
+      localStorage.setItem("access_role_id", accessRoleId);
+    } else {
+      localStorage.removeItem("access_role_id");
     }
-    if (storedToken) {
-      setToken(storedToken);
-    } else if (storedUser?.token) {
-      setToken(storedUser.token);
-      localStorage.setItem('token', storedUser.token); // Save token in localStorage
-    }
-    if (storedCurrency) {
-      setCurrency(storedCurrency); // Set currency if it exists in localStorage
-    }
-    if (storedJamiatId) {
-      setJamiatId(storedJamiatId); // Set jamiat_id if it exists in localStorage
-    }if (storedRole) {
-      setRole(storedRole);
-    }
-    if (storedPermissions) {
-      setPermissions(storedPermissions);
-    }
-   if (storedHofCount !== null && storedHofCount !== undefined) {
-    setHofCount(Number(storedHofCount));
-}
-if (storedAccessRoleId) {
-  setAccessRoleId(Number(storedAccessRoleId))
-}
-    // console.log("Role in user context: stored role", storedRole);
+  }, [accessRoleId]);
 
-    setLoading(false);
-    // console.log("UserContext",accessRoleId)
-    // console.log("Sending token to MumeneenTable : ", token);
-  }, [token]);
-  
+  useEffect(() => {
+    localStorage.setItem("sector_access_ids", JSON.stringify(sectorAccessIds || []));
+  }, [sectorAccessIds]);
 
-  const updateUser = (newUser, newToken, newCurrency, newJamiatId, newRole, newPermissions, newHofCount, newAccessRoleId) => {
+  useEffect(() => {
+    localStorage.setItem("sub_sector_access_ids", JSON.stringify(subSectorAccessIds || []));
+  }, [subSectorAccessIds]);
+
+  // ---------- Your existing updateUser (kept as-is) ----------
+  const updateUser = (
+    newUser,
+    newToken,
+    newCurrency,
+    newJamiatId,
+    newRole,
+    newPermissions,
+    newHofCount,
+    newAccessRoleId,
+    newRoles // <-- roles array
+  ) => {
     setUser(newUser);
     setToken(newToken);
-    setCurrency(newCurrency); 
+    setCurrency(newCurrency);
     setJamiatId(newJamiatId);
     setRole(newRole);
     setPermissions(newPermissions);
     setHofCount(newHofCount);
     setAccessRoleId(newAccessRoleId);
-    if (newUser) {
-      localStorage.setItem('user', JSON.stringify(newUser));
-    } else {
-      localStorage.removeItem('user');
-    }
-    if (newToken) {
-      localStorage.setItem('token', newToken);
-    } else {
-      localStorage.removeItem('token');
-    }
-    if (newCurrency) {
-      localStorage.setItem('currency', JSON.stringify(newCurrency)); // Save currency in localStorage
-    } else {
-      localStorage.removeItem('currency');
-    }
-    if (newJamiatId) {
-      localStorage.setItem('jamiat_id', newJamiatId); // Save jamiat_id in localStorage
-    } else {
-      localStorage.removeItem('jamiat_id');
-    }
-    if (newRole) {
-      localStorage.setItem('role', newRole);
-    } else {
-      localStorage.removeItem('role');
-    }
-    if (newPermissions) {
-      localStorage.setItem('permissions', JSON.stringify(newPermissions));
-    } else {
-      localStorage.removeItem('permissions');
-    }
-    if (newHofCount !== null && newHofCount !== undefined) {
-      localStorage.setItem('hof_count', newHofCount);
-      setHofCount(Number(newHofCount)); // Ensure hofCount is a number
-    } else {
-      localStorage.removeItem('hof_count');
-      setHofCount(null);
-    }
-        if (newAccessRoleId) {
-      localStorage.setItem('access_role_id', JSON.stringify(newAccessRoleId));
-    } else {
-      localStorage.removeItem('access_role_id');
-    }
-    
+    setRoles(newRoles || []);
+
+    // store everything in localStorage
+    if (newUser) localStorage.setItem("user", JSON.stringify(newUser));
+    else localStorage.removeItem("user");
+
+    if (newToken) localStorage.setItem("token", newToken);
+    else localStorage.removeItem("token");
+
+    if (newCurrency) localStorage.setItem("currency", JSON.stringify(newCurrency));
+    else localStorage.removeItem("currency");
+
+    if (newJamiatId) localStorage.setItem("jamiat_id", newJamiatId);
+    else localStorage.removeItem("jamiat_id");
+
+    if (newRole) localStorage.setItem("role", newRole);
+    else localStorage.removeItem("role");
+
+    if (newPermissions) localStorage.setItem("permissions", JSON.stringify(newPermissions));
+    else localStorage.removeItem("permissions");
+
+    if (newHofCount !== null && newHofCount !== undefined)
+      localStorage.setItem("hof_count", newHofCount);
+    else localStorage.removeItem("hof_count");
+
+    if (newAccessRoleId !== null && newAccessRoleId !== undefined)
+      localStorage.setItem("access_role_id", newAccessRoleId);
+    else localStorage.removeItem("access_role_id");
+
+    if (newRoles)
+      localStorage.setItem("roles", JSON.stringify(newRoles));
+    else localStorage.removeItem("roles");
   };
+
+  console.log("access role id:", accessRoleId);
+
+  // ---------- NEW: switchRole(roleId) ----------
+  // Calls backend to switch role and returns new token + access ids
+// ...everything above stays the same
+
+// ---------- NEW: switchRole(roleId) ----------
+// No API call needed. We just flip the active access role locally.
+// Your other fetchers already use accessRoleId in their URLs.
+const switchRole = async (roleId) => {
+  // normalize
+  const idNum = Number(roleId);
+
+  // 1) update accessRoleId
+  setAccessRoleId(idNum);
+  localStorage.setItem("access_role_id", idNum);
+
+  // 2) update readable role label (if you keep it)
+  const r = Array.isArray(roles) ? roles.find(r => String(r.id) === String(roleId)) : null;
+  if (r) {
+    const label = r.access_role_name ?? r.name ?? r.slug ?? String(roleId);
+    setRole(label);
+    localStorage.setItem("role", label);
+  }
+
+  // 3) clear cached access lists so dependent effects refetch for the new role
+  setSectorAccessIds([]);
+  setSubSectorAccessIds([]);
+  localStorage.removeItem("sector_access_ids");
+  localStorage.removeItem("sub_sector_access_ids");
+
+  // 4) token doesn't change; permissions may be role-scoped only if your API enforces it server-side.
+  // If you later add an endpoint to fetch permissions for a role, do it here.
+
+  // 5) Optional: let the app know a role change happened
+  try {
+    window.dispatchEvent(new CustomEvent("role:changed", { detail: { roleId: String(roleId) } }));
+  } catch (_) {}
+};
+
+// ...everything below stays the same
+
 
   const logout = () => {
     setUser(null);
     setToken(null);
     setCurrency(null);
-    setJamiatId(null); 
+    setJamiatId(null);
     setRole(null);
     setPermissions([]);
     setHofCount(null);
     setAccessRoleId(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('currency'); 
-    localStorage.removeItem('jamiat_id'); 
-    localStorage.removeItem('role');
-    localStorage.removeItem('permissions');
-    localStorage.removeItem('hof_count');
-    localStorage.removeItem('access_role_id')
+    setRoles([]);
+    setSectorAccessIds([]);
+    setSubSectorAccessIds([]);
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("currency");
+    localStorage.removeItem("jamiat_id");
+    localStorage.removeItem("role");
+    localStorage.removeItem("permissions");
+    localStorage.removeItem("hof_count");
+    localStorage.removeItem("access_role_id");
+    localStorage.removeItem("roles");
+    localStorage.removeItem("sector_access_ids");
+    localStorage.removeItem("sub_sector_access_ids");
   };
 
-
   return (
-    <UserContext.Provider value={{ user, token, currency, jamiatId,   role,
-      permissions,
-      hofCount, updateUser, accessRoleId, logout }}>
+    <UserContext.Provider
+      value={{
+        user,
+        token,
+        currency,
+        jamiatId,
+        role,                   // main/default role (string/slug)
+        roles,                  // full roles array
+        permissions,
+        hofCount,
+        accessRoleId,
+        sectorAccessIds,        // 🔥 expose to consumers
+        subSectorAccessIds,     // 🔥 expose to consumers
+        updateUser,
+        switchRole,             // 🔥 call this on role change
+        logout,
+      }}
+    >
       {loading ? null : children}
     </UserContext.Provider>
   );

@@ -22,7 +22,6 @@ import { InputAdornment, IconButton, Snackbar, Alert } from '@mui/material';
 import { useUser } from '../../contexts/UserContext';
 import fmb52 from '../../assets/fmb52.png';
 
-
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -72,7 +71,7 @@ export default function LogInWithPassword(props) {
   const { updateUser } = useUser(); // To update UserContext
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false); 
+  const [rememberMe, setRememberMe] = useState(false);
   const [userNameError, setUserNameError] = useState(false);
   const [userNameErrorMessage, setUserNameErrorMessage] = useState('');
   const [passwordError, setPasswordError] = useState(false);
@@ -82,11 +81,10 @@ export default function LogInWithPassword(props) {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
 
-  const [open, setOpen] = useState(false);
-
   const navigate = useNavigate();
 
-  // Load credentials from localStorage if "Remember Me" was checked
+
+
   React.useEffect(() => {
     const savedUserName = localStorage.getItem('rememberedUserName');
     const savedPassword = localStorage.getItem('rememberedPassword');
@@ -112,29 +110,28 @@ export default function LogInWithPassword(props) {
   const handleUserNameChange = (e) => {
     const value = e.target.value.trim();
     setUserName(value);
-    // Dynamically validate the username
-  if (!value) {
-    setUserNameError(true);
-    setUserNameErrorMessage('Please enter a valid username.');
-  } else {
-    setUserNameError(false);
-    setUserNameErrorMessage('');
-  }
-};
+    if (!value) {
+      setUserNameError(true);
+      setUserNameErrorMessage('Please enter a valid username.');
+    } else {
+      setUserNameError(false);
+      setUserNameErrorMessage('');
+    }
+  };
 
-const handlePasswordChange = (e) => {
-  const value = e.target.value.trim();
-  setPassword(value);
+  const handlePasswordChange = (e) => {
+    const value = e.target.value.trim();
+    setPassword(value);
 
-  // Dynamically validate the password
-  if (!value || value.length < 6) {
-    setPasswordError(true);
-    setPasswordErrorMessage('Password must be at least 6 characters long.');
-  } else {
-    setPasswordError(false);
-    setPasswordErrorMessage('');
-  }
-};
+    // Dynamically validate the password
+    if (!value || value.length < 6) {
+      setPasswordError(true);
+      setPasswordErrorMessage('Password must be at least 6 characters long.');
+    } else {
+      setPasswordError(false);
+      setPasswordErrorMessage('');
+    }
+  };
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword); // Toggle the password visibility
@@ -164,89 +161,95 @@ const handlePasswordChange = (e) => {
     return isValid;
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    if (validateInputs()) {
-      try {
-        const response = await fetch('https://api.fmb52.com/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username: userName, password }),
-        });
+  if (validateInputs()) {
+    try {
+      const response = await fetch('https://api.fmb52.com/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: userName, password }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
+       console.log('API Response:', data);
 
-        if (data.success) {
-          const { token, photo, currency, jamiat_id,  role,
-            permissions,
-            hof_count, access_role_id, ...userDetails } = data.data;
+      if (data.success) {
+        const { token, photo, currency, jamiat_id, role, permissions, hof_count, access_role_id, roles, ...userDetails } = data.data;
 
-            console.log("Login", hof_count);
-            
-            console.log("Login", role)
+        // If no default role is marked, pick the first role from the array
+        const selectedRole = Array.isArray(roles) && roles.length > 0 ? roles[0] : null;
+        const selectedRoleId = selectedRole?.id ?? null;
 
-          // Save the token and user data in localStorage
-          localStorage.setItem('user', JSON.stringify(data.data));
-          localStorage.setItem('token', token); // Save the Bearer token separately
-          localStorage.setItem('currency', JSON.stringify(currency)); // Save currency in localStorage
-          localStorage.setItem('jamiat_id', jamiat_id);
-          localStorage.setItem('role', role); // Save role
-          localStorage.setItem('permissions', JSON.stringify(permissions)); // Save permissions
-          localStorage.setItem('hof_count', hof_count); // Save hof_count
-          localStorage.setItem('access_role_id', access_role_id);
-          // console.log('Token saved in localStorage:', localStorage.getItem('token'));
+        // Permissions & accessRoleId should come from the selected role
+        const effectivePermissions = selectedRole?.permissions ?? [];
+        const effectiveAccessRoleId = selectedRole?.access_role_id ?? null;
 
-           // Remember Me logic
-           if (rememberMe) {
-            localStorage.setItem('rememberedUserName', userName);
-            localStorage.setItem('rememberedPassword', password);
-          } else {
-            localStorage.removeItem('rememberedUserName');
-            localStorage.removeItem('rememberedPassword');
-          }
+       console.log("selected role", selectedRoleId)
 
-          // Update UserContext with the token and user details
-          updateUser(
-            {
-              ...userDetails,
-              photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
-              jamiat_id, 
-              role,
-              permissions,
-              hof_count,
-              access_role_id
-            },
-            token,
-            currency,
+        // Save the token and user data in localStorage
+        localStorage.setItem('user', JSON.stringify(data.data));
+        localStorage.setItem('token', token);
+        localStorage.setItem('currency', JSON.stringify(currency));
+        localStorage.setItem('jamiat_id', jamiat_id);
+        localStorage.setItem('role', role);
+        localStorage.setItem('permissions', JSON.stringify(permissions));
+        localStorage.setItem('hof_count', hof_count);
+        localStorage.setItem('access_role_id', access_role_id);
+
+        // Remember Me logic
+        if (rememberMe) {
+          localStorage.setItem('rememberedUserName', userName);
+          localStorage.setItem('rememberedPassword', password);
+        } else {
+          localStorage.removeItem('rememberedUserName');
+          localStorage.removeItem('rememberedPassword');
+        }
+
+        // ---- Update UserContext with the token and user details ----
+        updateUser(
+          {
+            ...userDetails,
+            photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
             jamiat_id,
             role,
             permissions,
-            hof_count ,
+            hof_count,
             access_role_id,
-            // Include currency in the UserContext
-          );
-        
+            roles,  // Store all roles in UserContext
+          },
+          token,
+          currency,
+          jamiat_id,
+          role,  // Pass main/default role string
+          effectivePermissions,// newPermissions (derived from selected role)
+          hof_count,
+          effectiveAccessRoleId, // newAccessRoleId
+          roles,  // Pass roles array
+          selectedRoleId       // NEW: selected role id to activate (first role)
+        );
 
-          setSnackbarMessage(data.message);
-          setSnackbarSeverity(data.sucess);
-          setSnackbarOpen(true);
 
-          // Navigate to dashboard or another page
-          navigate('/dashboard', { state: { username: data.data.name, snackbarMessage: data.message,
-    snackbarSeverity: 'success', } });
-        } else {
-          throw new Error(data.message || 'Login failed');
-        }
-      } catch (error) {
-        setSnackbarMessage(error.message);
-        setSnackbarSeverity('error');
+        setSnackbarMessage(data.message);
+        setSnackbarSeverity('success');
         setSnackbarOpen(true);
+
+        // Navigate to dashboard
+        navigate('/dashboard', { state: { username: data.data.name, snackbarMessage: data.message, snackbarSeverity: 'success' } });
+      } else {
+        throw new Error(data.message || 'Login failed');
       }
+    } catch (error) {
+      setSnackbarMessage(error.message);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
-  };
+  }
+};
+
 
   const handleRememberMeChange = (event) => {
     setRememberMe(event.target.checked);
@@ -279,9 +282,9 @@ const handlePasswordChange = (e) => {
               gap: 2,
             }}
           >
-                            <Typography variant="h5" sx={{color: 'brown', textAlign: 'center'}}>
-        FAIZ-UL-MAWAID-IL-BURHANIYAH
-      </Typography>
+            <Typography variant="h5" sx={{ color: 'brown', textAlign: 'center' }}>
+              FAIZ-UL-MAWAID-IL-BURHANIYAH
+            </Typography>
             <FormControl variant="outlined">
               <TextField
                 error={userNameError}
@@ -312,7 +315,7 @@ const handlePasswordChange = (e) => {
                 error={passwordError}
                 helperText={passwordErrorMessage}
                 name="password"
-                type={showPassword ? 'text' : 'password'} // Toggle password visibility
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 label="Password"
                 autoComplete="current-password"
@@ -333,10 +336,10 @@ const handlePasswordChange = (e) => {
                       <IconButton
                         onClick={handleTogglePasswordVisibility}
                         sx={{
-                          padding: 0, // Removes padding
-                          border: 'none', // Removes border
-                          background: 'none', // Removes background
-                          color: yellow[200], // Set the color based on the theme
+                          padding: 0,
+                          border: 'none',
+                          background: 'none',
+                          color: yellow[200],
                         }}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -348,25 +351,8 @@ const handlePasswordChange = (e) => {
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <FormControlLabel
-                control={<Checkbox checked={rememberMe}
-                onChange={handleRememberMeChange} value="remember" color="primary" sx={{
-                  transform: 'scale(0.8)',  // Scale down the checkbox size
-                  [theme.breakpoints.down('sm')]: {
-                    transform: 'scale(0.65)',  // Further scale down the checkbox on small screens
-                  },
-                }} />}
+                control={<Checkbox checked={rememberMe} onChange={handleRememberMeChange} value="remember" color="primary" />}
                 label="Remember me"
-                sx={{
-                  flexGrow: 1,
-                  m: 0,
-                  fontSize: '0.9rem',  // Default font size
-                  [theme.breakpoints.down('sm')]: {  // For small screens (mobile)
-                    '& .MuiTypography-root': {  // Target Typography component for label
-                      fontSize: '0.7rem ',  // Smaller font size with !important for small screens
-                    },
-                  },
-
-                }}
               />
               <Link
                 component="button"
@@ -375,21 +361,16 @@ const handlePasswordChange = (e) => {
                 variant="body2"
                 sx={{
                   alignSelf: 'center',
-                  mt: 0,
-                  fontSize: '0.9rem', // Default font size for larger screens
-                  [theme.breakpoints.down('sm')]: {  // For small screens (mobile)
-                    fontSize: '0.7rem', // Smaller font size for smaller screens
-                  },
-                  color: yellow[300], // Use yellow color from theme
+                  fontSize: '0.9rem',
+                  color: yellow[300],
                   '&:hover': {
-                    color: yellow[400], // Hover color from theme
+                    color: yellow[400],
                   },
                 }}
               >
                 Forgot your password?
               </Link>
             </Box>
-            {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
             <Button
               type="submit"
               fullWidth
@@ -397,9 +378,9 @@ const handlePasswordChange = (e) => {
               onClick={validateInputs}
               sx={{
                 fontSize: '0.9rem',
-                backgroundColor: yellow[400], // Apply yellow theme color
+                backgroundColor: yellow[400],
                 '&:hover': {
-                  backgroundColor: yellow[100], // Hover effect color
+                  backgroundColor: yellow[100],
                   color: '#000',
                 },
               }}
@@ -416,11 +397,11 @@ const handlePasswordChange = (e) => {
               onClick={handleOtpClick}
               sx={{
                 fontSize: '0.9rem',
-                color: yellow[300], // Access primary color from theme
-                borderColor: yellow[300], // Access primary color from theme
+                color: yellow[300],
+                borderColor: yellow[300],
                 '&:hover': {
-                  backgroundColor: yellow[200], // Hover color from theme
-                  borderColor: '#e0d4b0', // Border color from theme
+                  backgroundColor: yellow[200],
+                  borderColor: '#e0d4b0',
                   color: '#000',
                 },
               }}
@@ -435,9 +416,9 @@ const handlePasswordChange = (e) => {
                 variant="body2"
                 sx={{
                   alignSelf: 'center',
-                  color: yellow[300], // Apply yellow color from theme
+                  color: yellow[300],
                   '&:hover': {
-                    color: yellow[400], // Hover effect for yellow
+                    color: yellow[400],
                   },
                 }}
               >
@@ -445,52 +426,18 @@ const handlePasswordChange = (e) => {
               </Link>
             </Typography>
           </Box>
-           {/* Add the links section */}
-  <Typography
-    sx={{
-      textAlign: 'center',
-      color: theme.palette.text.secondary,
-      fontSize: '0.5rem',
-      mt: 2, // Add spacing from above content
-      lineHeight: 1.5,
-    }}
-  >
-    <Link href="/privacy-policy" sx={{ color: 'inherit', textDecoration: 'none' }}>
-      Privacy Policy
-    </Link>{' '}
-    |{' '}
-    <Link href="/cookies-policy" sx={{ color: 'inherit', textDecoration: 'none' }}>
-      Cookies Policy
-    </Link>{' '}
-    |{' '}
-    <Link href="/sms-in-out-policy" sx={{ color: 'inherit', textDecoration: 'none' }}>
-      SMS In/Out Policy
-    </Link>{' '}
-    |{' '}
-    <Link href="/mobile-license-agreement" sx={{ color: 'inherit', textDecoration: 'none' }}>
-      Mobile License Agreement
-    </Link>{' '}
-    |{' '}
-    <Link href="/terms-and-conditions" sx={{ color: 'inherit', textDecoration: 'none' }}>
-      Terms & Conditions
-    </Link>
-  </Typography>
         </Card>
       </SignInContainer>
       <Snackbar
-  open={snackbarOpen}
-  autoHideDuration={6000}
-  onClose={handleSnackbarClose}
-  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
->
-  <Alert
-    onClose={handleSnackbarClose}
-    severity={snackbarSeverity}
-    sx={{ width: '100%' }}
-  >
-    {snackbarMessage}
-  </Alert>
-</Snackbar>
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </AppTheme>
   );
 }

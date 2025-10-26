@@ -94,6 +94,7 @@ export default function LogInWithOtp(props) {
   const navigate = useNavigate();
   const location = useLocation();
 
+
   useEffect(() => {
     if (location.state?.userName) {
       setUserName(location.state.userName);
@@ -225,76 +226,81 @@ export default function LogInWithOtp(props) {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    try {
-      const otpCode = otp.join('');
-      const response = await fetch(`https://api.fmb52.com/api/login/${otpCode}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: userName }),
-      });
+const handleVerifyOtp = async () => {
+  try {
+    const otpCode = otp.join('');
+    const response = await fetch(`https://api.fmb52.com/api/login/${otpCode}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: userName }),
+    });
 
-      const data = await response.json();
-      console.log("Login", data)
-      if (data.success) {
-        const { token, photo, currency, jamiat_id,  role,
-            permissions,
-            hof_count, access_role_id, ...userDetails } = data.data;
+    const data = await response.json();
+    console.log('Login', data);
 
-            // console.log("Login", hof_count);
-            
-            // console.log("Login", role)
+    if (!data?.success) throw new Error('Invalid OTP');
 
-          // Save the token and user data in localStorage
-          localStorage.setItem('user', JSON.stringify(data.data));
-          localStorage.setItem('token', token); // Save the Bearer token separately
-          localStorage.setItem('currency', JSON.stringify(currency)); // Save currency in localStorage
-          localStorage.setItem('jamiat_id', jamiat_id);
-          localStorage.setItem('role', role); // Save role
-          localStorage.setItem('permissions', JSON.stringify(permissions)); // Save permissions
-          localStorage.setItem('hof_count', hof_count); // Save hof_count
-          localStorage.setItem('access_role_id', access_role_id);
-          // console.log('Token saved in localStorage:', localStorage.getItem('token'));
+    // ---- Extract server payload ----
+    const d = data.data || {};
+    const {
+      token,
+      photo,
+      currency,
+      jamiat_id,
+      role,          // string (main/default role)
+      roles,         // array of role objects
+      hof_count,
+      show_feedback, // if you want to keep it in userDetails too
+      ...restUser
+    } = d;
 
-        // Update UserContext with the token and user details
-        updateUser(
-            {
-              ...userDetails,
-              photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
-              jamiat_id, 
-              role,
-              permissions,
-              hof_count,
-              access_role_id
-            },
-            token,
-            currency,
-            jamiat_id,
-            role,
-            permissions,
-            hof_count ,
-            access_role_id,
-            // Include currency in the UserContext
-          );
-        // window.location.reload();
+    // If no role is marked as default, pick the first role in the array
+    const selectedRole = Array.isArray(roles) && roles.length > 0 ? roles[0] : null;
+    const selectedRoleId = selectedRole?.id ?? null;
 
-        setSnackbarMessage(data.message);
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
+    // Permissions & accessRoleId should come from the selected role
+    const effectivePermissions = selectedRole?.permissions ?? [];
+    const effectiveAccessRoleId = selectedRole?.access_role_id ?? null;
 
-        // Navigate to dashboard or another page
-        navigate('/dashboard', { state: { username: data.data.name } });
-      } else {
-        throw new Error('Invalid OTP');
-      }
-    } catch (error) {
-      setSnackbarMessage(error.message);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    }
-  };
+    // ---- Single source of truth: let UserContext persist everything ----
+    updateUser(
+      // newUser (you can keep the full payload you need in context)
+      {
+        ...restUser,
+        name: d.name,
+        id: d.id,
+        family_id: d.family_id,
+        photo: photo || '/static/images/avatar-placeholder.png',
+        show_feedback: !!show_feedback,
+        // keep raw roles on the user too if you like
+        roles,
+      },
+      token,               // newToken
+      currency,            // newCurrency
+      jamiat_id,           // newJamiatId
+      role,                // newRole (string) – keep for UI labels
+      effectivePermissions,// newPermissions (derived from selected role)
+      hof_count,           // newHofCount
+      effectiveAccessRoleId, // newAccessRoleId
+      roles,               // NEW: roles array
+      selectedRoleId       // NEW: selected role id to activate (first role)
+    );
+
+    // console.log("info:", updateUser)
+
+    // Optional: you can still keep these toasts/redirects
+    setSnackbarMessage(data.message);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+
+    navigate('/dashboard', { state: { username: d.name } });
+  } catch (error) {
+    setSnackbarMessage(error.message || 'Login failed');
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+  }
+};
+
 
 
 

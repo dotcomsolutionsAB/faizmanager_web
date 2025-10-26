@@ -23,6 +23,8 @@ const Dashboard = () => {
   const sector = selectedSector.length ? selectedSector : ["all"];
   const subSector = selectedSubSector.length ? selectedSubSector : ["all"];
 
+  console.log("sector in dashboard", sector)
+
   const [loading, setLoading] = useState(true);
 
 
