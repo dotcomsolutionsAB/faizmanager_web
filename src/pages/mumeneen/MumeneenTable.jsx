@@ -38,7 +38,7 @@ const customLocaleText = {
 
 function MumeneenTable() {
   const { selectedSector, selectedSubSector, selectedYear } = useOutletContext();
-  const { token, loading, currency } = useUser();
+  const { token, loading, currency, accessRoleId } = useUser();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -140,31 +140,38 @@ function MumeneenTable() {
   const getThaliStatusColor = (slug) => defaultThaliStatusColors[slug] || 'default';
 
   // Fetch data from API
-  const fetchData = async () => {
-    if (loading || !token) return;
-    try {
-      const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join('&');
-      const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join('&');
-      const url = `https://api.fmb52.com/api/mumeneen/get?year=${year}&${sectorParams}&${subSectorParams}`;
+const fetchData = async () => {
+  if (loading || !token) return;
+  try {
+    const sectorParams = sector.map((s) => `sector[]=${encodeURIComponent(s)}`).join("&");
+    const subSectorParams = subSector.map((s) => `sub_sector[]=${encodeURIComponent(s)}`).join("&");
+    const url = `https://api.fmb52.com/api/mumeneen/get?year=${year}&${sectorParams}&${subSectorParams}`;
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }, 
-      });
+    const payload = {
+      role_id: accessRoleId, // ✅ added here
+    };
 
-      if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload), // ✅ include role_id in body
+    });
 
-      const data = await response.json();
-      setRows(data.data || []);
-      setApiError(null);
-    } catch (error) {
-      setApiError('The data is currently unavailable, but we are working to resolve this. Thank you for your patience!');
-      setRows([]);
-    }
-  };
+    if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+
+    const data = await response.json();
+    setRows(data.data || []);
+    setApiError(null);
+  } catch (error) {
+    setApiError(
+      "The data is currently unavailable, but we are working to resolve this. Thank you for your patience!"
+    );
+    setRows([]);
+  }
+};
 
   // Load data when token or filters change
   useEffect(() => {
@@ -649,7 +656,7 @@ function MumeneenTable() {
 
   return (
     <AppTheme>
-      <Box sx={{ width: '100%', overflowX: 'auto', mt: 16, pt: 1, pr: 2, pb: 3, pl: 2 }}>
+      <Box sx={{ width: '100%', overflowX: 'auto', mt: 19, pt: 1, pr: 2, pb: 3, pl: 2 }}>
         <CssBaseline />
         <Paper
           sx={{
