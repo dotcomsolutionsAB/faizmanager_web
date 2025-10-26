@@ -41,7 +41,7 @@ function Receipts() {
   const [loadingData, setLoadingData] = useState(false);
   const [modeFilter, setModeFilter] = useState('All');
 
-  const { token, loading } = useUser();
+  const { token, loading, accessRoleId } = useUser();
   const [rows, setRows] = useState([]);
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
@@ -371,13 +371,14 @@ function Receipts() {
     const fetchData = async () => {
       try {
         setLoadingData(true);
+
         const response = await fetch('https://api.fmb52.com/api/receipts/all', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ year: selectedYear }),
+          body: JSON.stringify({ year: selectedYear, role_id: accessRoleId }),
         });
 
         if (!response.ok) {

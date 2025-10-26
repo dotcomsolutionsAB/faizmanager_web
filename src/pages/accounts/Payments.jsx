@@ -7,7 +7,7 @@ import { useUser } from "../../contexts/UserContext";
 import { useOutletContext } from "react-router-dom";
 
 const Payments = () => {
-  const { token } = useUser();
+  const { token, accessRoleId } = useUser();
   const { selectedYear } = useOutletContext();
 
   const [selectedPaymentData, setSelectedPaymentData] = useState(null);
@@ -25,7 +25,7 @@ const Payments = () => {
     // Don’t hit the API until we actually have a year
     if (!yearToSend) return;
 
-    const payload = { year: yearToSend };
+    const payload = { year: yearToSend, role_id: accessRoleId };
     // console.log("Fetching payments with payload:", payload);
 
     try {
