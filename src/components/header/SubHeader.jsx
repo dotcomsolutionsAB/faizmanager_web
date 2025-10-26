@@ -19,24 +19,23 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
   const [years, setYears] = useState([]);
   const [loadingYears, setLoadingYears] = useState(false);
 
+  // store selected access_role_id (string/number ok; we compare as string)
   const [selectedRole, setSelectedRole] = useState('');
   const [switchingRole, setSwitchingRole] = useState(false);
 
-  // Show year selector only on specific pages
   const showYearSelect = ['/dashboard', '/receipts', '/payments', '/expenses'].includes(location.pathname);
 
-  // Year change (bug fix: use `event`, not `even`)
   const handleYearChange = (event) => {
     setSelectedYear(event.target.value);
   };
 
-  // Role change -> switchRole (gets new token + access ids)
+  // Role change -> switch using access_role_id
   const handleRoleChange = async (event) => {
-    const selectedRoleId = event.target.value;
-    setSelectedRole(selectedRoleId);
+    const selectedAccessRoleId = event.target.value; // this is access_role_id
+    setSelectedRole(selectedAccessRoleId);
     try {
       setSwitchingRole(true);
-      await switchRole(selectedRoleId); // refresh auth + access on backend
+      await switchRole(selectedAccessRoleId); // pass access_role_id to context
     } catch (err) {
       console.error('Failed to switch role:', err);
     } finally {
@@ -44,19 +43,19 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
     }
   };
 
-  // Set first role as default in UI when roles load (no forced switch if already set)
+  // Default to first role's access_role_id
   useEffect(() => {
     if (roles && roles.length > 0 && !selectedRole) {
-      setSelectedRole(roles[0].id);
+      setSelectedRole(roles[0].access_role_id);
     }
   }, [roles, selectedRole]);
 
   // Keep selector in sync with accessRoleId from context (e.g., restored from storage)
   useEffect(() => {
-    if (!accessRoleId || !(roles && roles.length)) return;
-    const match = roles.find((r) => String(r.id) === String(accessRoleId));
-    if (match && String(selectedRole) !== String(match.id)) {
-      setSelectedRole(match.id);
+    if (accessRoleId == null || !(roles && roles.length)) return;
+    const match = roles.find((r) => String(r.access_role_id) === String(accessRoleId));
+    if (match && String(selectedRole) !== String(match.access_role_id)) {
+      setSelectedRole(match.access_role_id);
     }
   }, [accessRoleId, roles, selectedRole]);
 
@@ -105,7 +104,7 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
       <Box
         sx={{
           position: 'fixed',
-          top: 64, // height of your main header (adjust if needed)
+          top: 64,
           width: '100%',
           zIndex: 1100,
           padding: 1,
@@ -115,9 +114,7 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
           boxShadow: theme.shadows[1],
         }}
       >
-        {/* Breadcrumb and Year Selector Section */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Breadcrumbs */}
           <Typography
             variant="h6"
             sx={{
@@ -129,7 +126,7 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
             <NavbarBreadcrumbs />
           </Typography>
 
-          {/* Role Selector */}
+          {/* Role Selector (uses access_role_id) */}
           {roles && roles.length > 0 && (
             <div>
               <FormControl
@@ -144,14 +141,14 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
                 <Select
                   label="Select Role"
                   labelId="role-select-label"
-                  value={selectedRole ?? ''}     // keep controlled
+                  value={selectedRole ?? ''}          // access_role_id
                   onChange={handleRoleChange}
                   input={<OutlinedInput label="Role" />}
-                  disabled={switchingRole}       // disable while switching
+                  disabled={switchingRole}
                 >
-                  {roles.map((role) => (
-                    <MenuItem key={role.id} value={role.id}>
-                      {role.access_role_name}
+                  {roles.map((r) => (
+                    <MenuItem key={r.access_role_id} value={r.access_role_id}>
+                      {r.access_role_name}
                     </MenuItem>
                   ))}
                 </Select>

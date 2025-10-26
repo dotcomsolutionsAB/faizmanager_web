@@ -32,6 +32,7 @@ export function UserProvider({ children }) {
     const storedRoles        = JSON.parse(localStorage.getItem("roles") || "[]");
     const storedPermissions  = JSON.parse(localStorage.getItem("permissions") || "[]");
     const storedAccessRoleId = localStorage.getItem("access_role_id");
+    console.log("user context:", storedAccessRoleId)
     const storedHofCount     = localStorage.getItem("hof_count");
 
     const storedSectorIds    = JSON.parse(localStorage.getItem("sector_access_ids") || "[]");

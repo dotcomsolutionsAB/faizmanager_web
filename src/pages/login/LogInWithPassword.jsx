@@ -168,80 +168,91 @@ const handleSubmit = async (event) => {
     try {
       const response = await fetch('https://api.fmb52.com/api/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: userName, password }),
       });
 
       const data = await response.json();
-       console.log('API Response:', data);
+      console.log('API Response:', data);
 
-      if (data.success) {
-        const { token, photo, currency, jamiat_id, role, permissions, hof_count, access_role_id, roles, ...userDetails } = data.data;
+      if (!data.success) throw new Error(data.message || 'Login failed');
 
-        // If no default role is marked, pick the first role from the array
-        const selectedRole = Array.isArray(roles) && roles.length > 0 ? roles[0] : null;
-        const selectedRoleId = selectedRole?.id ?? null;
+      const {
+        token,
+        photo,
+        currency,
+        jamiat_id,
+        role,           // string like "mumeneen"
+        permissions,    // top-level permissions (fallback)
+        hof_count,
+        access_role_id, // top-level access role id (ignore for default selection)
+        roles,          // array of role objects
+        ...userDetails
+      } = data.data;
 
-        // Permissions & accessRoleId should come from the selected role
-        const effectivePermissions = selectedRole?.permissions ?? [];
-        const effectiveAccessRoleId = selectedRole?.access_role_id ?? null;
+      // --- ✅ Use access_role_id from the roles array (not id) ---
+      const selectedRole = Array.isArray(roles) && roles.length > 0 ? roles[0] : null;
+      const selectedAccessRoleId = selectedRole?.access_role_id ?? null; // <— use access_role_id
+      const effectivePermissions = selectedRole?.permissions ?? permissions ?? [];
+      const effectiveAccessRoleId = selectedAccessRoleId; // clearer alias
 
-       console.log("selected role", selectedRoleId)
+      console.log("Selected access_role_id:", effectiveAccessRoleId);
+      console.log("Top-level access_role_id (ignored for default):", access_role_id);
 
-        // Save the token and user data in localStorage
-        localStorage.setItem('user', JSON.stringify(data.data));
-        localStorage.setItem('token', token);
-        localStorage.setItem('currency', JSON.stringify(currency));
-        localStorage.setItem('jamiat_id', jamiat_id);
-        localStorage.setItem('role', role);
-        localStorage.setItem('permissions', JSON.stringify(permissions));
-        localStorage.setItem('hof_count', hof_count);
-        localStorage.setItem('access_role_id', access_role_id);
+      // Persist base auth/user data
+      localStorage.setItem('user', JSON.stringify(data.data));
+      localStorage.setItem('token', token);
+      localStorage.setItem('currency', JSON.stringify(currency));
+      localStorage.setItem('jamiat_id', jamiat_id);
+      localStorage.setItem('role', role);
+      localStorage.setItem('permissions', JSON.stringify(effectivePermissions));
+      localStorage.setItem('hof_count', hof_count);
 
-        // Remember Me logic
-        if (rememberMe) {
-          localStorage.setItem('rememberedUserName', userName);
-          localStorage.setItem('rememberedPassword', password);
-        } else {
-          localStorage.removeItem('rememberedUserName');
-          localStorage.removeItem('rememberedPassword');
-        }
-
-        // ---- Update UserContext with the token and user details ----
-        updateUser(
-          {
-            ...userDetails,
-            photo: photo || '/static/images/avatar-placeholder.png', // Default placeholder if null
-            jamiat_id,
-            role,
-            permissions,
-            hof_count,
-            access_role_id,
-            roles,  // Store all roles in UserContext
-          },
-          token,
-          currency,
-          jamiat_id,
-          role,  // Pass main/default role string
-          effectivePermissions,// newPermissions (derived from selected role)
-          hof_count,
-          effectiveAccessRoleId, // newAccessRoleId
-          roles,  // Pass roles array
-          selectedRoleId       // NEW: selected role id to activate (first role)
-        );
-
-
-        setSnackbarMessage(data.message);
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-
-        // Navigate to dashboard
-        navigate('/dashboard', { state: { username: data.data.name, snackbarMessage: data.message, snackbarSeverity: 'success' } });
+      // --- ✅ Persist the selected access_role_id from the chosen role ---
+      if (effectiveAccessRoleId !== null && effectiveAccessRoleId !== undefined) {
+        localStorage.setItem('access_role_id', effectiveAccessRoleId);
       } else {
-        throw new Error(data.message || 'Login failed');
+        localStorage.removeItem('access_role_id');
       }
+
+      // Remember Me
+      if (rememberMe) {
+        localStorage.setItem('rememberedUserName', userName);
+        localStorage.setItem('rememberedPassword', password);
+      } else {
+        localStorage.removeItem('rememberedUserName');
+        localStorage.removeItem('rememberedPassword');
+      }
+
+      // ---- Update UserContext ----
+      updateUser(
+        {
+          ...userDetails,
+          photo: photo || '/static/images/avatar-placeholder.png',
+          jamiat_id,
+          role, // keep the readable role string from API
+          permissions: effectivePermissions,
+          hof_count,
+          access_role_id: effectiveAccessRoleId, // 👈 store access role id in user object too (optional)
+          roles, // full roles array
+        },
+        token,                   // newToken
+        currency,                // newCurrency
+        jamiat_id,               // newJamiatId
+        role,                    // newRole (string label)
+        effectivePermissions,    // newPermissions
+        hof_count,               // newHofCount
+        effectiveAccessRoleId,   // newAccessRoleId  👈 IMPORTANT
+        roles                    // newRoles
+      );
+
+      setSnackbarMessage(data.message);
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      navigate('/dashboard', {
+        state: { username: data.data.name, snackbarMessage: data.message, snackbarSeverity: 'success' }
+      });
     } catch (error) {
       setSnackbarMessage(error.message);
       setSnackbarSeverity('error');
@@ -249,6 +260,7 @@ const handleSubmit = async (event) => {
     }
   }
 };
+
 
 
   const handleRememberMeChange = (event) => {
