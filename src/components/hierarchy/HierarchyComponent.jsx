@@ -99,7 +99,7 @@ const HierarchyComponent = () => {
   return (
     <AppTheme>
       <CssBaseline />
-      <Box sx={{ width: '100%', overflowX: 'auto', mt: 15, pt: 1, pr: 2, pb: 3, pl: 2 }}>
+      <Box sx={{ width: '100%', overflowX: 'auto', mt: 12, pr: 2, pb: 3, pl: 2 }}>
         <Paper
           sx={{
             width: '100%',

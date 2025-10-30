@@ -219,8 +219,7 @@ const NiyazForm = () => {
             <CssBaseline />
             <Box
                 sx={{
-                    mt: 2,
-                    pt: 2,
+                    mt: 12,
                     pb: 3,
                     pl: 3,
                     pr: 3,

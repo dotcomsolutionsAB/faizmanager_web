@@ -171,7 +171,7 @@ const Dashboard = () => {
           transition: "filter 0.3s ease",
           pointerEvents: snackbarOpen ? "none" : "auto",
           userSelect: snackbarOpen ? "none" : "auto",
-          marginTop: "145px",
+          marginTop: "80px",
         }}
       >
         {dashboardContent}

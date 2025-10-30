@@ -132,7 +132,7 @@ const handleSubmit = async () => {
   return (
     <AppTheme>
       <CssBaseline />
-      <Box sx={{ mt: 20, pt: 2, pb: 3, pl: 3, pr: 3, mr: 2, ml: 2, mb: 1, backgroundColor: "#fff", border: "1px solid #F4EBD0", borderRadius: 2, boxShadow: 1 }}>
+      <Box sx={{ mt: 12, pb: 3, pl: 3, pr: 3, mr: 2, ml: 2, mb: 1, backgroundColor: "#fff", border: "1px solid #F4EBD0", borderRadius: 2, boxShadow: 1 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: 1, padding: "8px 16px", borderRadius: 1 }}>
             {expenseData ? "Edit Expense" : "Add Expense"}

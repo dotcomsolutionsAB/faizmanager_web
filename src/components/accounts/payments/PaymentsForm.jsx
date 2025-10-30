@@ -173,7 +173,7 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
       <CssBaseline />
       <Box
         sx={{
-          mt: 20, pt: 2, pb: 3, px: 3, mx: 2, mb: 1,
+          mt: 12, pb: 3, px: 3, mx: 2, mb: 1,
           backgroundColor: "#fff",
           border: "1px solid #F4EBD0",
           borderRadius: 2,

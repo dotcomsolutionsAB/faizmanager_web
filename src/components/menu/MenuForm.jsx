@@ -204,8 +204,7 @@ const MenuForm = ({ menuData, onSuccess }) => {
       <Box
         ref={formRef}
         sx={{
-          mt: 17,
-          pt: 2,
+          mt: 12,
           pb: 3,
           pl: 3,
           pr: 3,

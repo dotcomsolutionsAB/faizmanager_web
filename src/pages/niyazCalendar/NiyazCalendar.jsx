@@ -24,7 +24,7 @@ function NiyazCalendar() {
 
   return (
     <AppTheme>
-      <Box sx={{  display: "flex", flexDirection: "column" ,  mt: 16, width: "100%", pt: 1, pr: 2, pl: 2, pb: 2}}>
+      <Box sx={{  display: "flex", flexDirection: "column" ,  mt: 12, width: "100%", pr: 2, pl: 2, pb: 2}}>
         <CssBaseline />
         <Paper
                   sx={{

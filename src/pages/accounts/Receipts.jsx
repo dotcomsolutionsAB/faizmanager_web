@@ -446,10 +446,10 @@ function Receipts() {
           transition: 'filter 0.3s ease',
           pointerEvents: snackbarOpen ? 'none' : 'auto',
           userSelect: snackbarOpen ? 'none' : 'auto',
-          marginTop: '145px',
+          marginTop: '95px',
         }}
       >
-        <Box sx={{ width: '100%', overflowX: 'auto', mt: 19, pt: 1, pr: 2, pb: 3, pl: 2 }}>
+        <Box sx={{ width: '100%', overflowX: 'auto',  pr: 2, pb: 3, pl: 2 }}>
           <Paper
             sx={{
               width: '100%',

@@ -136,7 +136,7 @@ function MumeneenDetailsTable() {
         flexDirection: { xs: 'column', sm: 'row' },
         flexWrap: 'wrap', 
         gap: 2,
-        mt: 17, pr: 2, pb: 3, pl: 2,
+        mt: 12, pr: 2, pb: 3, pl: 2,
       }}
     >
       {/* Mumeneen Details and Hub Table Box */}

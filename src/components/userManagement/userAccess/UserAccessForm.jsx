@@ -538,7 +538,7 @@ export default function UserAccessForm({ editData, setEditData }) {
             <Box
                 sx={{
                     // maxWidth: 900,
-                    mt: 16, pt: 2,
+                    mt: 12, 
                     pb: 3,
                     mb: 1,
                     pl: 3,
