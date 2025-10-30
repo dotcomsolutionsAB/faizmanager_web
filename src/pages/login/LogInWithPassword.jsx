@@ -196,8 +196,6 @@ const handleSubmit = async (event) => {
       const effectivePermissions = selectedRole?.permissions ?? permissions ?? [];
       const effectiveAccessRoleId = selectedAccessRoleId; // clearer alias
 
-      console.log("Selected access_role_id:", effectiveAccessRoleId);
-      console.log("Top-level access_role_id (ignored for default):", access_role_id);
 
       // Persist base auth/user data
       localStorage.setItem('user', JSON.stringify(data.data));

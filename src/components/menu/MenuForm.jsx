@@ -290,6 +290,7 @@ const MenuForm = ({ menuData, onSuccess }) => {
                 {/* <TextField fullWidth label="Date" type="date" InputLabelProps={{ shrink: true }} value={date} onChange={(e) => setDate(e.target.value)} /> */}
 <DatePicker
   label="Date"
+  format="DD/MM/YYYY" 
   value={dayjs(date)}
   onChange={(newValue) => {
     if (newValue?.isValid()) {

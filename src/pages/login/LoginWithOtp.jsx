@@ -250,41 +250,39 @@ const handleVerifyOtp = async () => {
       role,          // string (main/default role)
       roles,         // array of role objects
       hof_count,
+      permissions,
       show_feedback, // if you want to keep it in userDetails too
-      ...restUser
+      ...userDetails
     } = d;
 
-    // If no role is marked as default, pick the first role in the array
-    const selectedRole = Array.isArray(roles) && roles.length > 0 ? roles[0] : null;
-    const selectedRoleId = selectedRole?.id ?? null;
-
-    // Permissions & accessRoleId should come from the selected role
-    const effectivePermissions = selectedRole?.permissions ?? [];
-    const effectiveAccessRoleId = selectedRole?.access_role_id ?? null;
+  
+      // --- ✅ Use access_role_id from the roles array (not id) ---
+      const selectedRole = Array.isArray(roles) && roles.length > 0 ? roles[0] : null;
+      const selectedAccessRoleId = selectedRole?.access_role_id ?? null; // <— use access_role_id
+      const effectivePermissions = selectedRole?.permissions ?? permissions ?? [];
+      const effectiveAccessRoleId = selectedAccessRoleId; // clearer alias
 
     // ---- Single source of truth: let UserContext persist everything ----
-    updateUser(
-      // newUser (you can keep the full payload you need in context)
-      {
-        ...restUser,
-        name: d.name,
-        id: d.id,
-        family_id: d.family_id,
-        photo: photo || '/static/images/avatar-placeholder.png',
-        show_feedback: !!show_feedback,
-        // keep raw roles on the user too if you like
-        roles,
-      },
-      token,               // newToken
-      currency,            // newCurrency
-      jamiat_id,           // newJamiatId
-      role,                // newRole (string) – keep for UI labels
-      effectivePermissions,// newPermissions (derived from selected role)
-      hof_count,           // newHofCount
-      effectiveAccessRoleId, // newAccessRoleId
-      roles,               // NEW: roles array
-      selectedRoleId       // NEW: selected role id to activate (first role)
-    );
+updateUser(
+        {
+          ...userDetails,
+          photo: photo || '/static/images/avatar-placeholder.png',
+          jamiat_id,
+          role, // keep the readable role string from API
+          permissions: effectivePermissions,
+          hof_count,
+          access_role_id: effectiveAccessRoleId, // 👈 store access role id in user object too (optional)
+          roles, // full roles array
+        },
+        token,                   // newToken
+        currency,                // newCurrency
+        jamiat_id,               // newJamiatId
+        role,                    // newRole (string label)
+        effectivePermissions,    // newPermissions
+        hof_count,               // newHofCount
+        effectiveAccessRoleId,   // newAccessRoleId  👈 IMPORTANT
+        roles                    // newRoles
+      );
 
     // console.log("info:", updateUser)
 

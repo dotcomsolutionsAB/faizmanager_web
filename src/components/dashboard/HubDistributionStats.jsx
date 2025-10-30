@@ -7,7 +7,7 @@ import { useUser } from '../../contexts/UserContext';
 import divider from '../../assets/divider.png';
 
 export default function HubDistributionStats({ year, sector, subSector }) {
-  const { token } = useUser();
+  const { token, accessRoleId } = useUser();
   const [hubStats, setHubStats] = useState({
     total_hof: 0,
     hub_done: 0,
@@ -24,7 +24,7 @@ export default function HubDistributionStats({ year, sector, subSector }) {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sector, sub_sector: subSector }),
+        body: JSON.stringify({ sector, sub_sector: subSector, role_id: accessRoleId }),
       });
 
       if (!response.ok) throw new Error("Error fetching data");

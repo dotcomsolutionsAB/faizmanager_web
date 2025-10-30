@@ -328,6 +328,7 @@ const NiyazForm = () => {
                                                 setDate(newValue.format('YYYY-MM-DD'));
                                             }
                                         }}
+                                        format="DD/MM/YYYY" 
                                         slotProps={{
                                             textField: {
                                                 fullWidth: true,

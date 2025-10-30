@@ -50,24 +50,6 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
     }
   }, [paymentData]);
 
-  // Fetch sectors
-  useEffect(() => {
-    const fetchSectors = async () => {
-      try {
-        const resp = await fetch(`https://api.fmb52.com/api/sector/${accessRoleId}`, {
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-        const data = await resp.json();
-        if (data?.data?.length) {
-          setSectors(data.data);
-          setSelectedSector((prev) => prev || data.data[0].id);
-        }
-      } catch (e) {
-        console.error("Error fetching sectors:", e);
-      }
-    };
-    fetchSectors();
-  }, [token]);
 
   // Fetch receipts (always — also in edit so user can add/remove)
   const fetchReceipts = async () => {
@@ -77,7 +59,7 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           mode: "cash",
-          sector: selectedSector,
+          sector: "",
           sub_sector: "", // or selectedSubSector if applicable
         }),
       });
@@ -88,10 +70,13 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
     }
   };
 
+  // useEffect(() => {
+  //   if (selectedSector) fetchReceipts();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [token, selectedSector, selectedSubSector]);
   useEffect(() => {
-    if (selectedSector) fetchReceipts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, selectedSector, selectedSubSector]);
+    fetchReceipts()
+  }, [token])
 
   // Union list used for lookups/totals (covers create + edit)
   const lookupList = useMemo(() => {
@@ -251,6 +236,7 @@ const PaymentsForm = ({ paymentData, fetchData }) => {
                   onChange={(nv) => {
                     if (nv?.isValid()) setDate(nv.format("YYYY-MM-DD"));
                   }}
+                  format="DD/MM/YYYY"
                   slotProps={{
                     textField: {
                       fullWidth: true,

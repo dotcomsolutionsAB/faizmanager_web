@@ -455,6 +455,7 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                   /> */}
                     <DatePicker
                       label="Cheque Date"
+                      format="DD/MM/YYYY"
                       value={bankDetails.chequeDate ? dayjs(bankDetails.chequeDate) : null}
                       onChange={(newValue) => {
                         if (newValue?.isValid()) {
@@ -481,31 +482,53 @@ const AddReceiptDialog = ({ open, onClose, familyId, row, onSave, formatCurrency
                   </Grid>
                 </Grid>
               )}
+{paymentMethod === 'NEFT' && (
+  <Grid container spacing={1} sx={{ pr: 1 }}>
+    <Grid item xs={12} md={6}>
+      <TextField
+        label="Transaction ID"
+        value={neftDetails.transactionId}
+        onChange={(e) =>
+          setNeftDetails({ ...neftDetails, transactionId: e.target.value })
+        }
+        fullWidth
+      />
+    </Grid>
 
-              {paymentMethod === 'NEFT' && (
-                <Grid container spacing={1} sx={{ pr: 1 }}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="Transaction ID"
-                      value={neftDetails.transactionId}
-                      onChange={(e) => setNeftDetails({ ...neftDetails, transactionId: e.target.value })}
-                      fullWidth
+    <Grid item xs={12} md={6}>
+      <DatePicker
+        label="Transaction Date"
+        format="DD/MM/YYYY"
+        value={neftDetails.transactionDate ? dayjs(neftDetails.transactionDate) : null}
+        onChange={(newValue) => {
+          if (newValue?.isValid()) {
+            setNeftDetails({
+              ...neftDetails,
+              transactionDate: newValue.format("YYYY-MM-DD"),
+            });
+          }
+        }}
+        slotProps={{
+          textField: {
+            fullWidth: true,
+            sx: {
+              "& .MuiIconButton-root": {
+                border: "none",
+                padding: 0,
+                margin: 0,
+                backgroundColor: "transparent",
+              },
+            },
+            onClick: (e) => {
+              e.currentTarget.querySelector("button")?.click();
+            },
+          },
+        }}
+      />
+    </Grid>
+  </Grid>
+)}
 
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      label="Transaction Date"
-                      type="date"
-                      value={neftDetails.transactionDate}
-                      onChange={(e) => setNeftDetails({ ...neftDetails, transactionDate: e.target.value })}
-                      fullWidth
-                      InputLabelProps={{ shrink: true }}
-
-                    />
-                  </Grid>
-                </Grid>
-              )}
 
               <Grid container sx={{ pl: 1 }}>
                 <Grid item xs={12}>
