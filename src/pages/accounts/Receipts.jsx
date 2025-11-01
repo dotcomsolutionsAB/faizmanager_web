@@ -53,6 +53,8 @@ function Receipts() {
   const [statusFilter, setStatusFilter] = useState('All');
 
   const [modeFilter, setModeFilter] = useState('All');
+   const [createdByFilter, setCreatedByFilter] = useState('');
+     const [userNames, setUserNames] = useState([]);
 
   const { token, loading, accessRoleId } = useUser();
   const [rows, setRows] = useState([]);
@@ -300,7 +302,7 @@ function Receipts() {
     {
       field: 'receipt',
       headerName: 'Receipt Details',
-      width: 250,
+      width: 270,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: 1 }}>
@@ -312,6 +314,9 @@ function Receipts() {
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Year: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.year}</span>
+            </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+              Created by: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.log_user_name}</span>
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Comments: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.comments}</span>
@@ -400,6 +405,8 @@ function Receipts() {
 
         const data = await response.json();
         setRows(data.data || []);
+        const users = [...new Set(data.data.map(item => item.log_user_name))];
+        setUserNames(users);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -433,7 +440,10 @@ function Receipts() {
       !selectedSectorName?.length ||
       selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
 
-    return matchesFilterText && matchesMode && matchesStatus && matchesSector;
+       const matchesCreatedBy =
+      createdByFilter === '' || row.log_user_name?.toLowerCase() === createdByFilter.toLowerCase();
+
+    return matchesFilterText && matchesMode && matchesStatus && matchesSector && matchesCreatedBy;
   });
 
   // After successful save from dialog, update the grid row
@@ -492,6 +502,23 @@ function Receipts() {
               />
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+
+                <FormControl sx={{ minWidth: 190, width: { xs: '100%', sm: '170px' } }}>
+                  <InputLabel>Filter By Created By</InputLabel>
+                  <Select
+                    label="Filter By Created By"
+                    value={createdByFilter}
+                    onChange={(e) => setCreatedByFilter(e.target.value)}
+                  >
+                    <MenuItem value="">All</MenuItem>
+                    {userNames.map((user) => (
+                      <MenuItem key={user} value={user}>
+                        {user}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
                 {/* NEW: Status filter (left of Mode) */}
                 <FormControl sx={{ minWidth: 170, width: { xs: '100%', sm: '170px' } }}>
                   <InputLabel>Filter By Status</InputLabel>
