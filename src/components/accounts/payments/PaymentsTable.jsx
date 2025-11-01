@@ -18,7 +18,6 @@ import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ApprovePaymentDialog from './ApprovePaymentDialog';
 
-
 const customLocaleText = {
   noRowsLabel: 'Please wait....',
   noResultsOverlayLabel: '',
@@ -35,10 +34,11 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+
   const [filterMode, setFilterMode] = useState('');
+  const [filterStatus, setFilterStatus] = useState(''); // <-- NEW: status filter ('' = All)
 
   const canApprove = user?.id === 473;
-
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -51,36 +51,51 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
     setFilteredRows(payments || []);
   }, [payments]);
 
-  // Centralized filter: search + mode + sector/sub-sector (like your snippet)
-  const applyFilters = useCallback(() => {
-    const searchText = (filterText || '').toLowerCase();
+  // Centralized filter: search + mode + status + sector/sub-sector
+const applyFilters = useCallback(() => {
+  const searchText = (filterText || '').toLowerCase();
+  const desiredStatus = (filterStatus || '').toLowerCase(); // '', 'pending', 'approved'
+  const desiredMode = (filterMode || '').toLowerCase();     // '', 'cash', 'cheque', 'neft'
 
-    const data = (payments || []).filter((row) => {
-      // text search
-      const textMatch =
-        (row.name?.toLowerCase() || '').includes(searchText) ||
-        (row.its?.toLowerCase() || '').includes(searchText) ||
-        (row.sector_name?.toLowerCase() || '').includes(searchText) ||
-        (row.sub_sector_name?.toLowerCase() || '').includes(searchText);
+  const data = (payments || []).filter((row) => {
+    // text search
+    const textMatch =
+      (row.name?.toLowerCase() || '').includes(searchText) ||
+      (row.its?.toLowerCase() || '').includes(searchText) ||
+      (row.sector_name?.toLowerCase() || '').includes(searchText) ||
+      (row.sub_sector_name?.toLowerCase() || '').includes(searchText);
 
-      // mode filter
-      const modeMatch = filterMode ? (row.mode === filterMode) : true;
+    // mode filter
+    const modeVal = (row.mode || '').toLowerCase();
+    const modeMatch = desiredMode ? (modeVal === desiredMode) : true;
 
-      // sector filter (exactly like your snippet)
-      const matchesSector =
-        !selectedSectorName?.length ||
-        selectedSectorName.map((s) => String(s).toLowerCase()).includes((row.sector_name || '').toLowerCase());
+    // status filter (expects 'pending' or 'approved' from API)
+    const statusVal = (row.status || '').toLowerCase();
+    const statusMatch = desiredStatus ? (statusVal === desiredStatus) : true;
 
-      // sub-sector filter (exactly like your snippet)
-      const matchesSubSector =
-        !selectedSubSectorName?.length ||
-        selectedSubSectorName.map((s) => String(s).toLowerCase()).includes((row.sub_sector_name || '').toLowerCase());
+    // sector filter (exactly like your snippet)
+    const matchesSector =
+      !selectedSectorName?.length ||
+      selectedSectorName.map((s) => String(s).toLowerCase()).includes((row.sector_name || '').toLowerCase());
 
-      return textMatch && modeMatch && matchesSector && matchesSubSector;
-    });
+    // sub-sector filter (exactly like your snippet)
+    const matchesSubSector =
+      !selectedSubSectorName?.length ||
+      selectedSubSectorName.map((s) => String(s).toLowerCase()).includes((row.sub_sector_name || '').toLowerCase());
 
-    setFilteredRows(data);
-  }, [payments, filterText, filterMode, selectedSectorName, selectedSubSectorName]);
+    return textMatch && modeMatch && statusMatch && matchesSector && matchesSubSector;
+  });
+
+  setFilteredRows(data);
+
+  // ⚠️ Show a short message only when a specific status is selected and nothing matches
+  if (desiredStatus && data.length === 0) {
+    setSnackbarMessage(`No payments found with status "${filterStatus}".`);
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
+  }
+}, [payments, filterText, filterMode, filterStatus, selectedSectorName, selectedSubSectorName]);
+
 
   useEffect(() => {
     applyFilters();
@@ -88,6 +103,7 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
 
   const handleSearch = (e) => setFilterText(e.target.value || '');
   const handleModeFilter = (event) => setFilterMode(event.target.value || '');
+  const handleStatusFilter = (event) => setFilterStatus(event.target.value || ''); // <-- NEW
 
   // Handle delete confirmation
   const handleDeleteConfirm = () => {
@@ -95,121 +111,116 @@ function PaymentsTable({ payments, onEdit, fetchData }) {
     fetchData && fetchData();
   };
 
-const ActionButtonWithOptions = ({ paymentId, rowData, paymentHashedId }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-  const { token } = useUser(); // use token for API in the dialog
+  const ActionButtonWithOptions = ({ paymentId, rowData, paymentHashedId }) => {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+    const { token } = useUser(); // use token for API in the dialog
 
-  // approve / cancel dialog state
-  const [approveOpen, setApproveOpen] = useState(false);
+    // approve / cancel dialog state
+    const [approveOpen, setApproveOpen] = useState(false);
 
-  const handleClick = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
+    const handleClick = (event) => setAnchorEl(event.currentTarget);
+    const handleClose = () => setAnchorEl(null);
 
-  const handleEditClick = () => {
-    onEdit(rowData);
-    handleClose();
-  };
+    const handleEditClick = () => {
+      onEdit(rowData);
+      handleClose();
+    };
 
-  const handleDeleteClick = () => {
-    setDeleteId(paymentId);
-    setOpenDeleteDialog(true);
-    handleClose();
-  };
+    const handleDeleteClick = () => {
+      setDeleteId(paymentId);
+      setOpenDeleteDialog(true);
+      handleClose();
+    };
 
-  const handlePrintClick = () => {
-    const printUrl = `https://api.fmb52.com/api/payment_print/${paymentHashedId}`;
-    window.open(printUrl, '_blank');  // Opens in new tab
-    handleClose();
-  };
+    const handlePrintClick = () => {
+      const printUrl = `https://api.fmb52.com/api/payment_print/${paymentHashedId}`;
+      window.open(printUrl, '_blank');
+      handleClose();
+    };
 
-  // open the approve/cancel dialog
-  const handleApproveOpen = () => {
-    setApproveOpen(true);
-    handleClose();
-  };
+    const handleApproveOpen = () => {
+      setApproveOpen(true);
+      handleClose();
+    };
 
-  const handleApproveClose = () => setApproveOpen(false);
+    const handleApproveClose = () => setApproveOpen(false);
 
-  const handleApproveSuccess = () => {
-    // refresh table + snackbar
-    fetchData && fetchData();
-    setSnackbarMessage('Payment status updated successfully.');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
-  };
+    const handleApproveSuccess = () => {
+      fetchData && fetchData();
+      setSnackbarMessage('Payment status updated successfully.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    };
 
-  useEffect(() => {
-    document.title = "Payments - FMB 52";
-  }, []);
+    useEffect(() => {
+      document.title = "Payments - FMB 52";
+    }, []);
 
-  return (
-    <Box>
-      <Button variant="contained" color="primary" onClick={handleClick}>
-        Actions
-      </Button>
+    return (
+      <Box>
+        <Button variant="contained" color="primary" onClick={handleClick}>
+          Actions
+        </Button>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      >
-        <MenuItem onClick={handleEditClick}>
-          <Tooltip title="Edit" placement="left">
-            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-              <EditIcon sx={{ color: brown[200] }} />
-              Edit
-            </Box>
-          </Tooltip>
-        </MenuItem>
-
-        <MenuItem onClick={handleDeleteClick}>
-          <Tooltip title="Delete" placement="left">
-            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-              <DeleteIcon sx={{ color: brown[200] }} />
-              Delete
-            </Box>
-          </Tooltip>
-        </MenuItem>
-
-        <MenuItem onClick={handlePrintClick}>
-          <Tooltip title="Print" placement="left">
-            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-              <LocalPrintshopIcon sx={{ color: brown[200] }} />
-              Print
-            </Box>
-          </Tooltip>
-        </MenuItem>
-
-        {/* ✅ Approve/Cancel (opens dialog) */}
-       {canApprove && (
-          <MenuItem onClick={handleApproveOpen}>
-            <Tooltip title="Approve / Cancel" placement="left">
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          <MenuItem onClick={handleEditClick}>
+            <Tooltip title="Edit" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                <CheckCircleIcon sx={{ color: brown[200] }} />
-                Approve
+                <EditIcon sx={{ color: brown[200] }} />
+                Edit
               </Box>
             </Tooltip>
           </MenuItem>
+
+          <MenuItem onClick={handleDeleteClick}>
+            <Tooltip title="Delete" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <DeleteIcon sx={{ color: brown[200] }} />
+                Delete
+              </Box>
+            </Tooltip>
+          </MenuItem>
+
+          <MenuItem onClick={handlePrintClick}>
+            <Tooltip title="Print" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <LocalPrintshopIcon sx={{ color: brown[200] }} />
+                Print
+              </Box>
+            </Tooltip>
+          </MenuItem>
+
+          {canApprove && (
+            <MenuItem onClick={handleApproveOpen}>
+              <Tooltip title="Approve / Cancel" placement="left">
+                <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                  <CheckCircleIcon sx={{ color: brown[200] }} />
+                  Approve
+                </Box>
+              </Tooltip>
+            </MenuItem>
+          )}
+        </Menu>
+
+        {canApprove && (
+          <ApprovePaymentDialog
+            open={approveOpen}
+            onClose={handleApproveClose}
+            onSuccess={handleApproveSuccess}
+            token={token}
+            paymentId={paymentId}
+          />
         )}
-      </Menu>
-
-      {/* Mount dialog only when allowed */}
-      {canApprove && (
-        <ApprovePaymentDialog
-          open={approveOpen}
-          onClose={handleApproveClose}
-          onSuccess={handleApproveSuccess}
-          token={token}
-          paymentId={paymentId}
-        />
-      )}
-    </Box>
-  );
-};
-
+      </Box>
+    );
+  };
 
   const columns = [
     {
@@ -267,42 +278,41 @@ const ActionButtonWithOptions = ({ paymentId, rowData, paymentHashedId }) => {
         </Box>
       ),
     },
-{
-  field: 'status',
-  headerName: 'Status',
-  width: 150,
-  sortable: true,
-  renderCell: (params) => {
-    const status = params.row.status?.toLowerCase();
-    let color;
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 150,
+      sortable: true,
+      renderCell: (params) => {
+        const status = params.row.status?.toLowerCase();
+        let color;
 
-    switch (status) {
-      case 'pending':
-        color = '#f1c40f'; // yellow
-        break;
-      case 'cancelled':
-        color = '#e74c3c'; // red
-        break;
-      case 'approved':
-      case 'completed':
-      case 'active':
-        color = '#27ae60'; // green
-        break;
-      default:
-        color = '#5d4037'; // brown[700] fallback
-        break;
-    }
+        switch (status) {
+          case 'pending':
+            color = '#f1c40f';
+            break;
+          case 'cancelled':
+            color = '#e74c3c';
+            break;
+          case 'approved':
+          case 'completed':
+          case 'active':
+            color = '#27ae60';
+            break;
+          default:
+            color = '#5d4037';
+            break;
+        }
 
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
-        <Typography variant="body2" sx={{ color, fontWeight: 600, textTransform: 'capitalize' }}>
-          {params.row.status}
-        </Typography>
-      </Box>
-    );
-  },
-},
-
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
+            <Typography variant="body2" sx={{ color, fontWeight: 600, textTransform: 'capitalize' }}>
+              {params.row.status}
+            </Typography>
+          </Box>
+        );
+      },
+    },
     {
       field: 'receipt',
       headerName: 'Receipt Details',
@@ -387,15 +397,28 @@ const ActionButtonWithOptions = ({ paymentId, rowData, paymentHashedId }) => {
               sx={{ width: { xs: '100%', sm: '300px' } }}
               InputProps={{ sx: { height: '52px', display: 'flex', alignItems: 'center', mb: '7px' } }}
             />
-            <FormControl sx={{ minWidth: 120 }}>
-              <InputLabel>Mode</InputLabel>
-              <Select value={filterMode} label="Mode" onChange={handleModeFilter} sx={{ height: '52px' }}>
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="cash">Cash</MenuItem>
-                <MenuItem value="cheque">Cheque</MenuItem>
-                <MenuItem value="neft">NEFT</MenuItem>
-              </Select>
-            </FormControl>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel>Mode</InputLabel>
+                <Select value={filterMode} label="Mode" onChange={handleModeFilter} sx={{ height: '52px' }}>
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="cash">Cash</MenuItem>
+                  <MenuItem value="cheque">Cheque</MenuItem>
+                  <MenuItem value="neft">NEFT</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* NEW: Status filter (right of Mode) */}
+              <FormControl sx={{ minWidth: 140 }}>
+                <InputLabel>Status</InputLabel>
+                <Select value={filterStatus} label="Status" onChange={handleStatusFilter} sx={{ height: '52px' }}>
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="pending">Pending</MenuItem>
+                  <MenuItem value="approved">Approved</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
 
           <div style={{ height: 700, width: '100%', overflow: 'auto' }}>

@@ -16,8 +16,9 @@ import { UserProvider } from './contexts/UserContext';
 import { LicenseInfo } from '@mui/x-license-pro';
 import Layout from './Layout';
 import NiyazDate from './pages/bookings/NiyazDate';
-import SalawataFateha from './pages/bookings/SalawatFateha';
+import Salawat from './pages/bookings/Salawat';
 import Zabihat from './pages/bookings/Zabihat';
+import Fateha from './pages/bookings/Fateha';
 import Feedback from './pages/feedback/Feedback';
 import Notifications from './pages/notifications/Notifications';
 import Settings from './pages/settings/Settings';
@@ -34,6 +35,7 @@ import ContextWrapper from './contexts/ContextWrapper';
 
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 import Hierarchy from './pages/hierarchy/Hierarchy';
+import Jaman from './pages/bookings/Jaman';
         
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
@@ -85,8 +87,10 @@ function App() {
             <Route path="/sub_sector" element={<SubSector />} />
             <Route path="/transfers" element={<Transfers />} />
             <Route path="/niyaz_date" element={<NiyazDate />} />
-            <Route path="/salawat_fateha" element={<SalawataFateha />} />
+            <Route path="/salawat" element={<Salawat />} />
             <Route path="/zabihat" element={<Zabihat />} />
+            <Route path="/fateha" element={<Fateha />} />
+            <Route path="/jaman" element={<Jaman />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<Settings />} />

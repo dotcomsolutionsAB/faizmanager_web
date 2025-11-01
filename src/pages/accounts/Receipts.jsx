@@ -36,9 +36,22 @@ const customLocaleText = {
   noResultsOverlayLabel: '',
 };
 
+// --- helper: normalize API status to UI label ---
+const toUiStatus = (status) => {
+  const s = String(status || '').toLowerCase();
+  if (s === 'paid') return 'Deposited';
+  if (s === 'pending') return 'Pending';
+  if (s === 'cancelled' || s === 'canceled') return 'Cancelled';
+  return status || '';
+};
+
 function Receipts() {
   const { selectedSector, selectedSubSector, selectedYear, selectedSectorName, selectedSubSectorName } = useOutletContext();
   const [loadingData, setLoadingData] = useState(false);
+
+  // NEW: status filter state (All | Deposited | Pending)
+  const [statusFilter, setStatusFilter] = useState('All');
+
   const [modeFilter, setModeFilter] = useState('All');
 
   const { token, loading, accessRoleId } = useUser();
@@ -58,7 +71,7 @@ function Receipts() {
   const [editOpen, setEditOpen] = useState(false);
   const [editReceipt, setEditReceipt] = useState(null);
 
-  // Export filtered rows to Excel
+  // Export filtered rows to Excel (Status mapped to UI label)
   const exportToExcel = () => {
     if (!filteredRows.length) {
       alert('No data to export.');
@@ -77,6 +90,7 @@ function Receipts() {
       Comments: row.comments,
       Amount: row.amount,
       ReceiptNo: row.receipt_no,
+      Status: toUiStatus(row.status), // <-- never shows "Paid"; shows "Deposited"
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -237,52 +251,52 @@ function Receipts() {
         </Box>
       ),
     },
-   {
-  field: 'receipt_no',
-  headerName: 'Receipt No',
-  width: 170,
-  sortable: true,
-  renderCell: (params) => {
-    const status = String(params.row.status || '').toLowerCase(); // e.g. "cancelled"
-    const isCancelled = status === 'cancelled' || status === 'canceled'; // handle both spellings
+    {
+      field: 'receipt_no',
+      headerName: 'Receipt No',
+      width: 170,
+      sortable: true,
+      renderCell: (params) => {
+        const raw = String(params.row.status || '').toLowerCase();
+        const isCancelled = raw === 'cancelled' || raw === 'canceled';
 
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{
-            textAlign: 'center',
-            color: brown[700],
-            textDecoration: isCancelled ? 'line-through' : 'none',
-            opacity: isCancelled ? 0.7 : 1,
-            fontWeight: 600,
-          }}
-          title={isCancelled ? 'This receipt is cancelled' : ''}
-        >
-          {params.row.receipt_no}
-        </Typography>
-
-        {isCancelled && (
-          <Typography
-            variant="caption"
-            sx={{ mt: 0.5, color: '#d32f2f', fontWeight: 700, letterSpacing: 0.3 }}
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+            }}
           >
-            {params.row.status} {/* shows whatever the API sent, e.g. "cancelled" */}
-          </Typography>
-        )}
-      </Box>
-    );
-  },
-},
+            <Typography
+              variant="body2"
+              sx={{
+                textAlign: 'center',
+                color: brown[700],
+                textDecoration: isCancelled ? 'line-through' : 'none',
+                opacity: isCancelled ? 0.7 : 1,
+                fontWeight: 600,
+              }}
+              title={isCancelled ? 'This receipt is cancelled' : ''}
+            >
+              {params.row.receipt_no}
+            </Typography>
+
+            {params.row.status && (
+              <Typography
+                variant="caption"
+                sx={{ mt: 0.5, color: isCancelled ? '#d32f2f' : brown[700], fontWeight: 700, letterSpacing: 0.3 }}
+              >
+                {toUiStatus(params.row.status)}
+              </Typography>
+            )}
+          </Box>
+        );
+      },
+    },
     {
       field: 'receipt',
       headerName: 'Receipt Details',
@@ -363,7 +377,6 @@ function Receipts() {
     },
   ];
 
-
   // Fetch data
   useEffect(() => {
     if (loading || !token || !selectedYear?.length) return;
@@ -395,7 +408,7 @@ function Receipts() {
     };
 
     fetchData();
-  }, [token, loading, selectedYear]);
+  }, [token, loading, selectedYear, accessRoleId]);
 
   // Filtered rows
   const filteredRows = rows.filter((row) => {
@@ -407,20 +420,20 @@ function Receipts() {
       row.folio_no?.toLowerCase().includes(t) ||
       row.sector_name?.toLowerCase().includes(t) ||
       row.sub_sector_name?.toLowerCase().includes(t) ||
-      row.hof_its?.toLowerCase().includes(t)
- 
+      row.hof_its?.toLowerCase().includes(t);
 
     const matchesMode = modeFilter === 'All' || row.mode?.toLowerCase() === modeFilter.toLowerCase();
+
+    // NEW: status filtering using UI labels (Deposited/Pending)
+    const uiStatus = toUiStatus(row.status).toLowerCase(); // '' if no status
+    const matchesStatus =
+      statusFilter === 'All' || (uiStatus && uiStatus === statusFilter.toLowerCase());
 
     const matchesSector =
       !selectedSectorName?.length ||
       selectedSectorName.map((s) => s.toLowerCase()).includes(row.sector_name?.toLowerCase());
 
-    // const matchesSubSector =
-    //   !selectedSubSectorName?.length ||
-    //   selectedSubSectorName.map((s) => s.toLowerCase()).includes(row.sub_sector_name?.toLowerCase());
-
-    return matchesFilterText && matchesMode && matchesSector;
+    return matchesFilterText && matchesMode && matchesStatus && matchesSector;
   });
 
   // After successful save from dialog, update the grid row
@@ -434,8 +447,7 @@ function Receipts() {
     );
   };
 
-  console.log("Edit",editReceipt)
-
+  console.log('Edit', editReceipt);
 
   return (
     <AppTheme>
@@ -449,7 +461,7 @@ function Receipts() {
           marginTop: '95px',
         }}
       >
-        <Box sx={{ width: '100%', overflowX: 'auto',  pr: 2, pb: 3, pl: 2 }}>
+        <Box sx={{ width: '100%', overflowX: 'auto', pr: 2, pb: 3, pl: 2 }}>
           <Paper
             sx={{
               width: '100%',
@@ -479,7 +491,21 @@ function Receipts() {
                 }}
               />
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                {/* NEW: Status filter (left of Mode) */}
+                <FormControl sx={{ minWidth: 170, width: { xs: '100%', sm: '170px' } }}>
+                  <InputLabel>Filter By Status</InputLabel>
+                  <Select
+                    label="Filter By Status"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <MenuItem value="All">All</MenuItem>
+                    <MenuItem value="Deposited">Deposited</MenuItem>
+                    <MenuItem value="Pending">Pending</MenuItem>
+                  </Select>
+                </FormControl>
+
                 <FormControl sx={{ minWidth: 150, width: { xs: '100%', sm: '150px' } }}>
                   <InputLabel>Filter By Mode</InputLabel>
                   <Select label="Filter By Mode" value={modeFilter} onChange={(e) => setModeFilter(e.target.value)}>

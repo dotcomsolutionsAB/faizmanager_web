@@ -6,12 +6,12 @@ import { useUser } from "../../contexts/UserContext";
 import { useOutletContext } from "react-router-dom";
 
 // ⬇️ Import your two components (adjust paths if different)
-import ZabihatForm from "../../components/bookings/zabihat/ZabihatForm";
-import ZabihatTable from "../../components/bookings/zabihat/ZabihatTable";
+import SalawatForm from "../../components/bookings/salawat/SalawatForm";
+import SalawatTable from "../../components/bookings/salawat/SalawatTable";
 
 
 
-const Zabihat = () => {
+const Salawat = () => {
   const { token } = useUser();
   const { selectedYear } = useOutletContext() || {};
 
@@ -72,10 +72,10 @@ const Zabihat = () => {
 
 
           {/* Pass data + refresh to the form (so it can re-fetch after create/update) */}
-          <ZabihatForm data={rows} refresh={fetchCommitments} showMsg={showMsg} />
+          <SalawatForm data={rows} refresh={fetchCommitments} showMsg={showMsg} />
 
           {/* Pass data to the table; also pass refresh/msg if you want row actions to refetch */}
-          <ZabihatTable data={rows} refresh={fetchCommitments} showMsg={showMsg} />
+          <SalawatTable data={rows} refresh={fetchCommitments} showMsg={showMsg} />
 
 
       <Backdrop sx={{ color: "#fff", zIndex: (t) => t.zIndex.drawer + 1 }} open={loading}>
@@ -96,4 +96,4 @@ const Zabihat = () => {
   );
 };
 
-export default Zabihat;
+export default Salawat;
