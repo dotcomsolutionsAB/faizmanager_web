@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
   Grid,
   TextField,
   Button,
-  Snackbar,
-  Alert,
   CssBaseline,
   IconButton,
   FormControl,
@@ -26,79 +24,101 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
 import { useUser } from "../../../contexts/UserContext";
 
-
-const ZabihatForm = ({ refresh }) => {
+const ZabihatForm = ({ refresh, showMsg, editingRow, clearEditing }) => {
   const { token } = useUser();
   const [collapsed, setCollapsed] = useState(false);
 
   const [its, setIts] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [type] = useState("zabihat"); // ✅ fixed value
+  const [type] = useState("zabihat"); // fixed value
   const [date, setDate] = useState(null);
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  // 🔁 Populate when editingRow changes
+  useEffect(() => {
+    if (editingRow) {
+      setIts(editingRow.its || "");
+      setAmount(
+        editingRow.amount !== undefined && editingRow.amount !== null
+          ? String(editingRow.amount)
+          : ""
+      );
+      setRemarks(editingRow.remarks || "");
+      setDate(editingRow.date || null);
+    } else {
+      setIts("");
+      setAmount("");
+      setRemarks("");
+      setDate(null);
+    }
+  }, [editingRow]);
 
   const handleCollapseToggle = () => setCollapsed((prev) => !prev);
-  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
+  const isEditing = Boolean(editingRow?.id);
 
-  const handleSubmit = async () => {
-    if (!its || !amount || !date) {
-      setSnackbar({
-        open: true,
-        message: "Please fill all required fields.",
-        severity: "warning",
-      });
-      return;
+const handleSubmit = async () => {
+  if (!its || !amount || !date) {
+    showMsg?.("Please fill all required fields.", "warning");
+    return;
+  }
+
+  try {
+    const payload = {
+      its,
+      amount: parseFloat(amount),
+      remarks,
+      type,
+      date,
+    };
+
+    let url = "https://api.fmb52.com/api/commitment/create";
+    let defaultSuccessMsg = "Commitment created successfully!";
+
+    // UPDATE MODE
+    if (editingRow?.id) {
+      url = `https://api.fmb52.com/api/commitment/update/${editingRow.id}`;
+      defaultSuccessMsg = "Commitment updated successfully!";
     }
 
-    try {
-      const response = await fetch(`https://api.fmb52.com/api/commitment/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          its,
-          amount: parseFloat(amount),
-          remarks,
-          type, // always zabihat
-          date,
-        }),
-      });
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
 
-      const result = await response.json();
-      if (result?.status) {
-        setSnackbar({
-          open: true,
-          message: result.message || "Commitment created successfully!",
-          severity: "success",
-        });
-        setIts("");
-        setAmount("");
-        setRemarks("");
-        setDate(null);
-        refresh && refresh();
-      } else {
-        setSnackbar({
-          open: true,
-          message: result.message || "Failed to create commitment.",
-          severity: "error",
-        });
-      }
-    } catch (err) {
-      console.error("Error creating commitment:", err);
-      setSnackbar({
-        open: true,
-        message: "An error occurred while submitting.",
-        severity: "error",
-      });
+    const result = await response.json();
+
+    if (result?.status) {
+      const msg = result.message || defaultSuccessMsg;
+
+      showMsg?.(msg, "success");
+
+      // Reset form
+      setIts("");
+      setAmount("");
+      setRemarks("");
+      setDate(null);
+
+      // Clear edit mode
+      clearEditing?.();
+
+      // Refresh table
+      refresh?.();
+    } else {
+      showMsg?.(result.message || "Failed to save commitment.", "error");
     }
+  } catch (err) {
+    console.error("Error creating/updating commitment:", err);
+    showMsg?.("An error occurred while submitting.", "error");
+  }
+};
+
+
+  const handleCancelEdit = () => {
+    clearEditing?.();
   };
 
   return (
@@ -136,7 +156,7 @@ const ZabihatForm = ({ refresh }) => {
               borderRadius: 1,
             }}
           >
-            Add Zabihat
+            {isEditing ? "Edit Zabihat" : "Add Zabihat"}
           </Typography>
           <IconButton
             onClick={handleCollapseToggle}
@@ -189,7 +209,6 @@ const ZabihatForm = ({ refresh }) => {
               />
             </Grid>
 
-            {/* ✅ Fixed Type Field (Default Zabihat, Disabled) */}
             <Grid item xs={12} sm={6} md={3}>
               <FormControl fullWidth required disabled>
                 <InputLabel>Type</InputLabel>
@@ -199,7 +218,6 @@ const ZabihatForm = ({ refresh }) => {
               </FormControl>
             </Grid>
 
-            {/* ✅ DatePicker */}
             <Grid item xs={12} sm={6} md={3}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
@@ -244,8 +262,20 @@ const ZabihatForm = ({ refresh }) => {
           </Grid>
         </Collapse>
 
-        {/* Submit Button */}
-        <Box sx={{ textAlign: "right", mt: 3 }}>
+        {/* Buttons */}
+        <Box
+          sx={{
+            mt: 3,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 1,
+          }}
+        >
+          {isEditing && (
+            <Button variant="outlined" onClick={handleCancelEdit}>
+              Cancel Edit
+            </Button>
+          )}
           <Button
             variant="contained"
             color="primary"
@@ -256,25 +286,9 @@ const ZabihatForm = ({ refresh }) => {
               "&:hover": { backgroundColor: yellow[200], color: "#000" },
             }}
           >
-            Submit
+            {isEditing ? "Update" : "Submit"}
           </Button>
         </Box>
-
-        {/* Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleSnackbarClose}
-            severity={snackbar.severity}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
       </Box>
     </AppTheme>
   );

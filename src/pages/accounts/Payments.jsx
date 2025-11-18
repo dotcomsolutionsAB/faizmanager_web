@@ -62,9 +62,10 @@ const Payments = () => {
   return (
     <AppTheme>
       <CssBaseline />
+      <SectorsStats year={selectedYear} sector={selectedSector} subSector={selectedSubSector} />
+
       <PaymentsForm paymentData={selectedPaymentData} fetchData={fetchData} />
       <PaymentsTable payments={payments} onEdit={handleEditPayment} fetchData={fetchData} />
-      <SectorsStats year={selectedYear} sector={selectedSector} subSector={selectedSubSector} />
       
     </AppTheme>
   );

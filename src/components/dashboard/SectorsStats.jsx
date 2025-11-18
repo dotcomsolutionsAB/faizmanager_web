@@ -200,7 +200,7 @@ const SectorsStats = ({ year, sector, subSector }) => {
           // gap: 2,
           marginLeft: 2,
           marginRight: 2,
-          mb: 2
+          mt: 12
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

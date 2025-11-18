@@ -157,6 +157,7 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
             // 👇 send overdue as well (backend can ignore if not used)
             overdue_amount: overdueAmount === '' ? null : overdueAmount,
         };
+        console.log("Edit", payload)
 
         try {
             const response = await fetch(
