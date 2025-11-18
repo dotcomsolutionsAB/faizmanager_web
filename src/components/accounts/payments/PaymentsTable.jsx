@@ -378,7 +378,7 @@ const applyFilters = useCallback(() => {
   return (
     <AppTheme>
       <CssBaseline />
-      <Box sx={{ width: '100%', overflowX: 'auto', mt: 1, pt: 1, pr: 2, pb: 3, pl: 2 }}>
+      <Box sx={{ width: '100%', overflowX: 'auto', mt: 1, pt: 1, pr: 2, pb: 2, pl: 2 }}>
         <Paper
           sx={{
             width: '100%',

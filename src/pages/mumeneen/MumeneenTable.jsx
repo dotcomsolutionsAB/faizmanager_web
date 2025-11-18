@@ -30,6 +30,9 @@ import OtherSectorTransferDialog from '../../components/mumeneenTable/OtherSecto
 import OtherJamiatTransferDialog from '../../components/mumeneenTable/OtherJamiatTransferDialog';
 import AddHofDialog from '../../components/mumeneenTable/AddHofDialog';
 import DownloadIcon from '@mui/icons-material/Download';
+import BlockIcon from '@mui/icons-material/Block';
+import MarkAsInactive from '../../components/mumeneenTable/MarkAsInactive';
+
 
 const customLocaleText = {
   noRowsLabel: 'Please wait....',
@@ -88,6 +91,9 @@ function MumeneenTable() {
   const [selectedRowForTransfer, setSelectedRowForTransfer] = useState(null);
   const [otherSectorTransferDialogOpen, setOtherSectorTransferDialogOpen] = useState(false);
   const [otherJamiatTransferDialogOpen, setOtherJamiatTransferDialogOpen] = useState(false);
+
+    const [markInactiveDialogOpen, setMarkInactiveDialogOpen] = useState(false);
+  const [selectedRowForInactive, setSelectedRowForInactive] = useState(null);
 
   // Set document title
   useEffect(() => {
@@ -274,6 +280,8 @@ const fetchData = async () => {
       }
     };
 
+
+
     
   // Filter rows locally
   const filteredRows = rows.filter((row) => {
@@ -434,7 +442,7 @@ const fetchData = async () => {
           </Typography>
           {params.row.overdue > 0 && (
             <Typography variant="body2" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
-              Overdue: {formatCurrency(params.row.overdue)}
+              Previous Due: {formatCurrency(params.row.overdue)}
             </Typography>
           )}
         </Box>
@@ -523,6 +531,9 @@ const fetchData = async () => {
                 setOtherJamiatTransferDialogOpen(true);
               } else if (action === "Update Tiffin Segment") {
                 console.log("Tiffin")
+              }  else if (action === 'Mark Inactive') {
+                setSelectedRowForInactive(row);
+                setMarkInactiveDialogOpen(true);
               }
             }}
           />
@@ -649,7 +660,24 @@ const fetchData = async () => {
               </Box>
             </Tooltip>
           </MenuItem>
+                 {row.status !== 'in_active' && (
+          <MenuItem
+            onClick={() => {
+              onActionClick('Mark Inactive', row);
+              handleClose();
+            }}
+          >
+            <Tooltip title="Mark as Inactive" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <BlockIcon sx={{ color: brown[200] }} />
+                <Typography>Mark as Inactive</Typography>
+              </Box>
+            </Tooltip>
+          </MenuItem>
+        )}
         </Menu>
+
+
       </Box>
     );
   };
@@ -881,6 +909,14 @@ const fetchData = async () => {
         row={selectedRowForTransfer}
         onSave={handleOtherJamiatTransferSave}
       />
+
+            <MarkAsInactive
+        open={markInactiveDialogOpen}
+        onClose={() => setMarkInactiveDialogOpen(false)}
+        row={selectedRowForInactive}
+        onSuccess={() => fetchData()}   // refresh table after success
+      />
+
     </AppTheme>
   );
 }

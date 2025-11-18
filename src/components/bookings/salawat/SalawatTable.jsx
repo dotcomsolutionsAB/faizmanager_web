@@ -8,12 +8,19 @@ import {
   Alert,
   Menu,
   MenuItem,
+  Tooltip
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import { yellow, brown } from "../../../styles/ThemePrimitives";
 import AppTheme from "../../../styles/AppTheme";
 import { useUser } from "../../../contexts/UserContext";
 import divider from "../../../assets/divider.png";
+import AddBookingsReceipt from "../AddBookingsReceipt";
+import PrintIcon from "@mui/icons-material/Print";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
 
 const inr = (val) => {
   const num = typeof val === "string" ? parseFloat(val) : val;
@@ -35,6 +42,8 @@ const SalawatTable = ({ data = [], refresh, showMsg }) => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+    const [addReceiptOpen, setAddReceiptOpen] = useState(false);
+
 
   const handleSnackbarClose = () => setSnackbar((s) => ({ ...s, open: false }));
 
@@ -44,17 +53,49 @@ const SalawatTable = ({ data = [], refresh, showMsg }) => {
   };
   const handleMenuClose = () => setAnchorEl(null);
 
-  // TODO: wire to your delete API when available
   const handleDelete = async () => {
     handleMenuClose();
-    // await fetch(`${BASE_URL}/commitment/delete/${selectedRow.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
     const msg = `Deleted commitment for ${selectedRow?.name || "record"}`;
     setSnackbar({ open: true, message: msg, severity: "success" });
     showMsg?.(msg, "success");
     refresh?.();
   };
 
+  const handleAddReceipt = () => {
+    handleMenuClose();
+    setAddReceiptOpen(true);
+  };
+
+  const handlePrintReceipt = () => {
+    handleMenuClose();
+    // TODO: wire real print URL when available
+    const msg = "Print Receipt action clicked (wire print URL here).";
+    setSnackbar({ open: true, message: msg, severity: "info" });
+    showMsg?.(msg, "info");
+  };
+
+  const handleEditCommitment = () => {
+    handleMenuClose();
+    // TODO: open your edit dialog / route
+    const msg = "Edit action clicked (open edit commitment dialog).";
+    setSnackbar({ open: true, message: msg, severity: "info" });
+    showMsg?.(msg, "info");
+  };
+
+
   const columns = [
+        {
+      field: "date",
+      headerName: "Date",
+      flex: 0.9,
+      renderCell: (params) => <span style={{ color: brown[700] }}>{params.value}</span>,
+    },
+        {
+      field: "its",
+      headerName: "ITS",
+      flex: 0.9,
+      renderCell: (params) => <span style={{ color: brown[700] }}>{params.value}</span>,
+    },
     {
       field: "name",
       headerName: "Name",
@@ -63,12 +104,13 @@ const SalawatTable = ({ data = [], refresh, showMsg }) => {
         <span style={{ fontWeight: 700, color: brown[700] }}>{params.value}</span>
       ),
     },
-    {
-      field: "date",
-      headerName: "Date",
+        {
+      field: "mobile",
+      headerName: "Mobile",
       flex: 0.9,
       renderCell: (params) => <span style={{ color: brown[700] }}>{params.value}</span>,
     },
+
     {
       field: "type",
       headerName: "Type",
@@ -140,6 +182,18 @@ const SalawatTable = ({ data = [], refresh, showMsg }) => {
               </Typography>
             ),
     },
+        {
+      field: "remarks",
+      headerName: "Remarks",
+      flex: 0.9,
+      renderCell: (params) => <span style={{ color: brown[700] }}>{params.value}</span>,
+    },
+        {
+      field: "created_by",
+      headerName: "Created by",
+      flex: 0.9,
+      renderCell: (params) => <span style={{ color: brown[700] }}>{params.value}</span>,
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -189,7 +243,7 @@ const SalawatTable = ({ data = [], refresh, showMsg }) => {
             borderRadius: 1,
           }}
         >
-          Zabihat
+          Salawat
         </Typography>
 
         <Box
@@ -230,22 +284,85 @@ const SalawatTable = ({ data = [], refresh, showMsg }) => {
 
       </Box>
 
-      <Menu
+            <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        <MenuItem
+          onClick={handlePrintReceipt}
+        >
+          <Tooltip title="Print Zabihat commitment receipt" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <PrintIcon sx={{ color: brown[200] }} />
+              <Typography>Print Receipt</Typography>
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        <MenuItem
+          onClick={handleAddReceipt}
+        >
+          <Tooltip title="Add new receipt entry for this Zabihat" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <ReceiptLongIcon sx={{ color: brown[200] }} />
+              <Typography>Add Receipt</Typography>
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        <MenuItem
+          onClick={handleEditCommitment}
+        >
+          <Tooltip title="Edit Zabihat commitment details" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <EditIcon sx={{ color: brown[200] }} />
+              <Typography>Edit</Typography>
+            </Box>
+          </Tooltip>
+        </MenuItem>
+
+        <MenuItem
+          onClick={handleDelete}
+        >
+          <Tooltip title="Delete this Zabihat commitment" placement="left">
+            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+              <DeleteIcon sx={{ color: brown[200] }} />
+              <Typography>Delete</Typography>
+            </Box>
+          </Tooltip>
+        </MenuItem>
       </Menu>
 
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: "100%" }}>
+
+
+            <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Add Receipt Dialog */}
+      <AddBookingsReceipt
+        open={addReceiptOpen}
+        onClose={() => setAddReceiptOpen(false)}
+        row={selectedRow}
+        onSuccess={() => {
+          refresh?.();
+        }}
+      />
     </AppTheme>
+
   );
 };
 

@@ -51,9 +51,9 @@ const CoordinatorDashboard = ({ year, sector, subSector, hofCount }) => {
               subSector={subSector}
             />
           </Grid>
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <SectorsStats year={year} sector={sector} subSector={subSector} />
-          </Grid>
+          </Grid> */}
           {/* <Grid item xs={12}>
             <MohallaWiseStats year={year} sector={sector} subSector={subSector} />
           </Grid> */}

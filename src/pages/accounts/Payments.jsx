@@ -5,10 +5,11 @@ import PaymentsForm from "../../components/accounts/payments/PaymentsForm";
 import PaymentsTable from "../../components/accounts/payments/PaymentsTable";
 import { useUser } from "../../contexts/UserContext";
 import { useOutletContext } from "react-router-dom";
+import SectorsStats from "../../components/dashboard/SectorsStats";
 
 const Payments = () => {
   const { token, accessRoleId } = useUser();
-  const { selectedYear } = useOutletContext();
+  const { selectedSector, selectedSubSector,selectedYear } = useOutletContext();
 
   const [selectedPaymentData, setSelectedPaymentData] = useState(null);
   const [payments, setPayments] = useState([]);
@@ -63,6 +64,8 @@ const Payments = () => {
       <CssBaseline />
       <PaymentsForm paymentData={selectedPaymentData} fetchData={fetchData} />
       <PaymentsTable payments={payments} onEdit={handleEditPayment} fetchData={fetchData} />
+      <SectorsStats year={selectedYear} sector={selectedSector} subSector={selectedSubSector} />
+      
     </AppTheme>
   );
 };

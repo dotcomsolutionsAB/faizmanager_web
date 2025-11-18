@@ -190,14 +190,17 @@ const SectorsStats = ({ year, sector, subSector }) => {
       <CssBaseline />
       <Card
         sx={{
-          width: '100%',
-          boxShadow: 3,
+          // width: '100%',
+          // boxShadow: 3,
           borderRadius: 2,
           backgroundColor: '#FAFAFA',
           padding: 2,
           display: 'flex',
           flexDirection: 'column',
-          gap: 2,
+          // gap: 2,
+          marginLeft: 2,
+          marginRight: 2,
+          mb: 2
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

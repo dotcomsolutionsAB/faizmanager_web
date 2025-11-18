@@ -23,6 +23,11 @@ import Avatar from '@mui/material/Avatar';
 const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => {
     const [hubAmount, setHubAmount] = useState('');
     const [hubAmountError, setHubAmountError] = useState(false);
+
+    // 👇 NEW: overdue amount state
+    const [overdueAmount, setOverdueAmount] = useState('');
+    const [overdueAmountError, setOverdueAmountError] = useState(false);
+
     const [thaliStatus, setThaliStatus] = useState('');
     const [image, setImage] = useState(null); // For image upload if needed
     const { token, currency } = useUser(); // Get currency info from context
@@ -34,11 +39,11 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
     const thaliStatusOptions = {
-        "taking": "Taking",
-        "not_taking": "Not Taking",
-        "once_a_week": "Once a Week",
-        "joint": "Joint",
-        "other_centre": "Other Centre"
+        taking: 'Taking',
+        not_taking: 'Not Taking',
+        once_a_week: 'Once a Week',
+        joint: 'Joint',
+        other_centre: 'Other Centre',
     };
 
     const handleSnackbarClose = () => {
@@ -49,6 +54,8 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
         if (row) {
             setHubAmount(row.hub_amount || '');
             setThaliStatus(row.thali_status || '');
+            // 👇 preload overdue if exists
+            setOverdueAmount(row.overdue ?? '');
         }
     }, [row]);
 
@@ -57,11 +64,32 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
     }
 
     const numberToWords = (num, currencySymbol) => {
-        if (num === 0) return 'Zero';
+        if (num === 0 || num === '0') return 'Zero';
+
+        const nInt = parseInt(num, 10);
+        if (Number.isNaN(nInt)) return '';
 
         const a = [
-            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
-            'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen',
+            '',
+            'One',
+            'Two',
+            'Three',
+            'Four',
+            'Five',
+            'Six',
+            'Seven',
+            'Eight',
+            'Nine',
+            'Ten',
+            'Eleven',
+            'Twelve',
+            'Thirteen',
+            'Fourteen',
+            'Fifteen',
+            'Sixteen',
+            'Seventeen',
+            'Eighteen',
+            'Nineteen',
         ];
         const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
@@ -81,17 +109,18 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
             return str.trim();
         };
 
+        let numVal = nInt;
         let result = '';
-        let crore = Math.floor(num / 10000000);
-        num %= 10000000;
+        let crore = Math.floor(numVal / 10000000);
+        numVal %= 10000000;
 
-        let lakh = Math.floor(num / 100000);
-        num %= 100000;
+        let lakh = Math.floor(numVal / 100000);
+        numVal %= 100000;
 
-        let thousand = Math.floor(num / 1000);
-        num %= 1000;
+        let thousand = Math.floor(numVal / 1000);
+        numVal %= 1000;
 
-        let hundreds = num;
+        let hundreds = numVal;
 
         if (crore > 0) {
             result += numberToWordsHelper(crore) + ' Crore ';
@@ -115,21 +144,32 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
             return;
         }
 
+        // optional: basic validation on overdue
+        if (overdueAmount !== '' && Number(overdueAmount) < 0) {
+            setOverdueAmountError(true);
+            return;
+        }
+
         const payload = {
             year: year,
             hub_amount: hubAmount,
             thali_status: thaliStatus,
+            // 👇 send overdue as well (backend can ignore if not used)
+            overdue_amount: overdueAmount === '' ? null : overdueAmount,
         };
 
         try {
-            const response = await fetch(`https://api.fmb52.com/api/hub/update/${row.family_id}`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
+            const response = await fetch(
+                `https://api.fmb52.com/api/hub/update/${row.family_id}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                }
+            );
 
             const result = await response.json();
 
@@ -187,6 +227,7 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
                             gap: 3,
                         }}
                     >
+                        {/* Header with avatar and details */}
                         <Box
                             sx={{
                                 display: 'flex',
@@ -260,11 +301,53 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
                                     fullWidth
                                     placeholder="Enter amount"
                                     error={hubAmountError}
-                                    helperText={hubAmountError ? "Hub Amount is required" : ""}
+                                    helperText={hubAmountError ? 'Hub Amount is required' : ''}
                                 />
-                                <Typography variant="body2" color="textSecondary" sx={{ mt: 1, ml: 1 }}>
-                                    {hubAmount ? numberToWords(hubAmount, currencySymbol) : 'Please enter the amount in numbers'}
+                                <Typography
+                                    variant="body2"
+                                    color="textSecondary"
+                                    sx={{ mt: 1, ml: 1 }}
+                                >
+                                    {hubAmount
+                                        ? numberToWords(hubAmount, currencySymbol)
+                                        : 'Please enter the amount in numbers'}
                                 </Typography>
+
+                                {/* 👇 Overdue field */}
+                                <Box sx={{ mt: 3 }}>
+                                    <Typography
+                                        variant="body2"
+                                        color="textSecondary"
+                                        gutterBottom
+                                    >
+                                        <strong>Overdue Amount</strong>
+                                    </Typography>
+                                    <TextField
+                                        type="number"
+                                        value={overdueAmount}
+                                        onChange={(e) => {
+                                            setOverdueAmount(e.target.value);
+                                            setOverdueAmountError(false);
+                                        }}
+                                        fullWidth
+                                        placeholder="Enter overdue amount (if any)"
+                                        error={overdueAmountError}
+                                        helperText={
+                                            overdueAmountError
+                                                ? 'Overdue amount cannot be negative'
+                                                : ''
+                                        }
+                                    />
+                                    <Typography
+                                        variant="body2"
+                                        color="textSecondary"
+                                        sx={{ mt: 1, ml: 1 }}
+                                    >
+                                        {overdueAmount
+                                            ? numberToWords(overdueAmount, currencySymbol)
+                                            : 'If there is any overdue amount, enter it here'}
+                                    </Typography>
+                                </Box>
                             </Grid>
 
                             <Grid item xs={12} md={6}>
@@ -272,38 +355,50 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
                                     <strong>Thali Status</strong>
                                 </Typography>
                                 <Select
-                                    value={thaliStatus || ""}
+                                    value={thaliStatus || ''}
                                     onChange={(e) => setThaliStatus(e.target.value)}
                                     displayEmpty
                                     sx={{ pt: 1.7, pb: 1.7 }}
                                     fullWidth
                                     renderValue={(selected) => {
                                         if (!selected) {
-                                            return <Typography color="textSecondary">Select Thali Status</Typography>;
+                                            return (
+                                                <Typography color="textSecondary">
+                                                    Select Thali Status
+                                                </Typography>
+                                            );
                                         }
                                         return thaliStatusOptions[selected] || selected;
                                     }}
                                     MenuProps={{
                                         disablePortal: true,
-                                        anchorOrigin: { vertical: "bottom", horizontal: "left" },
-                                        transformOrigin: { vertical: "top", horizontal: "left" },
+                                        anchorOrigin: {
+                                            vertical: 'bottom',
+                                            horizontal: 'left',
+                                        },
+                                        transformOrigin: {
+                                            vertical: 'top',
+                                            horizontal: 'left',
+                                        },
                                         PaperProps: {
                                             sx: {
                                                 mt: 1,
                                                 maxHeight: 200,
-                                                overflowY: "auto",
-                                            }
-                                        }
+                                                overflowY: 'auto',
+                                            },
+                                        },
                                     }}
                                 >
                                     <MenuItem value="" disabled>
                                         Select Thali Status
                                     </MenuItem>
-                                    {Object.entries(thaliStatusOptions).map(([value, label]) => (
-                                        <MenuItem key={value} value={value}>
-                                            {label}
-                                        </MenuItem>
-                                    ))}
+                                    {Object.entries(thaliStatusOptions).map(
+                                        ([value, label]) => (
+                                            <MenuItem key={value} value={value}>
+                                                {label}
+                                            </MenuItem>
+                                        )
+                                    )}
                                 </Select>
                             </Grid>
                         </Grid>
@@ -313,7 +408,12 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
                     <Button onClick={onClose} color="primary" variant="outlined">
                         Cancel
                     </Button>
-                    <Button onClick={handleSave} color="primary" variant="contained" disabled={!hubAmount}>
+                    <Button
+                        onClick={handleSave}
+                        color="primary"
+                        variant="contained"
+                        disabled={!hubAmount}
+                    >
                         Save
                     </Button>
                 </DialogActions>
@@ -324,7 +424,11 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
                 onClose={handleSnackbarClose}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
