@@ -12,6 +12,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -24,20 +25,64 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
 import { useUser } from "../../../contexts/UserContext";
 
-const ZabihatForm = ({ refresh, showMsg, editingRow, clearEditing }) => {
+const ZabihatForm = ({ onSaved, showMsg, editingRow, clearEditing }) => {
   const { token } = useUser();
   const [collapsed, setCollapsed] = useState(false);
 
   const [its, setIts] = useState("");
+  const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
   const [type] = useState("zabihat"); // fixed value
   const [date, setDate] = useState(null);
 
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  const isEditing = Boolean(editingRow?.id);
+
+  // 🔁 Fetch all users for dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setUsersLoading(true);
+        const res = await fetch("https://api.fmb52.com/api/all_users", {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        const data = await res.json();
+
+        // Accept either plain array or {data: []}
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else if (Array.isArray(data.data)) {
+          setUsers(data.data);
+        } else {
+          setUsers([]);
+        }
+      } catch (e) {
+        console.error("Error fetching users:", e);
+        showMsg?.("Failed to load users list.", "error");
+        setUsers([]);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 🔁 Populate when editingRow changes
   useEffect(() => {
     if (editingRow) {
-      setIts(editingRow.its || "");
+      setIts(
+        editingRow.its !== undefined && editingRow.its !== null
+          ? String(editingRow.its)
+          : ""
+      );
       setAmount(
         editingRow.amount !== undefined && editingRow.amount !== null
           ? String(editingRow.amount)
@@ -45,81 +90,114 @@ const ZabihatForm = ({ refresh, showMsg, editingRow, clearEditing }) => {
       );
       setRemarks(editingRow.remarks || "");
       setDate(editingRow.date || null);
+      setName(editingRow.name || "");
     } else {
       setIts("");
+      setName("");
       setAmount("");
       setRemarks("");
       setDate(null);
     }
   }, [editingRow]);
 
+  // If editing row has ITS and we load users later, backfill name
+  useEffect(() => {
+    if (!editingRow?.its || !users.length) return;
+
+    const found = users.find(
+      (u) => u.its && String(u.its) === String(editingRow.its)
+    );
+    if (found) setName(found.name || "");
+  }, [editingRow, users]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleCollapseToggle = () => setCollapsed((prev) => !prev);
-  const isEditing = Boolean(editingRow?.id);
 
-const handleSubmit = async () => {
-  if (!its || !amount || !date) {
-    showMsg?.("Please fill all required fields.", "warning");
-    return;
-  }
+  // ITS <-> Name sync
+  const handleItsChange = (value) => {
+    setIts(value);
 
-  try {
-    const payload = {
-      its,
-      amount: parseFloat(amount),
-      remarks,
-      type,
-      date,
-    };
+    if (!value) return;
 
-    let url = "https://api.fmb52.com/api/commitment/create";
-    let defaultSuccessMsg = "Commitment created successfully!";
+    const found = users.find(
+      (u) => u.its && String(u.its) === String(value)
+    );
+    if (found) {
+      setName(found.name || "");
+    }
+  };
 
-    // UPDATE MODE
-    if (editingRow?.id) {
-      url = `https://api.fmb52.com/api/commitment/update/${editingRow.id}`;
-      defaultSuccessMsg = "Commitment updated successfully!";
+  const handleSubmit = async () => {
+    // ITS optional; but amount + date required
+    if (!amount || !date) {
+      showMsg?.("Please fill all required fields (Amount & Date).", "warning");
+      return;
     }
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const payload = {
+        its: its || null, // nullable
+        name: name,
+        amount: parseFloat(amount),
+        remarks,
+        type,
+        date,
+      };
 
-    const result = await response.json();
+      let url = "https://api.fmb52.com/api/commitment/create";
+      let defaultSuccessMsg = "Commitment created successfully!";
 
-    if (result?.status) {
-      const msg = result.message || defaultSuccessMsg;
+      // UPDATE MODE
+      if (editingRow?.id) {
+        url = `https://api.fmb52.com/api/commitment/update/${editingRow.id}`;
+        defaultSuccessMsg = "Commitment updated successfully!";
+      }
 
-      showMsg?.(msg, "success");
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
 
-      // Reset form
-      setIts("");
-      setAmount("");
-      setRemarks("");
-      setDate(null);
+      const result = await response.json();
 
-      // Clear edit mode
-      clearEditing?.();
+      if (response.ok) {
+        const msg = result.message || defaultSuccessMsg;
 
-      // Refresh table
-      refresh?.();
-    } else {
-      showMsg?.(result.message || "Failed to save commitment.", "error");
+        showMsg?.(msg, "success");
+
+        // Reset form
+        setIts("");
+        setName("");
+        setAmount("");
+        setRemarks("");
+        setDate(null);
+
+        onSaved?.();
+      } else {
+        showMsg?.(result.message || "Failed to save commitment.", "error");
+      }
+    } catch (err) {
+      console.error("Error creating/updating commitment:", err);
+      showMsg?.("An error occurred while submitting.", "error");
     }
-  } catch (err) {
-    console.error("Error creating/updating commitment:", err);
-    showMsg?.("An error occurred while submitting.", "error");
-  }
-};
-
+  };
 
   const handleCancelEdit = () => {
     clearEditing?.();
   };
+
+  // Selected value for Autocomplete (match by both name & ITS when possible)
+  const selectedUser =
+    users.find(
+      (u) =>
+        u.name === name &&
+        String(u.its ?? "") === String(its ?? "")
+    ) ||
+    users.find((u) => u.name === name) ||
+    null;
 
   return (
     <AppTheme>
@@ -188,17 +266,56 @@ const handleSubmit = async () => {
 
         <Collapse in={!collapsed}>
           <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="ITS Number"
-                value={its}
-                onChange={(e) => setIts(e.target.value)}
-                fullWidth
-                required
+            {/* NAME AUTOCOMPLETE */}
+            <Grid item xs={12} sm={6} md={6}>
+              <Autocomplete
+                options={users}
+                loading={usersLoading}
+                value={selectedUser}
+                getOptionLabel={(option) => {
+                  if (!option) return "";
+                  const n = option.name || "";
+                  const i = option.its ? ` (${option.its})` : "";
+                  return `${n}${i}`;
+                }}
+                onChange={(event, newValue) => {
+                  if (newValue) {
+                    setName(newValue.name || "");
+                    setIts(newValue.its ? String(newValue.its) : "");
+                  } else {
+                    setName("");
+                    setIts("");
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Name"
+                    fullWidth
+                    sx= {{
+                                                                  '& .MuiIconButton-root': {
+                                                                      border: 'none',
+                                                                      padding: 0,
+                                                                      margin: 0,
+                                                                      // backgroundColor: 'transparent',
+                                                                  },
+                                                              }}
+                  />
+                )}
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            {/* ITS (optional, linked to name) */}
+            <Grid item xs={12} sm={6} md={6}>
+              <TextField
+                label="ITS Number (optional)"
+                value={its}
+                onChange={(e) => handleItsChange(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
               <TextField
                 label="Amount"
                 type="number"
@@ -209,7 +326,7 @@ const handleSubmit = async () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <FormControl fullWidth required disabled>
                 <InputLabel>Type</InputLabel>
                 <Select value={type} label="Type">
@@ -218,7 +335,7 @@ const handleSubmit = async () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Date"

@@ -187,11 +187,11 @@ const MenuContentCoordinator = ({ open }) => {
         { label: "Transfers", path: "/transfers", icon: <TransferWithinAStationIcon /> },
       ],
     },
-        {
-      label: "Niyaz",
-      icon: <StarIcon />,
-      path: "/niyaz",
-    },
+    //     {
+    //   label: "Niyaz",
+    //   icon: <StarIcon />,
+    //   path: "/niyaz",
+    // },
     {
       label: "Bookings",
       icon: <EventIcon />,
@@ -199,8 +199,8 @@ const MenuContentCoordinator = ({ open }) => {
         { label: "Zabihat", path: "/zabihat", icon: <StarIcon /> },
         { label: "Salawat", path: "/salawat", icon: <StarIcon /> },
         { label: "Fateha", path: "/fateha", icon: <StarIcon /> },
-        { label: "Jaman", path: "/jaman", icon: <StarIcon /> },
-
+        { label: "FMB", path: "/jaman", icon: <StarIcon /> },
+        {label: "Niyaz", path:"/niyaz", icon: <StarIcon />},
 
         { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
       ],

@@ -26,7 +26,6 @@ const Zabihat = () => {
   const [snackbarMsg, setSnackbarMsg] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
 
-  // 🔁 which commitment is being edited
   const [editingCommitment, setEditingCommitment] = useState(null);
 
   const showMsg = (msg, severity = "info") => {
@@ -69,32 +68,37 @@ const Zabihat = () => {
     } finally {
       setLoading(false);
     }
-  }, [token, selectedYear]);
+  }, [token, selectedYear]); // add showMsg here too if ESLint complains
 
   useEffect(() => {
     fetchCommitments();
+  }, [fetchCommitments]);
+
+  // ✅ central callback after any successful save
+  const handleCommitmentSaved = useCallback(() => {
+    setEditingCommitment(null); // exit edit mode
+    fetchCommitments();         // refresh table
   }, [fetchCommitments]);
 
   return (
     <AppTheme>
       <CssBaseline />
 
-      {/* Form: pass refresh + showMsg + editing state */}
       <ZabihatForm
-        refresh={fetchCommitments}
+        onSaved={handleCommitmentSaved}
         showMsg={showMsg}
         editingRow={editingCommitment}
         clearEditing={() => setEditingCommitment(null)}
       />
 
-      {/* Table: pass data + refresh + showMsg + edit handler */}
       <ZabihatTable
         data={rows}
-        refresh={fetchCommitments}
+        refresh={fetchCommitments} // still used for delete / receipts
         showMsg={showMsg}
         onEditRow={(row) => setEditingCommitment(row)}
       />
 
+      {/* Backdrop + Snackbar stay the same */}
       <Backdrop
         sx={{ color: "#fff", zIndex: (t) => t.zIndex.drawer + 1 }}
         open={loading}
@@ -121,4 +125,6 @@ const Zabihat = () => {
   );
 };
 
+
 export default Zabihat;
+      

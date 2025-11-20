@@ -1,11 +1,17 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Box, CssBaseline, Paper, Backdrop, CircularProgress, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  CssBaseline,
+  Paper,
+  Backdrop,
+  CircularProgress,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
 
 import { useUser } from "../../contexts/UserContext";
 import { useOutletContext } from "react-router-dom";
-
-// ⬇️ Import your two components (adjust paths if different)
 import JamanForm from "../../components/bookings/jaman/JamanForm";
 import JamanTable from "../../components/bookings/jaman/JamanTable";
 
@@ -16,10 +22,12 @@ const Jaman = () => {
   const { selectedYear } = useOutletContext() || {};
 
   const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState([]); // commitments array
+  const [rows, setRows] = useState([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+
+  const [editingCommitment, setEditingCommitment] = useState(null);
 
   const showMsg = (msg, severity = "info") => {
     setSnackbarMsg(msg);
@@ -27,28 +35,29 @@ const Jaman = () => {
     setSnackbarOpen(true);
   };
 
-    useEffect(() => {
+  useEffect(() => {
     document.title = "Zabihat - FMB 52";
   }, []);
 
   const fetchCommitments = useCallback(async () => {
     setLoading(true);
     try {
-      const resp = await fetch(`https://api.fmb52.com/api/commitment/retrieve`, {
-        method: "POST", // matches your convention
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-
-      });
+      const resp = await fetch(
+        `https://api.fmb52.com/api/commitment/retrieve`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
 
       if (!resp.ok) {
         throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
       }
 
       const json = await resp.json();
-      // Expecting shape { code, status, message, data: [...] }
       setRows(Array.isArray(json?.data) ? json.data : []);
       if (!json?.status) {
         showMsg(json?.message || "Failed to fetch commitments.", "warning");
@@ -60,25 +69,41 @@ const Jaman = () => {
     } finally {
       setLoading(false);
     }
-  }, [token, selectedYear]);
+  }, [token, selectedYear]); // add showMsg here too if ESLint complains
 
   useEffect(() => {
     fetchCommitments();
+  }, [fetchCommitments]);
+
+  // ✅ central callback after any successful save
+  const handleCommitmentSaved = useCallback(() => {
+    setEditingCommitment(null); // exit edit mode
+    fetchCommitments();         // refresh table
   }, [fetchCommitments]);
 
   return (
     <AppTheme>
       <CssBaseline />
 
+      <JamanForm
+        onSaved={handleCommitmentSaved}
+        showMsg={showMsg}
+        editingRow={editingCommitment}
+        clearEditing={() => setEditingCommitment(null)}
+      />
 
-          {/* Pass data + refresh to the form (so it can re-fetch after create/update) */}
-          <JamanForm data={rows} refresh={fetchCommitments} showMsg={showMsg} />
+      <JamanTable
+        data={rows}
+        refresh={fetchCommitments} // still used for delete / receipts
+        showMsg={showMsg}
+        onEditRow={(row) => setEditingCommitment(row)}
+      />
 
-          {/* Pass data to the table; also pass refresh/msg if you want row actions to refetch */}
-          <JamanTable data={rows} refresh={fetchCommitments} showMsg={showMsg} />
-
-
-      <Backdrop sx={{ color: "#fff", zIndex: (t) => t.zIndex.drawer + 1 }} open={loading}>
+      {/* Backdrop + Snackbar stay the same */}
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (t) => t.zIndex.drawer + 1 }}
+        open={loading}
+      >
         <CircularProgress color="inherit" />
       </Backdrop>
 
@@ -88,7 +113,12 @@ const Jaman = () => {
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} variant="filled" sx={{ width: "100%" }}>
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
           {snackbarMsg}
         </Alert>
       </Snackbar>
@@ -96,4 +126,6 @@ const Jaman = () => {
   );
 };
 
+
 export default Jaman;
+      

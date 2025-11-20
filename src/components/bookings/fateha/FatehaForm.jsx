@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
   Grid,
   TextField,
   Button,
-  Snackbar,
-  Alert,
   CssBaseline,
   IconButton,
   FormControl,
@@ -14,6 +12,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -26,80 +25,179 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import Collapse from "@mui/material/Collapse";
 import { useUser } from "../../../contexts/UserContext";
 
-
-const FatehaForm = ({ refresh }) => {
+const FatehaForm = ({ onSaved, showMsg, editingRow, clearEditing }) => {
   const { token } = useUser();
   const [collapsed, setCollapsed] = useState(false);
 
   const [its, setIts] = useState("");
+  const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [type] = useState("fateha"); // ✅ fixed value
+  const [type] = useState("fateha"); // fixed value
   const [date, setDate] = useState(null);
 
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  const isEditing = Boolean(editingRow?.id);
+
+  // 🔁 Fetch all users for dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setUsersLoading(true);
+        const res = await fetch("https://api.fmb52.com/api/all_users", {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+
+        const data = await res.json();
+
+        // Accept either plain array or {data: []}
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else if (Array.isArray(data.data)) {
+          setUsers(data.data);
+        } else {
+          setUsers([]);
+        }
+      } catch (e) {
+        console.error("Error fetching users:", e);
+        showMsg?.("Failed to load users list.", "error");
+        setUsers([]);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 🔁 Populate when editingRow changes
+  useEffect(() => {
+    if (editingRow) {
+      setIts(
+        editingRow.its !== undefined && editingRow.its !== null
+          ? String(editingRow.its)
+          : ""
+      );
+      setAmount(
+        editingRow.amount !== undefined && editingRow.amount !== null
+          ? String(editingRow.amount)
+          : ""
+      );
+      setRemarks(editingRow.remarks || "");
+      setDate(editingRow.date || null);
+      setName(editingRow.name || "");
+    } else {
+      setIts("");
+      setName("");
+      setAmount("");
+      setRemarks("");
+      setDate(null);
+    }
+  }, [editingRow]);
+
+  // If editing row has ITS and we load users later, backfill name
+  useEffect(() => {
+    if (!editingRow?.its || !users.length) return;
+
+    const found = users.find(
+      (u) => u.its && String(u.its) === String(editingRow.its)
+    );
+    if (found) setName(found.name || "");
+  }, [editingRow, users]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCollapseToggle = () => setCollapsed((prev) => !prev);
-  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
+
+  // ITS <-> Name sync
+  const handleItsChange = (value) => {
+    setIts(value);
+
+    if (!value) return;
+
+    const found = users.find(
+      (u) => u.its && String(u.its) === String(value)
+    );
+    if (found) {
+      setName(found.name || "");
+    }
+  };
 
   const handleSubmit = async () => {
-    if (!its || !amount || !date) {
-      setSnackbar({
-        open: true,
-        message: "Please fill all required fields.",
-        severity: "warning",
-      });
+    // ITS optional; but amount + date required
+    if (!amount || !date) {
+      showMsg?.("Please fill all required fields (Amount & Date).", "warning");
       return;
     }
 
     try {
-      const response = await fetch(`https://api.fmb52.com/api/commitment/create`, {
+      const payload = {
+        its: its || null, // nullable
+        name: name,
+        amount: parseFloat(amount),
+        remarks,
+        type,
+        date,
+      };
+
+      let url = "https://api.fmb52.com/api/commitment/create";
+      let defaultSuccessMsg = "Commitment created successfully!";
+
+      // UPDATE MODE
+      if (editingRow?.id) {
+        url = `https://api.fmb52.com/api/commitment/update/${editingRow.id}`;
+        defaultSuccessMsg = "Commitment updated successfully!";
+      }
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          its,
-          amount: parseFloat(amount),
-          remarks,
-          type, // always zabihat
-          date,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
-      if (result?.status) {
-        setSnackbar({
-          open: true,
-          message: result.message || "Commitment created successfully!",
-          severity: "success",
-        });
+
+      if (response.ok) {
+        const msg = result.message || defaultSuccessMsg;
+
+        showMsg?.(msg, "success");
+
+        // Reset form
         setIts("");
+        setName("");
         setAmount("");
         setRemarks("");
         setDate(null);
-        refresh && refresh();
+
+        onSaved?.();
       } else {
-        setSnackbar({
-          open: true,
-          message: result.message || "Failed to create commitment.",
-          severity: "error",
-        });
+        showMsg?.(result.message || "Failed to save commitment.", "error");
       }
     } catch (err) {
-      console.error("Error creating commitment:", err);
-      setSnackbar({
-        open: true,
-        message: "An error occurred while submitting.",
-        severity: "error",
-      });
+      console.error("Error creating/updating commitment:", err);
+      showMsg?.("An error occurred while submitting.", "error");
     }
   };
+
+  const handleCancelEdit = () => {
+    clearEditing?.();
+  };
+
+  // Selected value for Autocomplete (match by both name & ITS when possible)
+  const selectedUser =
+    users.find(
+      (u) =>
+        u.name === name &&
+        String(u.its ?? "") === String(its ?? "")
+    ) ||
+    users.find((u) => u.name === name) ||
+    null;
 
   return (
     <AppTheme>
@@ -136,7 +234,7 @@ const FatehaForm = ({ refresh }) => {
               borderRadius: 1,
             }}
           >
-            Add Fateha
+            {isEditing ? "Edit Fateha" : "Add Fateha"}
           </Typography>
           <IconButton
             onClick={handleCollapseToggle}
@@ -168,17 +266,56 @@ const FatehaForm = ({ refresh }) => {
 
         <Collapse in={!collapsed}>
           <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="ITS Number"
-                value={its}
-                onChange={(e) => setIts(e.target.value)}
-                fullWidth
-                required
+            {/* NAME AUTOCOMPLETE */}
+            <Grid item xs={12} sm={6} md={6}>
+              <Autocomplete
+                options={users}
+                loading={usersLoading}
+                value={selectedUser}
+                getOptionLabel={(option) => {
+                  if (!option) return "";
+                  const n = option.name || "";
+                  const i = option.its ? ` (${option.its})` : "";
+                  return `${n}${i}`;
+                }}
+                onChange={(event, newValue) => {
+                  if (newValue) {
+                    setName(newValue.name || "");
+                    setIts(newValue.its ? String(newValue.its) : "");
+                  } else {
+                    setName("");
+                    setIts("");
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Name"
+                    fullWidth
+                    sx= {{
+                                                                  '& .MuiIconButton-root': {
+                                                                      border: 'none',
+                                                                      padding: 0,
+                                                                      margin: 0,
+                                                                      // backgroundColor: 'transparent',
+                                                                  },
+                                                              }}
+                  />
+                )}
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            {/* ITS (optional, linked to name) */}
+            <Grid item xs={12} sm={6} md={6}>
+              <TextField
+                label="ITS Number (optional)"
+                value={its}
+                onChange={(e) => handleItsChange(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4}>
               <TextField
                 label="Amount"
                 type="number"
@@ -189,8 +326,7 @@ const FatehaForm = ({ refresh }) => {
               />
             </Grid>
 
-            {/* ✅ Fixed Type Field (Default Zabihat, Disabled) */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <FormControl fullWidth required disabled>
                 <InputLabel>Type</InputLabel>
                 <Select value={type} label="Type">
@@ -199,8 +335,7 @@ const FatehaForm = ({ refresh }) => {
               </FormControl>
             </Grid>
 
-            {/* ✅ DatePicker */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   label="Date"
@@ -244,8 +379,20 @@ const FatehaForm = ({ refresh }) => {
           </Grid>
         </Collapse>
 
-        {/* Submit Button */}
-        <Box sx={{ textAlign: "right", mt: 3 }}>
+        {/* Buttons */}
+        <Box
+          sx={{
+            mt: 3,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 1,
+          }}
+        >
+          {isEditing && (
+            <Button variant="outlined" onClick={handleCancelEdit}>
+              Cancel Edit
+            </Button>
+          )}
           <Button
             variant="contained"
             color="primary"
@@ -256,25 +403,9 @@ const FatehaForm = ({ refresh }) => {
               "&:hover": { backgroundColor: yellow[200], color: "#000" },
             }}
           >
-            Submit
+            {isEditing ? "Update" : "Submit"}
           </Button>
         </Box>
-
-        {/* Snackbar */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleSnackbarClose}
-            severity={snackbar.severity}
-            sx={{ width: "100%" }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
       </Box>
     </AppTheme>
   );
