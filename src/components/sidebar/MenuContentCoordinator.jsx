@@ -193,14 +193,14 @@ const MenuContentCoordinator = ({ open }) => {
     //   path: "/niyaz",
     // },
     {
-      label: "Bookings",
+      label: "Contributions",
       icon: <EventIcon />,
       subOptions: [
         { label: "Zabihat", path: "/zabihat", icon: <StarIcon /> },
-        { label: "Salawat", path: "/salawat", icon: <StarIcon /> },
-        { label: "Fateha", path: "/fateha", icon: <StarIcon /> },
-        { label: "FMB", path: "/jaman", icon: <StarIcon /> },
-        {label: "Niyaz", path:"/niyaz", icon: <StarIcon />},
+        { label: "Salawat/Fateha", path: "/salawat_fateha", icon: <StarIcon /> },
+        // { label: "Fateha", path: "/fateha", icon: <StarIcon /> },
+        { label: "⁠Extra Niyaz in Faiz Thaali", path: "/extra_niyaz_in_faiz_thaali", icon: <StarIcon /> },
+        {label: "Miqaat Niyaz", path:"/miqaat_niyaz", icon: <StarIcon />},
 
         { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
       ],

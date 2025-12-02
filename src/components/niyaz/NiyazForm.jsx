@@ -249,7 +249,7 @@ const NiyazForm = () => {
                             borderRadius: 1,
                         }}
                     >
-                        Add/Update Niyaz
+                        Add/Update Miqaat Niyaz
                     </Typography>
                     {/* Collapse Icon */}
                     <IconButton

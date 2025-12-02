@@ -26,31 +26,33 @@ const CoordinatorDashboard = ({ year, sector, subSector, hofCount }) => {
       <CssBaseline />
       <Box sx={{ width: "100%", pr: 3, pb: 3 }}>
         <Grid container spacing={2}>
+                    <Grid item xs={12} sm={12} md={6}>
+            <AccountStats year={year} sector={sector} subSector={subSector} />
+          </Grid>
+                    <Grid item xs={12} sm={12} md={6}>
+            <MohallaWiseStats year={year} sector={sector} subSector={subSector} />
+          </Grid>
         <Grid item xs={12} sm={12} md={6}>
             <HubDistributionStats year={year} sector={sector} subSector={subSector} />
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             <NiyazStats year={year} sector={sector} subSector={subSector} />
           </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <MohallaWiseStats year={year} sector={sector} subSector={subSector} />
-          </Grid>
+
           <Grid item xs={12} sm={12} md={6}>
             <ThaaliStats year={year} sector={sector} subSector={subSector} />
           </Grid>
           <Grid item xs={12} sm={12} md={6}>
             <MumeneenStats year={year} sector={sector} subSector={subSector} />
           </Grid>
-          <Grid item xs={12} sm={12} md={6}>
-            <AccountStats year={year} sector={sector} subSector={subSector} />
-          </Grid>
-          <Grid item xs={12} sm={12} md={6}>
+
+          {/* <Grid item xs={12} sm={12} md={6}>
             <AccountBreakupStats
               year={year}
               sector={sector}
               subSector={subSector}
             />
-          </Grid>
+          </Grid> */}
           {/* <Grid item xs={12}>
             <SectorsStats year={year} sector={sector} subSector={subSector} />
           </Grid> */}

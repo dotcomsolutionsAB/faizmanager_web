@@ -269,7 +269,7 @@ const NiyazTable = () => {
                 borderRadius: 1,
             }}
         >
-            Niyaz
+            Miqaat Niyaz
         </Typography>
          <Box
                             sx={{

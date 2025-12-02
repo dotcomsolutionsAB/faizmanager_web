@@ -36,6 +36,7 @@ import ContextWrapper from './contexts/ContextWrapper';
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 import Hierarchy from './pages/hierarchy/Hierarchy';
 import Jaman from './pages/bookings/Jaman';
+import SalawatFateha from './pages/bookings/SalawatFateha';
         
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
@@ -87,17 +88,17 @@ function App() {
             <Route path="/sub_sector" element={<SubSector />} />
             <Route path="/transfers" element={<Transfers />} />
             <Route path="/niyaz_date" element={<NiyazDate />} />
-            <Route path="/salawat" element={<Salawat />} />
+            <Route path="/salawat_fateha" element={<SalawatFateha />} />
             <Route path="/zabihat" element={<Zabihat />} />
-            <Route path="/fateha" element={<Fateha />} />
-            <Route path="/jaman" element={<Jaman />} />
+            {/* <Route path="/fateha" element={<Fateha />} /> */}
+            <Route path="/extra_niyaz_in_faiz_thaali" element={<Jaman />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/roles" element={<Roles />} />
             <Route path="/user_access" element={<UserAccess />} />
             <Route path="/jamaat" element={<JamaatTable />} />
-            <Route path="/niyaz" element={<Niyaz />} />
+            <Route path="/miqaat_niyaz" element={<Niyaz />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
             <Route path="/hierarchy" element={<Hierarchy />} />

@@ -389,9 +389,9 @@ export default function MohallaWiseStats({ year, sector, subSector }) {
               <TableRow>
                 <TableCell sx={{ fontWeight: "bold" }}>Sector</TableCell>
                 <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Total HOF</TableCell>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Done</TableCell>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Pending</TableCell>
-                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Amount</TableCell>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Hub</TableCell>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Paid</TableCell>
+                <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Due</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -399,13 +399,14 @@ export default function MohallaWiseStats({ year, sector, subSector }) {
                 <TableRow key={index}>
                   <TableCell sx={{ fontWeight: "bold" }}>{item.sector}</TableCell>
                   <TableCell sx={{ textAlign: "center" }}>{item.total_hof}</TableCell>
+                  <TableCell sx={{ textAlign: "right" }}>{formatCurrency(item.amount)}</TableCell>
+
                   <TableCell sx={{ color: "#F4A261", fontWeight: "bold", textAlign: "center", cursor: 'pointer' }} onClick={() => handleOpenDialog(item.sector_id, "done")}>
                     {item.done}
                   </TableCell>
                   <TableCell sx={{ color: "#E76F51", fontWeight: "bold", textAlign: "center", cursor: 'pointer' }} onClick={() => handleOpenDialog(item.sector_id, "pending")}>
                     {item.pending}
                   </TableCell>
-                  <TableCell sx={{ textAlign: "right" }}>{formatCurrency(item.amount)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

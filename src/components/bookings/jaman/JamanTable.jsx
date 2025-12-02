@@ -239,7 +239,7 @@ const JamanTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             borderRadius: 1,
           }}
         >
-          FMB
+          Extra Niyaz in Faiz Thaali
         </Typography>
 
         <Box
