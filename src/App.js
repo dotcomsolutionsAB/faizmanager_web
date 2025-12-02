@@ -37,6 +37,7 @@ import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 import Hierarchy from './pages/hierarchy/Hierarchy';
 import Jaman from './pages/bookings/Jaman';
 import SalawatFateha from './pages/bookings/SalawatFateha';
+import MiqaatNiyaz from './pages/bookings/MiqaatNiyaz';
         
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
@@ -98,7 +99,7 @@ function App() {
             <Route path="/roles" element={<Roles />} />
             <Route path="/user_access" element={<UserAccess />} />
             <Route path="/jamaat" element={<JamaatTable />} />
-            <Route path="/miqaat_niyaz" element={<Niyaz />} />
+            <Route path="/miqaat_niyaz" element={<MiqaatNiyaz />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
             <Route path="/hierarchy" element={<Hierarchy />} />
