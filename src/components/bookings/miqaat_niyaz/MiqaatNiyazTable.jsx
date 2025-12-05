@@ -68,17 +68,42 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
 
   const columns = [
     {
-      field: "date",
-      headerName: "Date",
-      flex: 0.9,
-      renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
-      ),
+      field: 'date',
+      headerName: 'Date',
+      flex: 0.7,
+      sortable: true,
+      renderCell: (params) => {
+        const d = params.row.date;
+  let formatted = d ? d.split('-').reverse().join('-') : '';
+  return(
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            // justifyContent: 'center',
+            height: '100%',
+            width: '100%',
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              // fontWeight: 'bold',
+              textAlign: 'center',
+              color: brown[700],
+            }}
+          >
+            {formatted}
+          </Typography>
+        </Box>
+  )
+      },
     },
+
     {
       field: "its",
       headerName: "ITS",
-      flex: 0.9,
+      flex: 0.7,
       renderCell: (params) => (
         <span style={{ color: brown[700] }}>{params.value}</span>
       ),
@@ -88,7 +113,8 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
       headerName: "Name",
       flex: 1.4,
       renderCell: (params) => (
-        <span style={{ fontWeight: 700, color: brown[700] }}>
+        <span style={{ fontWeight: 700, color: brown[700],  whiteSpace: "normal",
+        wordBreak: "break-word"}}>
           {params.value}
         </span>
       ),
@@ -102,19 +128,9 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
       ),
     },
     {
-      field: "type",
-      headerName: "Type",
-      flex: 0.8,
-      renderCell: (params) => (
-        <span style={{ color: brown[700], textTransform: "capitalize" }}>
-          {params.value}
-        </span>
-      ),
-    },
-    {
       field: "amount",
       headerName: "Amount",
-      flex: 0.9,
+      flex: 1.2,
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -179,17 +195,11 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
       headerName: "Remarks",
       flex: 0.9,
       renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
+        <span style={{ color: brown[700],  whiteSpace: "normal",
+        wordBreak: "break-word" }}>{params.value}</span>
       ),
     },
-    {
-      field: "created_by",
-      headerName: "Created by",
-      flex: 0.9,
-      renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
-      ),
-    },
+
     {
       field: "actions",
       headerName: "Actions",
@@ -269,10 +279,17 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             columns={columns}
             getRowId={(row) => row.id ?? `${row.its}-${row.date}-${row.type}`}
             rowHeight={100}
-            checkboxSelection
             pagination
             pageSizeOptions={[5, 10, 25]}
+            
             sx={{
+               "& .MuiDataGrid-cell": {
+      whiteSpace: "normal !important",
+      wordBreak: "break-word !important",
+      lineHeight: "1.3 !important",
+      display: "flex",
+      alignItems: "center",
+    },
               "& .MuiDataGrid-cell:hover": { backgroundColor: yellow[200] },
               "& .MuiDataGrid-row:hover": { backgroundColor: yellow[100] },
               "& .MuiDataGrid-columnHeaderTitle": { color: yellow[400] },

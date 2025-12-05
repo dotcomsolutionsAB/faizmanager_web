@@ -134,7 +134,10 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
       headerName: 'Date',
       width: 150,
       sortable: true,
-      renderCell: (params) => (
+      renderCell: (params) => {
+        const d = params.row.date;
+  let formatted = d ? d.split('-').reverse().join('-') : '';
+  return(
         <Box
           sx={{
             display: 'flex',
@@ -152,16 +155,17 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
               color: brown[700],
             }}
           >
-            {params.row.date}
+            {formatted}
           </Typography>
         </Box>
-      ),
+  )
+      },
     },
 
     {
       field: 'hof',
       headerName: 'HOF',
-      width: 300,
+      width: 200,
       sortable: true,
       renderCell: (params) => (
         <Box
@@ -190,7 +194,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     {
       field: 'menu',
       headerName: 'Menu',
-      width: 150,
+      width: 300,
       sortable: true,
       renderCell: (params) => (
         <Box
@@ -218,7 +222,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     {
       field: 'niyaz by',
       headerName: 'Niyaz By',
-      width: 150,
+      width: 200,
       sortable: true,
       renderCell: (params) => (
         <Box
@@ -238,7 +242,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
               color: brown[700],
             }}
           >
-            {params.row.niyaz_by}
+            {params.row.niaz_by}
           </Typography>
         </Box>
       ),

@@ -202,7 +202,7 @@ const MenuContentCoordinator = ({ open }) => {
         { label: "⁠Extra Niyaz in Faiz Thaali", path: "/extra_niyaz_in_faiz_thaali", icon: <StarIcon /> },
         {label: "Miqaat Niyaz", path:"/miqaat_niyaz", icon: <StarIcon />},
 
-        { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
+        // { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
       ],
     },
             {
@@ -210,11 +210,11 @@ const MenuContentCoordinator = ({ open }) => {
       icon: <EventIcon />,
       path: "/niyaz-calendar",
     },
-        {
-      label: "Hierarchy",
-      icon: <AccountTreeIcon />,
-      path: "/hierarchy",
-    },
+    //     {
+    //   label: "Hierarchy",
+    //   icon: <AccountTreeIcon />,
+    //   path: "/hierarchy",
+    // },
         {
       label: "Menu",
       icon: <RestaurantMenuIcon />,

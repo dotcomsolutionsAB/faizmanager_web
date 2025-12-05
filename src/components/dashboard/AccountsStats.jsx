@@ -305,7 +305,7 @@ export default function AccountStats({ year, sector, subSector }) {
                   gutterBottom
                   sx={{ color: 'text.secondary', fontSize: { xs: 12, sm: 14 }, textAlign: 'center' }}
                 >
-                  Total Paid
+                  Total Received
                 </Typography>
                 <Typography variant="h6" align="center"  sx={{
                       whiteSpace: 'nowrap', // Prevent text wrapping
