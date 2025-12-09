@@ -270,43 +270,72 @@ const SalawatFatehaForm = ({ onSaved, showMsg, editingRow, clearEditing }) => {
 
         <Collapse in={!collapsed}>
           <Grid container spacing={3} alignItems="center" sx={{ pr: 5 }}>
-            {/* NAME AUTOCOMPLETE */}
-            <Grid item xs={12} sm={6} md={6}>
-              <Autocomplete
-                options={users}
-                loading={usersLoading}
-                value={selectedUser}
-                getOptionLabel={(option) => {
-                  if (!option) return "";
-                  const n = option.name || "";
-                  const i = option.its ? ` (${option.its})` : "";
-                  return `${n}${i}`;
-                }}
-                onChange={(event, newValue) => {
-                  if (newValue) {
-                    setName(newValue.name || "");
-                    setIts(newValue.its ? String(newValue.its) : "");
-                  } else {
-                    setName("");
-                    setIts("");
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Name"
-                    fullWidth
-                    sx={{
-                      "& .MuiIconButton-root": {
-                        border: "none",
-                        padding: 0,
-                        margin: 0,
-                      },
-                    }}
-                  />
-                )}
-              />
-            </Grid>
+{/* NAME AUTOCOMPLETE */}
+<Grid item xs={12} sm={6} md={6}>
+  <Autocomplete
+    freeSolo                    // 👈 allow any text, not just options
+    options={users}
+    loading={usersLoading}
+    value={selectedUser}        // selected option (if any)
+    inputValue={name}           // 👈 actual text in the box
+    getOptionLabel={(option) => {
+      if (!option) return "";
+      // When freeSolo, option can be a string
+      if (typeof option === "string") return option;
+      const n = option.name || "";
+      const i = option.its ? ` (${option.its})` : "";
+      return `${n}${i}`;
+    }}
+    onInputChange={(event, newInputValue) => {
+      // user typing freely
+      setName(newInputValue);
+
+      // If what they type exactly matches a user, auto-set ITS
+      const found = users.find(
+        (u) => u.name && u.name.toLowerCase() === newInputValue.toLowerCase()
+      );
+      if (found) {
+        setIts(found.its ? String(found.its) : "");
+      } else {
+        // Otherwise keep ITS blank (or leave as-is if you prefer)
+        // setIts("");
+      }
+    }}
+    onChange={(event, newValue) => {
+      // Called when user picks from dropdown OR presses Enter on an option
+      if (!newValue) {
+        setName("");
+        setIts("");
+        return;
+      }
+
+      if (typeof newValue === "string") {
+        // free text selection (e.g. user types and hits Enter)
+        setName(newValue);
+        // setIts(""); // keep or clear ITS as per your logic
+      } else {
+        // actual option from list
+        setName(newValue.name || "");
+        setIts(newValue.its ? String(newValue.its) : "");
+      }
+    }}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        label="Name"
+        fullWidth
+        sx={{
+          "& .MuiIconButton-root": {
+            border: "none",
+            padding: 0,
+            margin: 0,
+          },
+        }}
+      />
+    )}
+  />
+</Grid>
+
 
             {/* ITS (optional, linked to name) */}
             <Grid item xs={12} sm={6} md={6}>
