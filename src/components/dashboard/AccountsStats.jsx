@@ -81,7 +81,7 @@ export default function AccountStats({ year, sector, subSector }) {
   const totalAmount = validTotalDueAmount + validTotalPaidAmount || 1;
 
   const data = [
-    { name: 'Paid', value: validTotalPaidAmount, color: '#14213d', percentage: ((validTotalPaidAmount / totalAmount) * 100).toFixed(2)   },  // Green for 'Taking'
+    { name: 'Received', value: validTotalPaidAmount, color: '#14213d', percentage: ((validTotalPaidAmount / totalAmount) * 100).toFixed(2)   },  // Green for 'Taking'
     { name: 'Due', value: validTotalDueAmount, color: '#fca311',  percentage: ((validTotalDueAmount / totalAmount) * 100).toFixed(2)  }      // Blue for 'Not Taking'
   ];
 

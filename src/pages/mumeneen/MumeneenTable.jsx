@@ -56,6 +56,7 @@ function MumeneenTable() {
   const [filterType, setFilterType] = useState(searchParams.get('filterType') || 'HOF');
   const [hubFilter, setHubFilter] = useState(searchParams.get('hubFilter') || 'All');
   const [thaliStatusFilter, setThaliStatusFilter] = useState(searchParams.get('thaliStatusFilter') || 'all');
+  
 
   const [paginationModel, setPaginationModel] = useState({
     page: Number(searchParams.get('page')) || 0,

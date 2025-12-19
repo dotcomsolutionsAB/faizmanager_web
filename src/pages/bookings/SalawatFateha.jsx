@@ -37,7 +37,7 @@ const SalawatFateha = () => {
   };
 
   useEffect(() => {
-    document.title = "Salawat - FMB 52";
+    document.title = "Salawat/Fateha - FMB 52";
   }, []);
 
   const fetchCommitments = useCallback(async () => {

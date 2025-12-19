@@ -402,10 +402,10 @@ export default function MohallaWiseStats({ year, sector, subSector }) {
                   <TableCell sx={{ textAlign: "right" }}>{formatCurrency(item.amount)}</TableCell>
 
                   <TableCell sx={{ color: "#F4A261", fontWeight: "bold", textAlign: "center", cursor: 'pointer' }} onClick={() => handleOpenDialog(item.sector_id, "done")}>
-                    {item.done}
+                    {formatCurrency(item.done)}
                   </TableCell>
                   <TableCell sx={{ color: "#E76F51", fontWeight: "bold", textAlign: "center", cursor: 'pointer' }} onClick={() => handleOpenDialog(item.sector_id, "pending")}>
-                    {item.pending}
+                    {formatCurrency(item.pending)}
                   </TableCell>
                 </TableRow>
               ))}

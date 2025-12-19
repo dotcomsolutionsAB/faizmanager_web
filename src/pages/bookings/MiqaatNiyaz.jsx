@@ -36,7 +36,7 @@ const MiqaatNiyaz = () => {
   };
 
   useEffect(() => {
-    document.title = "Zabihat - FMB 52";
+    document.title = "Miqaat Niyaz - FMB 52";
   }, []);
 
   const fetchCommitments = useCallback(async () => {

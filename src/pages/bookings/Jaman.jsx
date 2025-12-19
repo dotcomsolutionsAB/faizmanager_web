@@ -36,7 +36,7 @@ const Jaman = () => {
   };
 
   useEffect(() => {
-    document.title = "Zabihat - FMB 52";
+    document.title = "Extra Niyaz in Faiz Thaali - FMB 52";
   }, []);
 
   const fetchCommitments = useCallback(async () => {

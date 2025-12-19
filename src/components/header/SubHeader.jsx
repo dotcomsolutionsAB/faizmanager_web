@@ -34,7 +34,7 @@ export default function SubHeader({ selectedYear, setSelectedYear }) {
   const [selectedRole, setSelectedRole] = useState('');
   const [switchingRole, setSwitchingRole] = useState(false);
 
-  const showYearSelect = ['/dashboard', '/receipts', '/payments', '/expenses'].includes(location.pathname);
+  const showYearSelect = ['/dashboard', '/receipts', '/payments', '/expenses', '/mumeneen'].includes(location.pathname);
 
   const handleYearChange = (event) => {
     setSelectedYear(event.target.value);

@@ -18,9 +18,10 @@ import PrintIcon from "@mui/icons-material/Print";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteBookings from "../DeleteBookings"; // ⬅️ new import (adjust path)
 
 const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
-  const { currency } = useUser();
+  const { currency, token } = useUser(); // ⬅️ token for API (if available)
 
   const currencyCode = currency?.currency_code || "INR";
   const formatCurrency = (value) =>
@@ -33,17 +34,59 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [addReceiptOpen, setAddReceiptOpen] = useState(false);
 
+  const [deleteOpen, setDeleteOpen] = useState(false);      // ⬅️ dialog open
+  const [deleteLoading, setDeleteLoading] = useState(false); // ⬅️ deleting?
+
   const handleActionsClick = (event, row) => {
     setSelectedRow(row);
     setAnchorEl(event.currentTarget);
   };
   const handleMenuClose = () => setAnchorEl(null);
 
-  const handleDelete = async () => {
+  // open dialog when Delete is clicked from menu
+  const handleDeleteClick = () => {
     handleMenuClose();
-    const msg = `Deleted commitment for ${selectedRow?.name || "record"}`;
-    showMsg?.(msg, "success");
-    refresh?.();
+    setDeleteOpen(true);
+  };
+
+  // actually call API when user confirms delete in dialog
+  const handleConfirmDelete = async () => {
+    if (!selectedRow) return;
+
+    try {
+      setDeleteLoading(true);
+
+      const res = await fetch(`https://api.fmb52.com/api/commitment/delete/${selectedRow.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(json?.message || "Failed to delete commitment");
+      }
+
+      showMsg?.(
+        json?.message ||
+          `Commitment deleted successfully for ${selectedRow.name || "record"}`,
+        "success"
+      );
+
+      setDeleteOpen(false);
+      refresh?.();
+    } catch (err) {
+      console.error(err);
+      showMsg?.(
+        err.message || "An error occurred while deleting commitment.",
+        "error"
+      );
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const handleAddReceipt = () => {
@@ -83,16 +126,32 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         <span style={{ color: brown[700] }}>{params.value}</span>
       ),
     },
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1.4,
-      renderCell: (params) => (
-        <span style={{ fontWeight: 700, color: brown[700] }}>
-          {params.value}
-        </span>
-      ),
-    },
+{
+  field: "name",
+  headerName: "Name",
+  flex: 1.4,
+  renderCell: (params) => (
+    <Box
+      sx={{
+        fontWeight: 700,
+        color: brown[700],
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        lineHeight: "1.4",
+        display: "flex",
+        justifyContent: "center",   // horizontal center
+        alignItems: "center",        // vertical center
+        textAlign: "center",         // center text alignment
+        height: "100%",
+        width: "100%",
+        px: 1,
+      }}
+    >
+      {params.value}
+    </Box>
+  ),
+},
+
     {
       field: "mobile",
       headerName: "Mobile",
@@ -101,16 +160,7 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         <span style={{ color: brown[700] }}>{params.value}</span>
       ),
     },
-    {
-      field: "type",
-      headerName: "Type",
-      flex: 0.8,
-      renderCell: (params) => (
-        <span style={{ color: brown[700], textTransform: "capitalize" }}>
-          {params.value}
-        </span>
-      ),
-    },
+
     {
       field: "amount",
       headerName: "Amount",
@@ -125,7 +175,7 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             alignItems: "center",
             justifyContent: "flex-end",
             height: "100%",
-            fontSize: "18px",
+            fontSize: "16px",
           }}
         >
           {formatCurrency(params.row.amount)}
@@ -146,7 +196,7 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             alignItems: "center",
             justifyContent: "flex-end",
             height: "100%",
-            fontSize: "18px",
+            fontSize: "16px",
           }}
         >
           {formatCurrency(params.row.amount_paid)}
@@ -167,21 +217,38 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             alignItems: "center",
             justifyContent: "flex-end",
             height: "100%",
-            fontSize: "18px",
+            fontSize: "16px",
           }}
         >
           {formatCurrency(params.row.amount_due)}
         </Typography>
       ),
     },
-    {
-      field: "remarks",
-      headerName: "Remarks",
-      flex: 0.9,
-      renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
-      ),
-    },
+{
+  field: "remarks",
+  headerName: "Remarks",
+  flex: 0.9,
+  renderCell: (params) => (
+    <Box
+      sx={{
+        color: brown[700],
+        whiteSpace: "normal",
+        wordBreak: "break-word",
+        lineHeight: "1.4",
+        display: "flex",
+        justifyContent: "center",   // horizontal center
+        alignItems: "center",        // vertical center
+        textAlign: "center",         // center text alignment
+        height: "100%",
+        width: "100%",
+        px: 1,
+      }}
+    >
+      {params.value}
+    </Box>
+  ),
+},
+
     {
       field: "created_by",
       headerName: "Created by",
@@ -298,7 +365,10 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         </MenuItem>
 
         <MenuItem onClick={handleAddReceipt}>
-          <Tooltip title="Add new receipt entry for this Zabihat" placement="left">
+          <Tooltip
+            title="Add new receipt entry for this Zabihat"
+            placement="left"
+          >
             <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
               <ReceiptLongIcon sx={{ color: brown[200] }} />
               <Typography>Add Receipt</Typography>
@@ -315,7 +385,7 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
           </Tooltip>
         </MenuItem>
 
-        <MenuItem onClick={handleDelete}>
+        <MenuItem onClick={handleDeleteClick}>
           <Tooltip title="Delete this Zabihat commitment" placement="left">
             <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
               <DeleteIcon sx={{ color: brown[200] }} />
@@ -324,6 +394,20 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
           </Tooltip>
         </MenuItem>
       </Menu>
+
+      {/* Delete confirmation dialog */}
+      <DeleteBookings
+        open={deleteOpen}
+        loading={deleteLoading}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Zabihat"
+        description={`Are you sure you want to delete this zabihat${
+          selectedRow?.name ? ` for ${selectedRow.name}` : ""
+        }?.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+      />
 
       <AddBookingsReceipt
         open={addReceiptOpen}
