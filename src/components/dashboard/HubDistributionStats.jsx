@@ -24,7 +24,7 @@ export default function HubDistributionStats({ year, sector, subSector }) {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sector, sub_sector: subSector, role_id: accessRoleId }),
+        body: JSON.stringify({ sector, sub_sector: subSector, role_id: accessRoleId, year }),
       });
 
       if (!response.ok) throw new Error("Error fetching data");

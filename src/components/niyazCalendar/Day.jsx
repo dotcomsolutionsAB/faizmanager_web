@@ -7,6 +7,7 @@ import { useUser } from "../../contexts/UserContext";
 const labelColors = {
   lightPeach: "#faedcd",
   lightRed: "#ffcad4",
+  lightGreen: "#B8FFB8",
 };
 
 // Cache so we only fetch once across cells
@@ -116,6 +117,7 @@ export default function Day({ day, rowIdx }) {
 
   // Determine the label color based on niyaz value
   const getEventLabelColor = (niyaz) => {
+    if (niyaz === "Miqaat Jaman") return labelColors.lightGreen;
     return niyaz === "Niyaz" ? labelColors.lightPeach : labelColors.lightRed;
   };
 

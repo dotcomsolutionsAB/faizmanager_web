@@ -238,7 +238,7 @@ export default function NiyazStats({ year, sector, subSector }) {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sector, sub_sector: subSector }),
+        body: JSON.stringify({ sector, sub_sector: subSector, year }),
       });
 
       if (!response.ok) throw new Error('Failed to fetch Niyaz Stats');

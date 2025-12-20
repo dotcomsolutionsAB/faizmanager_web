@@ -67,6 +67,7 @@ const useStyles = makeStyles((theme) => ({
 const labelColors = {
   lightPeach: "#faedcd",
   lightRed: "#ffcad4",
+  lightGreen: "#B8FFB8"
 
 };
 
@@ -281,6 +282,8 @@ function handleSubmit(e) {
                   </MenuItem>
                   <MenuItem value="Niyaz">Niyaz</MenuItem>
                   <MenuItem value="Fateha/Salawat">Fateha/Salawat</MenuItem>
+                  <MenuItem value="Miqaat Jaman">Miqaat Jaman</MenuItem>
+
                 </Select>
               </FormControl>
             </Grid>

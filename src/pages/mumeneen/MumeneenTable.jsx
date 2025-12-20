@@ -407,6 +407,10 @@ const fetchData = async () => {
                   Label: <span style={{ fontWeight: 'normal', color: brown[700] }}>{params.row.label}</span>
                 </Typography>
               )}
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
+                Zabihat:{' '}
+                <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row?.zabihat}</span>
+              </Typography>
               <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
                 Comments:{' '}
                 <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its_data}</span>
@@ -820,8 +824,8 @@ const fetchData = async () => {
                 ),
               }}
               localeText={customLocaleText}
-              rowHeight={135}
-              getRowHeight={(params) => (params.model.label ? 155 : 155)}
+              rowHeight={145}
+              getRowHeight={(params) => (params.model.label ? 175 : 175)}
               checkboxSelection
               disableSelectionOnClick
               pagination
