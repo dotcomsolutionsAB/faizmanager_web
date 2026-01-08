@@ -339,7 +339,7 @@ const JamanTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             rows={
               Array.isArray(data)
                 ? data.filter(
-                    (row) => String(row.type).toLowerCase() === "jaman"
+                    (row) => String(row.type).toLowerCase() === "extra_niyaz_in_thaali"
                   )
                 : []
             }

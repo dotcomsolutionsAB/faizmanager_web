@@ -328,7 +328,7 @@ const SalawatFatehaTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             rows={
               Array.isArray(data)
                 ? data.filter(
-                    (row) => String(row.type).toLowerCase() === "salawat"
+                    (row) => String(row.type).toLowerCase() === "salwat"
                   )
                 : []
             }

@@ -33,7 +33,7 @@ const JamanForm = ({ onSaved, showMsg, editingRow, clearEditing }) => {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [type] = useState("extra_niyaz_in_faiz_thaali"); // fixed value
+  const [type] = useState("extra_niyaz_in_thaali"); // fixed value
   const [date, setDate] = useState(null);
 
   const [users, setUsers] = useState([]);
@@ -358,7 +358,7 @@ const JamanForm = ({ onSaved, showMsg, editingRow, clearEditing }) => {
               <FormControl fullWidth required disabled>
                 <InputLabel>Type</InputLabel>
                 <Select value={type} label="Type">
-                  <MenuItem value="extra_niyaz_in_faiz_thaali">Extra Niyaz in Faiz Thaali</MenuItem>
+                  <MenuItem value="extra_niyaz_in_thaali">Extra Niyaz in Faiz Thaali</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
