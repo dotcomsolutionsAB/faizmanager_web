@@ -45,10 +45,10 @@ export default function HubDistributionStats({ year, sector, subSector }) {
   };
 
   useEffect(() => {
-    if (token && sector?.length > 0 && subSector?.length > 0) {
+    if (token && year && sector?.length > 0 && subSector?.length > 0) {
       fetchHubStats();
     }
-  }, [token, sector, subSector]);
+  }, [token, year, sector, subSector]);
 
   const totalHub = hubStats.hub_done + hubStats.hub_pending || 1;
 

@@ -253,10 +253,10 @@ export default function NiyazStats({ year, sector, subSector }) {
   };
 
   useEffect(() => {
-    if (token) {
+    if (token && year) {
       fetchNiyazStats();
     }
-  }, [token]);
+  }, [token, year]);
 
   const handleOpenDialog = (slab) => {
     setSelectedSlab(slab);

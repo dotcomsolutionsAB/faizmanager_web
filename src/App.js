@@ -30,6 +30,7 @@ import JamaatTable from './pages/jamaat/Jamaat';
 import Niyaz from './pages/niyaz/Niyaz';
 import Menu from './pages/menu/Menu';
 import NiyazCalendar from './pages/niyazCalendar/NiyazCalendar';
+import MasoolHierarchy from './pages/masool_hierarchy/MasoolHierarchy';
 import './App.css'
 import ContextWrapper from './contexts/ContextWrapper';
 
@@ -38,6 +39,7 @@ import Hierarchy from './pages/hierarchy/Hierarchy';
 import Jaman from './pages/bookings/Jaman';
 import SalawatFateha from './pages/bookings/SalawatFateha';
 import MiqaatNiyaz from './pages/bookings/MiqaatNiyaz';
+// import MasoolHierarchy from './pages/masool_hierarchy/MasoolHierarchy';
         
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
@@ -103,6 +105,7 @@ function App() {
             <Route path="/menu" element={<Menu />} />
             <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
             <Route path="/hierarchy" element={<Hierarchy />} />
+            <Route path="/masool_hierarchy" element={<MasoolHierarchy />} />
 
           </Route>
           {/* Optional: Catch-all for unknown routes */}

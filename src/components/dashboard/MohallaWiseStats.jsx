@@ -308,10 +308,10 @@ export default function MohallaWiseStats({ year, sector, subSector }) {
   };
 
   useEffect(() => {
-    if (token) {
+    if (token && year) {
       fetchMohallaStats();
     }
-  }, [token]);
+  }, [year, token]);
 
   // Format currency dynamically based on user’s currency
   const formatCurrency = (value) => {
