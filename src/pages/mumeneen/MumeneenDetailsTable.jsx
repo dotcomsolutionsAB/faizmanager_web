@@ -294,7 +294,7 @@ function MumeneenDetailsTable() {
           </Typography>
 
 
-          <Typography variant="body1" sx={{ padding: 1, display: 'flex', justifyContent: 'space-between' }}>
+          {/* <Typography variant="body1" sx={{ padding: 1, display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <ReceiptIcon
                 sx={{
@@ -307,7 +307,7 @@ function MumeneenDetailsTable() {
               <Typography variant="body1" sx={{ fontSize: 16, fontWeight: 600, color: yellow[400] }}>Folio No:</Typography>
             </Box>
             <Box sx={{ color: brown[400] }}>{details.folio_no || 'N/A'}</Box>
-          </Typography>
+          </Typography> */}
 
           <Typography variant="body1" sx={{ padding: 1, display: 'flex', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>

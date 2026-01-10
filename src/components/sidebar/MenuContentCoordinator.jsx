@@ -210,11 +210,11 @@ const MenuContentCoordinator = ({ open }) => {
       icon: <EventIcon />,
       path: "/niyaz-calendar",
     },
-    //     {
-    //   label: "Hierarchy",
-    //   icon: <AccountTreeIcon />,
-    //   path: "/hierarchy",
-    // },
+        {
+      label: "Hierarchy",
+      icon: <AccountTreeIcon />,
+      path: "/masool_hierarchy",
+    },
         {
       label: "Menu",
       icon: <RestaurantMenuIcon />,

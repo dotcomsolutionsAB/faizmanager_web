@@ -348,7 +348,7 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
               {/* Row 2: Overdue (6) + Zabihat (6) */}
               <Grid item xs={12} md={6}>
                 <Typography variant="body2" color="textSecondary" gutterBottom>
-                  <strong>Overdue Amount</strong>
+                  <strong>Prev Due Amount</strong>
                 </Typography>
 
                 <TextField
@@ -359,13 +359,13 @@ const EditHubDialog = ({ open, onClose, row, onSave, formatCurrency, year }) => 
                     setOverdueAmountError(false);
                   }}
                   fullWidth
-                  placeholder="Enter overdue amount"
+                  placeholder="Enter prev due amount"
                   error={overdueAmountError}
-                  helperText={overdueAmountError ? 'Overdue amount cannot be negative' : ''}
+                  helperText={overdueAmountError ? 'Prev due amount cannot be negative' : ''}
                 />
 
                 <Typography variant="body2" color="textSecondary" sx={{ mt: 1, ml: 1 }}>
-                  {overdueAmount ? numberToWords(overdueAmount, currencySymbol) : 'If any overdue, enter here'}
+                  {overdueAmount ? numberToWords(overdueAmount, currencySymbol) : 'If any prev due, enter here'}
                 </Typography>
               </Grid>
 

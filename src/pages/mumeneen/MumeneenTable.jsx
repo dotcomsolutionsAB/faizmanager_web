@@ -14,6 +14,7 @@ import {
   Chip,
   Menu,
 } from '@mui/material';
+import { green, blue, orange, red } from "@mui/material/colors";
 import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate, useOutletContext, Link, useSearchParams } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
@@ -93,7 +94,7 @@ function MumeneenTable() {
   const [otherSectorTransferDialogOpen, setOtherSectorTransferDialogOpen] = useState(false);
   const [otherJamiatTransferDialogOpen, setOtherJamiatTransferDialogOpen] = useState(false);
 
-    const [markInactiveDialogOpen, setMarkInactiveDialogOpen] = useState(false);
+  const [markInactiveDialogOpen, setMarkInactiveDialogOpen] = useState(false);
   const [selectedRowForInactive, setSelectedRowForInactive] = useState(null);
 
   // Set document title
@@ -323,12 +324,36 @@ const fetchData = async () => {
     return matchesFilterText && matchesFilterType && matchesHubFilter && matchesThaliStatusFilter;
   });
 
+  const zabihatColumn = {
+  field: "zabihat",
+  headerName: "Zabihat",
+  width: 120,
+  sortable: true,
+  align: "center",
+  headerAlign: "center",
+  renderCell: (params) => (
+    <Box
+      sx={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",     // ✅ vertical middle
+        justifyContent: "center", // ✅ horizontal center
+      }}
+    >
+      <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+        {params.row?.zabihat ?? 0}
+      </Typography>
+    </Box>
+  ),
+};
+
   // Columns definition
   const columns = [
     {
       field: 'mumeneen_info',
       headerName: 'Mumeneen Info',
-      width: 550,
+      width: 450,
       renderCell: (params) => {
         const statusOption = thaliStatusOptionsFromApi.find(
           (opt) =>
@@ -344,82 +369,136 @@ const fetchData = async () => {
           : 'default';
 
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: '16px',
+          <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+          {/* LEFT: PHOTO + ITS (below photo) */}
+          <Box sx={{ width: 90, mr: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <img
-                src={params.row.photo ? params.row.photo.file_url : '/static/images/avatar-placeholder.png'}
+                src={params.row.photo ? params.row.photo.file_url : "/static/images/avatar-placeholder.png"}
                 alt="User Photo"
                 style={{
                   width: 80,
                   height: 90,
-                  border: '2px solid #ddd',
-                  borderRadius: '8px',
-                  objectFit: 'cover',
+                  border: "2px solid #ddd",
+                  borderRadius: "8px",
+                  objectFit: "cover",
                 }}
               />
-            </div>
-            <Box sx={{ display: 'flex', flexDirection: 'column', paddingTop: 1 }}>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                <Link
-                  to={`/mumeneen/${params.row.family_id}`}
-                  style={{
-                    color: yellow[400],
-                    textDecoration: 'none',
-                  }}
-                  onMouseEnter={(e) => (e.target.style.color = brown[700])}
-                  onMouseLeave={(e) => (e.target.style.color = yellow[400])}
-                >
-                  {params.row.name}
-                </Link>
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                ITS: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its}</span>
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                Mobile: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mobile}</span>
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                Folio No:{' '}
-                <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.folio_no}</span>
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                Sector:{' '}
-                <span style={{ fontWeight: 'normal', color: brown[700] }}>
-                  {' '}
-                  {params.row.sector?.name} - {params.row.sub_sector?.name}
-                </span>
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                Thali Status:{' '}
-                <span style={{ fontWeight: 'normal', color: brown[700] }}>
-                  <Chip label={label} color={chipColor} sx={{ ml: 0.5, fontWeight: 'bold' }} />
-                </span>
-              </Typography>
-              {params.row.label && (
-                <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                  Label: <span style={{ fontWeight: 'normal', color: brown[700] }}>{params.row.label}</span>
-                </Typography>
-              )}
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                Zabihat:{' '}
-                <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row?.zabihat}</span>
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-                Comments:{' '}
-                <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.its_data}</span>
-              </Typography>
             </Box>
+
+            {/* ITS below photo (no label) */}
+            <Typography
+              variant="caption"
+              sx={{
+                display: "block",
+                mt: 0.6,
+                textAlign: "center",
+                fontWeight: "bold",
+                color: brown[700],
+              }}
+            >
+              {params.row.its}
+            </Typography>
           </Box>
+
+          {/* RIGHT: DETAILS */}
+          <Box sx={{ display: "flex", flexDirection: "column", pt: 1, gap: 0.4 }}>
+            {(() => {
+              const labelWidth = 110;
+
+              const Row = ({ label, children }) => (
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  
+                  <Typography variant="body2" sx={{ fontWeight: "normal", color: brown[700] }}>
+                    {children}
+                  </Typography>
+                </Box>
+              );
+
+              // Segment chip logic
+              const seg = String(params?.row?.tiffin_segment || "").toLowerCase();
+              let segText = "N/A";
+              let segColor;
+
+              if (seg === "house") {
+                segText = "House";
+                segColor = green[200];
+              } else if (seg === "extra_house") {
+                segText = "Extra House";
+                segColor = blue[200];
+              } else if (seg === "joint") {
+                segText = "Joint";
+                segColor = orange[200];
+              } else if (seg === "external") {
+                segText = "External";
+                segColor = red[200];
+              }
+
+              return (
+                <>
+                  {/* NAME (no label) */}
+                  <Typography variant="body2" sx={{ fontWeight: "bold", color: yellow[300], lineHeight: 1.2 }}>
+                    <Link
+                      to={`/mumeneen/${params.row.family_id}`}
+                      style={{ color: yellow[400], textDecoration: "none" }}
+                      onMouseEnter={(e) => (e.target.style.color = brown[700])}
+                      onMouseLeave={(e) => (e.target.style.color = yellow[400])}
+                    >
+                      {params.row.name}
+                    </Link>
+                  </Typography>
+
+                  {/* MOBILE (no label) */}
+                  <Typography variant="body2" sx={{ fontWeight: "normal", color: brown[700], lineHeight: 1.2 }}>
+                    {params.row.mobile}
+                  </Typography>
+
+                  {/* SECTOR (keep label) */}
+                  <Row label="Sector">
+                    {params.row.sector?.name} - {params.row.sub_sector?.name}
+                  </Row>
+
+                  {/* TAGS LINE (Thali Status + Segment) */}
+                  <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.7, mt: 0.2 }}>
+                    {/* Thali Status chip (no label) */}
+                    <Chip label={label} color={chipColor} size="small" sx={{ fontWeight: "bold" }} />
+
+                    {/* Segment chip (no label) */}
+                    <Chip
+                      label={segText}
+                      size="small"
+                      sx={{
+                        fontWeight: "bold",
+                        bgcolor: segColor ? segColor : "transparent",
+                        color: "#fff",
+                      }}
+                    />
+
+                    {/* Optional Label chip (if you still want it as a tag) */}
+                    {params.row.label && (
+                      <Chip
+                        label={params.row.label}
+                        size="small"
+                        sx={{ fontWeight: "bold", bgcolor: brown[200], color: brown[900] }}
+                      />
+                    )}
+                  </Box>
+                </>
+              );
+            })()}
+          </Box>
+        </Box>
         );
       },
     },
+    // ✅ add here
+    zabihatColumn,
     {
       field: 'hub_amount',
       headerName: 'Hub',
@@ -657,14 +736,14 @@ const fetchData = async () => {
               </MenuItem>
             </>
           )}
-          <MenuItem>
+          {/* <MenuItem>
                       <Tooltip title="Update Tiffin Segment" placement="left">
               <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
                 <ReceiptIcon sx={{ color: brown[200] }} />
                 <Typography>Update Tiffin Segment</Typography>
               </Box>
             </Tooltip>
-          </MenuItem>
+          </MenuItem> */}
                  {row.status !== 'in_active' && (
           <MenuItem
             onClick={() => {
@@ -752,7 +831,7 @@ const fetchData = async () => {
                   <MenuItem value="All">All</MenuItem>
                   <MenuItem value="Hub Not Set">Hub Not Set</MenuItem>
                   <MenuItem value="Due">Due</MenuItem>
-                  <MenuItem value="Overdue">Overdue</MenuItem>
+                  <MenuItem value="Overdue">Prev Due</MenuItem>
                 </Select>
               </FormControl>
               <FormControl sx={{ minWidth: 150, width: { xs: '100%', sm: '150px' } }}>
@@ -824,8 +903,9 @@ const fetchData = async () => {
                 ),
               }}
               localeText={customLocaleText}
-              rowHeight={145}
-              getRowHeight={(params) => (params.model.label ? 175 : 175)}
+              // rowHeight={145}
+              // getRowHeight={(params) => (params.model.label ? 175 : 175)}
+              getRowHeight={() => "auto"}
               checkboxSelection
               disableSelectionOnClick
               pagination
@@ -837,6 +917,14 @@ const fetchData = async () => {
               onSortModelChange={setSortModel}
               getRowId={(row) => row.its || Math.random()}
               sx={{
+                // ✅ allow multi-line content to expand the row height
+                "& .MuiDataGrid-cell": {
+                  whiteSpace: "normal",
+                  lineHeight: "1.3",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  py: 1, // vertical padding
+                },
                 '& .MuiDataGrid-columnHeaders': {
                   color: yellow[400],
                   textAlign: 'center',

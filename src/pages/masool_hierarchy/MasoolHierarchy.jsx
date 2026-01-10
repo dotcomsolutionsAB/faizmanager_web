@@ -54,6 +54,16 @@ const SECTOR_ORDER = ["BURHANI", "EZZY", "MOHAMMEDI", "SHUJAI", "ZAINY"];
 const OTHER_SECTOR = "OTHER";
 const UNKNOWN_SECTOR = "UNKNOWN";
 
+// ✅ tiffin segments (handle variants from API)
+const SEGMENTS = ["house", "joint", "extra_house", "external"];
+const prettySegment = (s) =>
+  ({
+    house: "House",
+    joint: "Joint",
+    extra_house: "Extra House",
+    external: "External",
+  }[s] || "N/A");
+
 // parse "1.2" -> [1,2], "2" -> [2,0], "1.10" -> [1,10]
 const parseSubSector = (v) => {
   const s = String(v || "").trim();
@@ -74,7 +84,7 @@ const compareSubSector = (a, b) => {
 // Masool can have sector_names array -> pick a "primary" sector for grouping
 const getMasoolPrimarySector = (masool) => {
   const arr = Array.isArray(masool?.sector_names) ? masool.sector_names : [];
-  return arr[0] || "UNKNOWN";
+  return arr[0] || UNKNOWN_SECTOR;
 };
 
 // Masool can have sub_sector_names array -> take smallest for ordering
@@ -85,6 +95,74 @@ const getMasoolPrimarySubSector = (masool) => {
   if (!arr.length) return "";
   return [...arr].sort(compareSubSector)[0];
 };
+
+// ✅ segment counter helpers
+const emptySegmentCounts = () =>
+  SEGMENTS.reduce((acc, k) => {
+    acc[k] = 0;
+    return acc;
+  }, {});
+
+// ✅ FIX: normalize API variants:
+// "extra_house", "extra house", "extrahouse", "extra-house"
+// "external", "outstation", etc. (if any) -> external (only if you want; currently only maps obvious variants)
+const normalizeSegment = (v) => {
+  const raw = String(v ?? "").trim().toLowerCase();
+  if (!raw) return null;
+
+  const s = raw.replace(/\s+/g, "_").replace(/-+/g, "_");
+  if (SEGMENTS.includes(s)) return s;
+
+  // extra house variants
+  if (["extrahouse", "extra_house", "extra__house", "extra"].includes(s))
+    return "extra_house";
+
+  // external variants (kept conservative)
+  if (["external", "externals"].includes(s)) return "external";
+
+  return null;
+};
+
+const addCounts = (a, b) => {
+  const out = { ...emptySegmentCounts() };
+  SEGMENTS.forEach((k) => {
+    out[k] = Number(a?.[k] ?? 0) + Number(b?.[k] ?? 0);
+  });
+  return out;
+};
+
+const countFromHofs = (hofs) => {
+  const c = emptySegmentCounts();
+  (hofs || []).forEach((h) => {
+    const seg = normalizeSegment(h?.tiffin_segment);
+    if (seg) c[seg] += 1;
+  });
+  return c;
+};
+
+const sumSegmentCountsFromMusaids = (musaids) => {
+  return (musaids || []).reduce((acc, m) => {
+    const hofs = Array.isArray(m?.hofs) ? m.hofs : [];
+    return addCounts(acc, countFromHofs(hofs));
+  }, emptySegmentCounts());
+};
+
+// ✅ 35 (height) x 25 (width) image avatar, not circular
+const Photo = ({ src, alt }) => (
+  <Avatar
+    variant="rounded"
+    src={src || undefined}
+    alt={alt || ""}
+    sx={{
+      height: 35,
+      width: 25,
+      borderRadius: 1,
+      "& img": {
+        objectFit: "cover",
+      },
+    }}
+  />
+);
 
 export default function MasoolHierarchy() {
   const { token } = useUser();
@@ -142,37 +220,45 @@ export default function MasoolHierarchy() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ Sector dropdown options (fixed order first + any extras + ALL)
+  // ✅ Sector dropdown options
   const sectorOptions = useMemo(() => {
-  const set = new Set();
+    const set = new Set();
 
-  data.forEach((block) => {
-    const masool = block?.masool || {};
-    (masool?.sector_names || []).forEach((s) => s && set.add(String(s).toUpperCase()));
-    (block?.musaids || []).forEach((m) => {
-      const musaid = m?.musaid || {};
-      if (musaid?.sector_name) set.add(String(musaid.sector_name).toUpperCase());
+    data.forEach((block) => {
+      const masool = block?.masool || {};
+      (masool?.sector_names || []).forEach(
+        (s) => s && set.add(String(s).toUpperCase())
+      );
+      (block?.musaids || []).forEach((m) => {
+        const musaid = m?.musaid || {};
+        if (musaid?.sector_name)
+          set.add(String(musaid.sector_name).toUpperCase());
+      });
     });
-  });
 
-  const all = Array.from(set);
+    const all = Array.from(set);
 
-  const fixed = SECTOR_ORDER.filter((s) => all.includes(s));
-  const extras = all
-    .filter((s) => !SECTOR_ORDER.includes(s) && s !== OTHER_SECTOR && s !== UNKNOWN_SECTOR)
-    .sort((a, b) => a.localeCompare(b));
+    const fixed = SECTOR_ORDER.filter((s) => all.includes(s));
+    const extras = all
+      .filter(
+        (s) =>
+          !SECTOR_ORDER.includes(s) &&
+          s !== OTHER_SECTOR &&
+          s !== UNKNOWN_SECTOR
+      )
+      .sort((a, b) => a.localeCompare(b));
 
-  const hasOther = all.includes(OTHER_SECTOR);
-  const hasUnknown = all.includes(UNKNOWN_SECTOR);
+    const hasOther = all.includes(OTHER_SECTOR);
+    const hasUnknown = all.includes(UNKNOWN_SECTOR);
 
-  return [
-    "ALL",
-    ...fixed,
-    ...extras,
-    ...(hasOther ? [OTHER_SECTOR] : []),
-    ...(hasUnknown ? [UNKNOWN_SECTOR] : []),
-  ];
-}, [data]);
+    return [
+      "ALL",
+      ...fixed,
+      ...extras,
+      ...(hasOther ? [OTHER_SECTOR] : []),
+      ...(hasUnknown ? [UNKNOWN_SECTOR] : []),
+    ];
+  }, [data]);
 
   // ✅ filter + search + sort musaids by sub-sector
   const filteredData = useMemo(() => {
@@ -201,10 +287,8 @@ export default function MasoolHierarchy() {
         const masool = block?.masool || {};
         const musaids = Array.isArray(block?.musaids) ? block.musaids : [];
 
-        // sector filter
         if (!matchesSectorFilter(masool, musaids)) return null;
 
-        // if no query, keep block but sort musaids
         if (!q) {
           const sortedMusaids = [...musaids].sort((a, b) =>
             compareSubSector(
@@ -215,7 +299,6 @@ export default function MasoolHierarchy() {
           return { ...block, musaids: sortedMusaids };
         }
 
-        // query match
         const masoolHit =
           matchText(masool?.its) ||
           matchText(masool?.name) ||
@@ -235,11 +318,12 @@ export default function MasoolHierarchy() {
 
             const filteredHofs = hofs.filter((h) => {
               return (
+                matchText(h?.family_id) ||
                 matchText(h?.its) ||
                 matchText(h?.name) ||
                 matchText(h?.mobile) ||
-                matchText(h?.email) ||
-                matchText(h?.thali_status)
+                matchText(h?.thali_status) ||
+                matchText(h?.tiffin_segment)
               );
             });
 
@@ -263,59 +347,59 @@ export default function MasoolHierarchy() {
       .filter(Boolean);
   }, [data, query, sectorFilter]);
 
-  // ✅ group masools by sector in required order, and sort each by sub-sector
+  // ✅ group masools by sector order + sort by sub-sector
   const groupedBySector = useMemo(() => {
-    // Build all sector names present
     const present = new Set();
 
     filteredData.forEach((block) => {
-        const masool = block?.masool || {};
-        const primary = String(getMasoolPrimarySector(masool) || UNKNOWN_SECTOR).toUpperCase();
-        present.add(primary);
+      const masool = block?.masool || {};
+      const primary = String(getMasoolPrimarySector(masool) || UNKNOWN_SECTOR).toUpperCase();
+      present.add(primary);
     });
 
-    // Order: fixed first, then extras, then OTHER last, then UNKNOWN last-last
     const fixed = SECTOR_ORDER.filter((s) => present.has(s));
 
     const extras = Array.from(present)
-        .filter((s) => !SECTOR_ORDER.includes(s) && s !== OTHER_SECTOR && s !== UNKNOWN_SECTOR)
-        .sort((a, b) => a.localeCompare(b));
+      .filter(
+        (s) =>
+          !SECTOR_ORDER.includes(s) &&
+          s !== OTHER_SECTOR &&
+          s !== UNKNOWN_SECTOR
+      )
+      .sort((a, b) => a.localeCompare(b));
 
     const orderedSectors = [
-        ...fixed,
-        ...extras,
-        ...(present.has(OTHER_SECTOR) ? [OTHER_SECTOR] : []),
-        ...(present.has(UNKNOWN_SECTOR) ? [UNKNOWN_SECTOR] : []),
+      ...fixed,
+      ...extras,
+      ...(present.has(OTHER_SECTOR) ? [OTHER_SECTOR] : []),
+      ...(present.has(UNKNOWN_SECTOR) ? [UNKNOWN_SECTOR] : []),
     ];
 
-    // Buckets
     const buckets = {};
     orderedSectors.forEach((s) => (buckets[s] = []));
 
     filteredData.forEach((block) => {
-        const masool = block?.masool || {};
-        const primarySector = String(getMasoolPrimarySector(masool) || UNKNOWN_SECTOR).toUpperCase();
-
-        if (!buckets[primarySector]) buckets[primarySector] = [];
-        buckets[primarySector].push(block);
+      const masool = block?.masool || {};
+      const primarySector = String(getMasoolPrimarySector(masool) || UNKNOWN_SECTOR).toUpperCase();
+      if (!buckets[primarySector]) buckets[primarySector] = [];
+      buckets[primarySector].push(block);
     });
 
-    // Sort each sector by masool primary sub-sector (as you already do)
     Object.keys(buckets).forEach((k) => {
-        buckets[k] = buckets[k].sort((a, b) => {
+      buckets[k] = buckets[k].sort((a, b) => {
         const aSub = getMasoolPrimarySubSector(a?.masool);
         const bSub = getMasoolPrimarySubSector(b?.masool);
         return compareSubSector(aSub, bSub);
-        });
+      });
     });
 
     return orderedSectors.map((sector) => ({
-        sector,
-        items: buckets[sector] || [],
+      sector,
+      items: buckets[sector] || [],
     }));
-    }, [filteredData]);
+  }, [filteredData]);
 
-  // ✅ NEW: totals per sector + overall total (based on currently visible groupedBySector)
+  // ✅ totals per sector + segment counts
   const sectorTotals = useMemo(() => {
     const map = {};
     groupedBySector.forEach(({ sector, items }) => {
@@ -324,10 +408,12 @@ export default function MasoolHierarchy() {
         return sum + (Number.isFinite(v) ? v : 0);
       }, 0);
 
-      map[sector] = {
-        totalHouses,
-        masools: items.length,
-      };
+      const segmentCounts = items.reduce((acc, blk) => {
+        const musaids = Array.isArray(blk?.musaids) ? blk.musaids : [];
+        return addCounts(acc, sumSegmentCountsFromMusaids(musaids));
+      }, emptySegmentCounts());
+
+      map[sector] = { totalHouses, masools: items.length, segmentCounts };
     });
     return map;
   }, [groupedBySector]);
@@ -339,27 +425,44 @@ export default function MasoolHierarchy() {
     );
   }, [sectorTotals]);
 
+  const overallSegmentCounts = useMemo(() => {
+    return Object.values(sectorTotals).reduce((acc, v) => {
+      return addCounts(acc, v?.segmentCounts || emptySegmentCounts());
+    }, emptySegmentCounts());
+  }, [sectorTotals]);
+
+  // ✅ HOF table columns (email removed, photo size fixed)
   const hofColumns = useMemo(
     () => [
       {
         field: "photo_url",
         headerName: "",
-        width: 66,
+        width: 60,
         sortable: false,
         filterable: false,
-        renderCell: (params) => (
-          <Avatar
-            src={params.value || undefined}
-            alt="HOF"
-            sx={{ width: 34, height: 34 }}
-          />
-        ),
+        renderCell: (params) => <Photo src={params.value} alt="HOF" />,
       },
+      { field: "family_id", headerName: "Family ID", width: 120 },
       { field: "its", headerName: "ITS", width: 120 },
       { field: "name", headerName: "Name", flex: 1, minWidth: 240 },
       { field: "mobile", headerName: "Mobile", width: 160 },
-      { field: "email", headerName: "Email", flex: 1, minWidth: 220 },
       { field: "family_count", headerName: "Family", width: 90 },
+      {
+        field: "tiffin_segment",
+        headerName: "Segment",
+        width: 140,
+        renderCell: (params) => {
+          const seg = normalizeSegment(params.value);
+          return (
+            <Chip
+              size="small"
+              variant="outlined"
+              label={seg ? prettySegment(seg) : "N/A"}
+              color={seg ? "primary" : "default"}
+            />
+          );
+        },
+      },
       {
         field: "thali_status",
         headerName: "Thaali",
@@ -396,59 +499,39 @@ export default function MasoolHierarchy() {
 
   // ✅ Color system (Masool / Musaid / Mumineen)
   const COLORS = {
-    masoolBg: "#EAF2FF", // soft blue
-    musaidBg: "#FFF7E6", // soft amber
-    hofsBg: "#F7F7F7", // soft gray
+    masoolBg: "#EAF2FF",
+    musaidBg: "#FFF7E6",
+    hofsBg: "#F7F7F7",
     border: "#E8E8E8",
     textSoft: "text.secondary",
   };
+
+  const SegmentChips = ({ counts, size = "small" }) => (
+    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+      {SEGMENTS.map((k) => (
+        <Chip
+          key={k}
+          size={size}
+          variant="outlined"
+          label={`${prettySegment(k)}: ${Number(counts?.[k] ?? 0)}`}
+          sx={{ fontWeight: 700 }}
+        />
+      ))}
+    </Stack>
+  );
 
   return (
     <AppTheme>
       <CssBaseline />
 
-      <Box
-        sx={{
-          width: "100%",
-          overflowX: "auto",
-          mt: 5,
-          pt: 9,
-          pr: 2,
-          pb: 3,
-          pl: 2,
-        }}
-      >
-        <Paper
-          sx={{
-            width: "100%",
-            boxShadow: 1,
-            overflowX: "auto",
-            p: 1,
-            "@media (max-width: 600px)": { p: 1 },
-          }}
-        >
+      <Box sx={{ width: "100%", overflowX: "auto", mt: 5, pt: 9, pr: 2, pb: 3, pl: 2 }}>
+        <Paper sx={{ width: "100%", boxShadow: 1, overflowX: "auto", p: 1, "@media (max-width: 600px)": { p: 1 } }}>
           {/* Header + Filters */}
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: "bold",
-                marginBottom: 1,
-                padding: "8px 16px",
-                borderRadius: 1,
-              }}
-            >
+          <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
+            <Typography variant="h6" sx={{ fontWeight: "bold", marginBottom: 1, padding: "8px 16px", borderRadius: 1 }}>
               Masool / Musaid Hierarchy (HOF)
             </Typography>
 
-            {/* ✅ NEW: Overall Total Houses */}
             <Chip
               size="small"
               variant="outlined"
@@ -457,16 +540,15 @@ export default function MasoolHierarchy() {
               sx={{ fontWeight: 800 }}
             />
 
+            <Box sx={{ flex: 1, minWidth: 260 }}>
+              <SegmentChips counts={overallSegmentCounts} size="small" />
+            </Box>
+
             <Box sx={{ flex: 1 }} />
 
-            {/* Sector Filter */}
             <FormControl size="small" sx={{ minWidth: { xs: "100%", sm: 220 } }}>
               <InputLabel>Sector</InputLabel>
-              <Select
-                label="Sector"
-                value={sectorFilter}
-                onChange={(e) => setSectorFilter(e.target.value)}
-              >
+              <Select label="Sector" value={sectorFilter} onChange={(e) => setSectorFilter(e.target.value)}>
                 {sectorOptions.map((s) => (
                   <MenuItem key={s} value={s}>
                     {s}
@@ -475,7 +557,6 @@ export default function MasoolHierarchy() {
               </Select>
             </FormControl>
 
-            {/* Search */}
             <TextField
               size="small"
               placeholder="Search masool / musaid / hof..."
@@ -492,7 +573,6 @@ export default function MasoolHierarchy() {
             />
           </Box>
 
-          {/* Top Divider strip */}
           <Box
             sx={{
               width: "calc(100% + 48px)",
@@ -509,36 +589,25 @@ export default function MasoolHierarchy() {
           />
 
           {loading ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                minHeight: "50vh",
-              }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "50vh" }}>
               <CircularProgress />
             </Box>
           ) : error ? (
             <Typography color="error">{error}</Typography>
           ) : filteredData.length === 0 ? (
-            <Typography sx={{ px: 1, py: 2, color: COLORS.textSoft }}>
-              No records found.
-            </Typography>
+            <Typography sx={{ px: 1, py: 2, color: COLORS.textSoft }}>No records found.</Typography>
           ) : (
             <Box sx={{ pb: 1 }}>
               {groupedBySector.map(({ sector, items }) => {
                 if (!items.length) return null;
-
-                // if user chose sector filter, show only that
                 if (sectorFilter !== "ALL" && sector !== sectorFilter) return null;
 
                 const sectorHouseTotal = sectorTotals?.[sector]?.totalHouses ?? 0;
                 const sectorMasools = sectorTotals?.[sector]?.masools ?? items.length;
+                const sectorSegCounts = sectorTotals?.[sector]?.segmentCounts ?? emptySegmentCounts();
 
                 return (
                   <Box key={sector} sx={{ mb: 2 }}>
-                    {/* Sector Header */}
                     <Box
                       sx={{
                         display: "flex",
@@ -549,31 +618,23 @@ export default function MasoolHierarchy() {
                         borderRadius: 2,
                         background: "#fff",
                         border: `1px solid ${COLORS.border}`,
+                        flexWrap: "wrap",
                       }}
                     >
                       <Typography sx={{ fontWeight: 900, letterSpacing: 0.5 }}>
                         SECTOR: <span style={{ fontWeight: 900 }}>{sector}</span>
                       </Typography>
 
-                      <Divider sx={{ flex: 1 }} />
+                      <Divider sx={{ flex: 1, minWidth: 60 }} />
 
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        label={`Masools: ${sectorMasools}`}
-                      />
+                      <Chip size="small" variant="outlined" label={`Masools: ${sectorMasools}`} />
+                      <Chip size="small" variant="outlined" color="success" label={`Total Houses: ${sectorHouseTotal}`} sx={{ fontWeight: 800 }} />
 
-                      {/* ✅ NEW: Total Houses per sector */}
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        color="success"
-                        label={`Total Houses: ${sectorHouseTotal}`}
-                        sx={{ fontWeight: 800 }}
-                      />
+                      <Box sx={{ minWidth: 260 }}>
+                        <SegmentChips counts={sectorSegCounts} size="small" />
+                      </Box>
                     </Box>
 
-                    {/* Fancy divider strip between sectors */}
                     <Box
                       sx={{
                         width: "100%",
@@ -588,23 +649,22 @@ export default function MasoolHierarchy() {
                       }}
                     />
 
-                    {/* Masools inside sector */}
                     <Box>
                       {items.map((block, idx) => {
                         const masool = block?.masool || {};
-                        const musaids = Array.isArray(block?.musaids)
-                          ? block.musaids
-                          : [];
+                        const musaids = Array.isArray(block?.musaids) ? block.musaids : [];
 
                         const totalHofs = masool?.totals?.total_hofs ?? 0;
                         const missingMasool = masool?.totals?.missing_in_its ?? 0;
 
                         const masoolSectors = joinArr(masool?.sector_names);
                         const masoolSubSectors = joinArr(
-                            Array.isArray(masool?.sub_sector_names)
-                                ? [...masool.sub_sector_names].sort(compareSubSector)
-                                : []
+                          Array.isArray(masool?.sub_sector_names)
+                            ? [...masool.sub_sector_names].sort(compareSubSector)
+                            : []
                         );
+
+                        const masoolSegCounts = sumSegmentCountsFromMusaids(musaids);
 
                         return (
                           <Accordion
@@ -617,7 +677,6 @@ export default function MasoolHierarchy() {
                               "&:before": { display: "none" },
                             }}
                           >
-                            {/* MASOOL HEADER */}
                             <AccordionSummary
                               expandIcon={<ExpandMoreIcon />}
                               sx={{
@@ -625,100 +684,42 @@ export default function MasoolHierarchy() {
                                 "& .MuiAccordionSummary-content": { my: 1 },
                               }}
                             >
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  gap: 1.5,
-                                  alignItems: "center",
-                                  width: "100%",
-                                  pr: 1,
-                                }}
-                              >
-                                <Avatar
-                                  src={masool?.photo_url || undefined}
-                                  alt="Masool"
-                                  sx={{ width: 46, height: 46 }}
-                                />
+                              <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", width: "100%", pr: 1, flexWrap: "wrap" }}>
+                                <Photo src={masool?.photo_url} alt="Masool" />
 
                                 <Box sx={{ minWidth: 0, flex: 1 }}>
-                                  <Typography
-                                    sx={{ fontWeight: 800, lineHeight: 1.2 }}
-                                  >
+                                  <Typography sx={{ fontWeight: 800, lineHeight: 1.2 }}>
                                     {safeStr(masool?.name)}
                                   </Typography>
 
-                                  {/* Columns: ITS | Sector | Sub Sector */}
                                   <Box
                                     sx={{
                                       display: "grid",
-                                      gridTemplateColumns: {
-                                        xs: "1fr",
-                                        md: "140px 1fr 1fr",
-                                      },
+                                      gridTemplateColumns: { xs: "1fr", md: "140px 1fr 1fr" },
                                       gap: 0.8,
                                       mt: 0.6,
                                     }}
                                   >
-                                    <Typography
-                                      sx={{
-                                        fontSize: 12,
-                                        color: COLORS.textSoft,
-                                      }}
-                                    >
+                                    <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
                                       <b>ITS:</b> {safeStr(masool?.its)}
                                     </Typography>
-                                    <Typography
-                                      sx={{
-                                        fontSize: 12,
-                                        color: COLORS.textSoft,
-                                      }}
-                                    >
-                                      <b>Sector:</b>{" "}
-                                      <span style={{ fontWeight: 800 }}>
-                                        {masoolSectors}
-                                      </span>
+                                    <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
+                                      <b>Sector:</b> <span style={{ fontWeight: 800 }}>{masoolSectors}</span>
                                     </Typography>
-                                    <Typography
-                                      sx={{
-                                        fontSize: 12,
-                                        color: COLORS.textSoft,
-                                      }}
-                                    >
+                                    <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
                                       <b>Sub-Sector:</b> {masoolSubSectors}
                                     </Typography>
                                   </Box>
+
+                                  <Box sx={{ mt: 0.8 }}>
+                                    <SegmentChips counts={masoolSegCounts} size="small" />
+                                  </Box>
                                 </Box>
 
-                                {/* Totals */}
-                                <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  alignItems="center"
-                                  flexWrap="wrap"
-                                  useFlexGap
-                                >
-                                  <Chip
-                                    size="small"
-                                    variant="outlined"
-                                    color="primary"
-                                    label={`Musaids: ${musaids.length}`}
-                                  />
-                                  <Chip
-                                    size="small"
-                                    variant="outlined"
-                                    color="success"
-                                    label={`Total HOFs: ${totalHofs}`}
-                                  />
-                                  <Chip
-                                    size="small"
-                                    variant="outlined"
-                                    color={
-                                      Number(missingMasool) > 0
-                                        ? "error"
-                                        : "success"
-                                    }
-                                    label={`Missing: ${missingMasool}`}
-                                  />
+                                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                                  <Chip size="small" variant="outlined" color="primary" label={`Musaids: ${musaids.length}`} />
+                                  <Chip size="small" variant="outlined" color="success" label={`Total HOFs: ${totalHofs}`} />
+                                  <Chip size="small" variant="outlined" color={Number(missingMasool) > 0 ? "error" : "success"} label={`Missing: ${missingMasool}`} />
                                 </Stack>
                               </Box>
                             </AccordionSummary>
@@ -729,41 +730,28 @@ export default function MasoolHierarchy() {
                                   No musaids found under this masool.
                                 </Typography>
                               ) : (
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 1.2,
-                                  }}
-                                >
+                                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.2 }}>
                                   {musaids.map((m, mi) => {
                                     const musaid = m?.musaid || {};
                                     const totals = m?.totals || {};
-                                    const hofs = Array.isArray(m?.hofs)
-                                      ? m.hofs
-                                      : [];
+                                    const hofs = Array.isArray(m?.hofs) ? m.hofs : [];
 
-                                    const musaidTotalHofs =
-                                      totals?.total_hofs ?? 0;
-                                    const musaidMissing =
-                                      totals?.missing_in_its ?? 0;
+                                    const musaidTotalHofs = totals?.total_hofs ?? 0;
+                                    const musaidMissing = totals?.missing_in_its ?? 0;
+
+                                    const musaidSegCounts = countFromHofs(hofs);
 
                                     const rows = hofs.map((h, hi) => ({
-                                      id: `${musaid?.its || "musaid"}-${
-                                        h?.its || hi
-                                      }-${hi}`,
+                                      id: `${musaid?.its || "musaid"}-${h?.its || hi}-${hi}`,
+                                      family_id: safeStr(h?.family_id, ""),
                                       its: safeStr(h?.its),
                                       name: safeStr(h?.name),
                                       mobile: safeStr(h?.mobile),
-                                      email: safeStr(h?.email),
                                       photo_url: h?.photo_url || "",
-                                      family_count: Number(
-                                        h?.family_count ?? 0
-                                      ),
+                                      family_count: Number(h?.family_count ?? 0),
+                                      tiffin_segment: normalizeSegment(h?.tiffin_segment) || "",
                                       thali_status: h?.thali_status ?? null,
-                                      missing_in_its_data: Number(
-                                        h?.missing_in_its_data ?? 0
-                                      ),
+                                      missing_in_its_data: Number(h?.missing_in_its_data ?? 0),
                                     }));
 
                                     return (
@@ -776,26 +764,14 @@ export default function MasoolHierarchy() {
                                           "&:before": { display: "none" },
                                         }}
                                       >
-                                        {/* MUSAID HEADER */}
                                         <AccordionSummary
                                           expandIcon={<ExpandMoreIcon />}
                                           sx={{
                                             backgroundColor: COLORS.musaidBg,
-                                            "& .MuiAccordionSummary-content": {
-                                              my: 1,
-                                            },
+                                            "& .MuiAccordionSummary-content": { my: 1 },
                                           }}
                                         >
-                                          <Box
-                                            sx={{
-                                              display: "flex",
-                                              gap: 1.2,
-                                              alignItems: "center",
-                                              width: "100%",
-                                              pr: 1,
-                                            }}
-                                          >
-                                            {/* Pointer */}
+                                          <Box sx={{ display: "flex", gap: 1.2, alignItems: "center", width: "100%", pr: 1, flexWrap: "wrap" }}>
                                             <Tooltip title="Musaid">
                                               <Box
                                                 sx={{
@@ -813,154 +789,76 @@ export default function MasoolHierarchy() {
                                               </Box>
                                             </Tooltip>
 
-                                            <Avatar
-                                              src={musaid?.photo_url || undefined}
-                                              alt="Musaid"
-                                              sx={{ width: 40, height: 40 }}
-                                            />
+                                            <Photo src={musaid?.photo_url} alt="Musaid" />
 
                                             <Box sx={{ minWidth: 0, flex: 1 }}>
-                                              <Typography
-                                                sx={{
-                                                  fontWeight: 800,
-                                                  lineHeight: 1.2,
-                                                }}
-                                              >
+                                              <Typography sx={{ fontWeight: 800, lineHeight: 1.2 }}>
                                                 {safeStr(musaid?.name)}
                                               </Typography>
 
-                                              {/* Columns: ITS | Sector | SubSector | Total HOF | Missing */}
                                               <Box
                                                 sx={{
                                                   display: "grid",
-                                                  gridTemplateColumns: {
-                                                    xs: "1fr",
-                                                    md: "140px 1fr 1fr 140px 120px",
-                                                  },
+                                                  gridTemplateColumns: { xs: "1fr", md: "140px 1fr 1fr 140px 120px" },
                                                   gap: 0.8,
                                                   mt: 0.6,
                                                   alignItems: "center",
                                                 }}
                                               >
-                                                <Typography
-                                                  sx={{
-                                                    fontSize: 12,
-                                                    color: COLORS.textSoft,
-                                                  }}
-                                                >
+                                                <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
                                                   <b>ITS:</b> {safeStr(musaid?.its)}
                                                 </Typography>
 
-                                                <Typography
-                                                  sx={{
-                                                    fontSize: 12,
-                                                    color: COLORS.textSoft,
-                                                  }}
-                                                >
+                                                <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
                                                   <b>Sector:</b>{" "}
                                                   <span style={{ fontWeight: 800 }}>
                                                     {safeStr(musaid?.sector_name)}
                                                   </span>
                                                 </Typography>
 
-                                                <Typography
-                                                  sx={{
-                                                    fontSize: 12,
-                                                    color: COLORS.textSoft,
-                                                  }}
-                                                >
-                                                  <b>Sub-Sector:</b>{" "}
-                                                  {safeStr(musaid?.sub_sector_name)}
+                                                <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
+                                                  <b>Sub-Sector:</b> {safeStr(musaid?.sub_sector_name)}
                                                 </Typography>
 
-                                                <Typography
-                                                  sx={{
-                                                    fontSize: 12,
-                                                    color: COLORS.textSoft,
-                                                  }}
-                                                >
+                                                <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
                                                   <b>Total HOF:</b>{" "}
-                                                  <span style={{ fontWeight: 800 }}>
-                                                    {musaidTotalHofs}
-                                                  </span>
+                                                  <span style={{ fontWeight: 800 }}>{musaidTotalHofs}</span>
                                                 </Typography>
 
-                                                <Typography
-                                                  sx={{
-                                                    fontSize: 12,
-                                                    color: COLORS.textSoft,
-                                                  }}
-                                                >
+                                                <Typography sx={{ fontSize: 12, color: COLORS.textSoft }}>
                                                   <b>Missing:</b>{" "}
-                                                  <span style={{ fontWeight: 800 }}>
-                                                    {musaidMissing}
-                                                  </span>
+                                                  <span style={{ fontWeight: 800 }}>{musaidMissing}</span>
                                                 </Typography>
+                                              </Box>
+
+                                              <Box sx={{ mt: 0.8 }}>
+                                                <SegmentChips counts={musaidSegCounts} size="small" />
                                               </Box>
                                             </Box>
 
-                                            <Stack
-                                              direction="row"
-                                              spacing={1}
-                                              alignItems="center"
-                                              flexWrap="wrap"
-                                              useFlexGap
-                                            >
-                                              <Chip
-                                                size="small"
-                                                variant="outlined"
-                                                color="primary"
-                                                label={`Shown: ${rows.length}`}
-                                              />
+                                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                                              <Chip size="small" variant="outlined" color="primary" label={`Shown: ${rows.length}`} />
                                             </Stack>
                                           </Box>
                                         </AccordionSummary>
 
-                                        {/* HOF SECTION */}
-                                        <AccordionDetails
-                                          sx={{
-                                            pt: 1,
-                                            backgroundColor: COLORS.hofsBg,
-                                          }}
-                                        >
-                                          <Box
-                                            sx={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                              justifyContent: "space-between",
-                                              mb: 1,
-                                              gap: 1,
-                                              flexWrap: "wrap",
-                                            }}
-                                          >
-                                            <Typography sx={{ fontWeight: 800 }}>
-                                              Mumineen (HOF) List
-                                            </Typography>
+                                        <AccordionDetails sx={{ pt: 1, backgroundColor: COLORS.hofsBg }}>
+                                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1, gap: 1, flexWrap: "wrap" }}>
+                                            <Typography sx={{ fontWeight: 800 }}>Mumineen (HOF) List</Typography>
 
-                                            <Stack
-                                              direction="row"
-                                              spacing={1}
-                                              alignItems="center"
-                                              flexWrap="wrap"
-                                              useFlexGap
-                                            >
+                                            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                                              <Chip size="small" variant="outlined" color="success" label={`Total HOF: ${musaidTotalHofs}`} />
                                               <Chip
                                                 size="small"
                                                 variant="outlined"
-                                                color="success"
-                                                label={`Total HOF: ${musaidTotalHofs}`}
-                                              />
-                                              <Chip
-                                                size="small"
-                                                variant="outlined"
-                                                color={
-                                                  Number(musaidMissing) > 0
-                                                    ? "error"
-                                                    : "success"
-                                                }
+                                                color={Number(musaidMissing) > 0 ? "error" : "success"}
                                                 label={`Missing: ${musaidMissing}`}
                                               />
                                             </Stack>
+                                          </Box>
+
+                                          <Box sx={{ mb: 1 }}>
+                                            <SegmentChips counts={musaidSegCounts} size="small" />
                                           </Box>
 
                                           <Divider sx={{ mb: 1 }} />
@@ -983,12 +881,8 @@ export default function MasoolHierarchy() {
                                                 backgroundColor: "#fff",
                                                 borderRadius: 2,
                                                 border: `1px solid ${COLORS.border}`,
-                                                "& .MuiDataGrid-columnHeaders": {
-                                                  backgroundColor: "#f5f5f5",
-                                                },
-                                                "& .MuiDataGrid-cell": {
-                                                  color: "#555",
-                                                },
+                                                "& .MuiDataGrid-columnHeaders": { backgroundColor: "#f5f5f5" },
+                                                "& .MuiDataGrid-cell": { color: "#555" },
                                               }}
                                             />
                                           </Box>
@@ -1016,11 +910,7 @@ export default function MasoolHierarchy() {
           onClose={() => setSnackbarOpen(false)}
           anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         >
-          <Alert
-            onClose={() => setSnackbarOpen(false)}
-            severity={snackbarSeverity}
-            sx={{ width: "100%" }}
-          >
+          <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: "100%" }}>
             {snackbarMessage}
           </Alert>
         </Snackbar>
