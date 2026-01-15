@@ -31,8 +31,8 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import dividerImg from "../../assets/divider.png";
-import { useUser } from "../../contexts/UserContext";
+import dividerImg from "../../../assets/divider.png";
+import { useUser } from "../../../contexts/UserContext";
 
 const formatDate = (d) => {
     if (!d) return "";

@@ -1,8 +1,8 @@
 import React from "react";
 import { CssBaseline, Box, Grid } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
-import StoreItemForm from "./StoreItemForm";
-import StoreItemTable from "./StoreItemTable";
+import StoreItemForm from "./storeComponents/StoreItemForm";
+import StoreItemTable from "./storeComponents/StoreItemTable";
 
 export default function StoreItem() {
     return (

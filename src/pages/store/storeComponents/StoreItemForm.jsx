@@ -16,11 +16,11 @@ import {
     CircularProgress,
     Collapse,
 } from "@mui/material";
-import { yellow } from "../../styles/ThemePrimitives";
-import divider from "../../assets/divider.png";
+import { yellow } from "../../../styles/ThemePrimitives";
+import divider from "../../../assets/divider.png";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import { useUser } from "../../contexts/UserContext";
+import { useUser } from "../../../contexts/UserContext";
 
 const StoreItemForm = ({ onSuccess }) => {
     const formRef = useRef(null);
