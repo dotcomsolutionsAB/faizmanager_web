@@ -29,10 +29,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
-
-
-
-
 const MenuForm = ({ menuData, onSuccess }) => {
   const formRef = useRef(null);
 
@@ -287,38 +283,38 @@ const MenuForm = ({ menuData, onSuccess }) => {
               </Grid>
               <Grid item xs={12} md={6}>
                 {/* <TextField fullWidth label="Date" type="date" InputLabelProps={{ shrink: true }} value={date} onChange={(e) => setDate(e.target.value)} /> */}
-<DatePicker
-  label="Date"
-  format="DD/MM/YYYY" 
-  value={dayjs(date)}
-  onChange={(newValue) => {
-    if (newValue?.isValid()) {
-      setDate(newValue.format('YYYY-MM-DD'));
-    }
-  }}
+                <DatePicker
+                  label="Date"
+                  format="DD/MM/YYYY"
+                  value={dayjs(date)}
+                  onChange={(newValue) => {
+                    if (newValue?.isValid()) {
+                      setDate(newValue.format('YYYY-MM-DD'));
+                    }
+                  }}
 
-  slotProps={{
-    textField: {
-      fullWidth: true,
-      onClick: (e) => {
-        // Manually open picker when text field is clicked
-        e.currentTarget.querySelector('button')?.click();
-      },
-      sx: {
-        '& .MuiIconButton-root': {
-          border: 'none',
-          padding: 0,
-          margin: 0,
-          backgroundColor: 'transparent',
-        },
-        '& .MuiSvgIcon-root': {
-          fontSize: '20px', // optional: to control icon size
-        },
-      },
-      
-    },
-  }}
-/>
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      onClick: (e) => {
+                        // Manually open picker when text field is clicked
+                        e.currentTarget.querySelector('button')?.click();
+                      },
+                      sx: {
+                        '& .MuiIconButton-root': {
+                          border: 'none',
+                          padding: 0,
+                          margin: 0,
+                          backgroundColor: 'transparent',
+                        },
+                        '& .MuiSvgIcon-root': {
+                          fontSize: '20px', // optional: to control icon size
+                        },
+                      },
+
+                    },
+                  }}
+                />
 
 
               </Grid>

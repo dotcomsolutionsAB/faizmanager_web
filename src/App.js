@@ -32,6 +32,7 @@ import Menu from './pages/menu/Menu';
 import NiyazCalendar from './pages/niyazCalendar/NiyazCalendar';
 import MasoolHierarchy from './pages/masool_hierarchy/MasoolHierarchy';
 import './App.css'
+import StoreItems from './pages/store/StoreItems';
 import ContextWrapper from './contexts/ContextWrapper';
 
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
@@ -106,6 +107,7 @@ function App() {
                 <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
                 <Route path="/hierarchy" element={<Hierarchy />} />
                 <Route path="/masool_hierarchy" element={<MasoolHierarchy />} />
+                <Route path="/store-items" element={<StoreItems />} />
 
               </Route>
               {/* Optional: Catch-all for unknown routes */}

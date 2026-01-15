@@ -32,7 +32,7 @@ const MenuContentStore = ({ open }) => {
         {
             label: "Items",
             icon: <ShoppingCartIcon />,
-            path: "/items",
+            path: "/store-items",
         },
         {
             label: "Vendors",
