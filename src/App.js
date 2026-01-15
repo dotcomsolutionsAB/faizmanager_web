@@ -31,15 +31,21 @@ import Niyaz from './pages/niyaz/Niyaz';
 import Menu from './pages/menu/Menu';
 import NiyazCalendar from './pages/niyazCalendar/NiyazCalendar';
 import MasoolHierarchy from './pages/masool_hierarchy/MasoolHierarchy';
-import './App.css'
-import StoreItems from './pages/store/StoreItems';
-import ContextWrapper from './contexts/ContextWrapper';
 
+import ContextWrapper from './contexts/ContextWrapper';
 import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 import Hierarchy from './pages/hierarchy/Hierarchy';
 import Jaman from './pages/bookings/Jaman';
 import SalawatFateha from './pages/bookings/SalawatFateha';
 import MiqaatNiyaz from './pages/bookings/MiqaatNiyaz';
+
+import StoreItems from './pages/store/StoreItems';
+import StoreInItems from './pages/store/StoreInItems';
+import StoreVendors from './pages/store/StoreVendors';
+import StoreMenuDish from './pages/store/StoreMenuDish';
+import StoreOutItems from './pages/store/StoreOutItems';
+
+import './App.css'
 // import MasoolHierarchy from './pages/masool_hierarchy/MasoolHierarchy';
 
 // import SignUp from '.samples/pages/signup/SignUp';
@@ -107,7 +113,12 @@ function App() {
                 <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
                 <Route path="/hierarchy" element={<Hierarchy />} />
                 <Route path="/masool_hierarchy" element={<MasoolHierarchy />} />
+
                 <Route path="/store-items" element={<StoreItems />} />
+                <Route path="/store-in-items" element={<StoreInItems />} />
+                <Route path="/store-out-items" element={<StoreOutItems />} />
+                <Route path="/store-menu-dish" element={<StoreMenuDish />} />
+                <Route path="/store-vendors" element={<StoreVendors />} />
 
               </Route>
               {/* Optional: Catch-all for unknown routes */}

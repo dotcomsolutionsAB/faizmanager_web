@@ -17,17 +17,17 @@ const MenuContentStore = ({ open }) => {
         {
             label: "Store In",
             icon: <AddShoppingCartIcon />,
-            path: "/store-in",
+            path: "/store-in-items",
         },
         {
             label: "Store Out",
             icon: <RemoveShoppingCartIcon />,
-            path: "/store-out",
+            path: "/store-out-items",
         },
         {
             label: "Menu Dish",
             icon: <RestaurantMenuIcon />,
-            path: "/menu-dish",
+            path: "/store-menu-dish",
         },
         {
             label: "Items",
@@ -37,7 +37,7 @@ const MenuContentStore = ({ open }) => {
         {
             label: "Vendors",
             icon: <BusinessIcon />,
-            path: "/vendors",
+            path: "/store-vendors",
         },
     ];
 

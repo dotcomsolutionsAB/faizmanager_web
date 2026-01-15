@@ -1,0 +1,34 @@
+import React from "react";
+import { CssBaseline, Box, Grid } from "@mui/material";
+import AppTheme from "../../styles/AppTheme";
+import StoreItemForm from "./storeComponents/StoreItemForm";
+import StoreItemTable from "./storeComponents/StoreItemTable";
+
+export default function StoreVendors() {
+    return (
+        <AppTheme>
+            <CssBaseline />
+            <Box
+                sx={{
+                    mt: 12,
+                    pb: 3,
+                    mb: 1,
+                }}
+            >
+                <Box sx={{ width: "100%", pr: 1, pb: 3 }}>
+                    <Grid container spacing={2}>
+                        {/* ✅ Form Full Width */}
+                        <Grid item xs={12}>
+                            {/* <StoreItemForm /> */}
+                        </Grid>
+
+                        {/* ✅ Table Full Width Below */}
+                        <Grid item xs={12}>
+                            {/* <StoreItemTable /> */}
+                        </Grid>
+                    </Grid>
+                </Box>
+            </Box>
+        </AppTheme>
+    );
+}
