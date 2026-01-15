@@ -4,7 +4,7 @@ import { DataGridPro, GridToolbar } from '@mui/x-data-grid-pro';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
 import { Link } from 'react-router-dom';
-import {yellow, brown} from "../../styles/ThemePrimitives";
+import { yellow, brown } from "../../styles/ThemePrimitives";
 import AppTheme from "../../styles/AppTheme";
 import EditIcon from '@mui/icons-material/Edit';
 import ReceiptIcon from '@mui/icons-material/Receipt';
@@ -31,20 +31,20 @@ function MenuTable({ onEditMenu, refreshTrigger }) {
   const [rows, setRows] = useState([]);
   const [filterText, setFilterText] = useState('');
   const [sortModel, setSortModel] = useState([]);
-  const [filteredRows, setFilteredRows] = useState([]); 
+  const [filteredRows, setFilteredRows] = useState([]);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 10,
   });
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-const [snackbarMessage, setSnackbarMessage] = useState('');
-const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const navigate = useNavigate();
 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false); // State to control the delete dialog
-    const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
+  const [deleteId, setDeleteId] = useState(null); // To store the ID of the expense to be deleted
 
   const ActionButtonWithOptions = ({ onActionClick, row, onEditMenu, menuId }) => {
     const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the dropdown menu
@@ -66,10 +66,10 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     }, []);
 
     const handleEditClick = () => {
-    onEditMenu(row);  // Pass selected row to parent
-    handleClose();
-  };
-       const handleDeleteClick = () => {
+      onEditMenu(row);  // Pass selected row to parent
+      handleClose();
+    };
+    const handleDeleteClick = () => {
       setDeleteId(menuId); // Set the ID of the receipt to be deleted
       setOpenDeleteDialog(true); // Open the delete dialog
       handleClose();
@@ -116,13 +116,13 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
           {/* Delete Option */}
           <MenuItem onClick={handleDeleteClick}>
-                      <Tooltip title="Delete" placement="left">
-                        <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-                          <DeleteIcon sx={{ color: brown[200] }} />
-                          Delete
-                        </Box>
-                      </Tooltip>
-                    </MenuItem>
+            <Tooltip title="Delete" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <DeleteIcon sx={{ color: brown[200] }} />
+                Delete
+              </Box>
+            </Tooltip>
+          </MenuItem>
         </Menu>
       </Box>
     );
@@ -136,29 +136,29 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
       sortable: true,
       renderCell: (params) => {
         const d = params.row.date;
-  let formatted = d ? d.split('-').reverse().join('-') : '';
-  return(
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            // justifyContent: 'center',
-            height: '100%',
-            width: '100%',
-          }}
-        >
-          <Typography
-            variant="body2"
+        let formatted = d ? d.split('-').reverse().join('-') : '';
+        return (
+          <Box
             sx={{
-              // fontWeight: 'bold',
-              textAlign: 'center',
-              color: brown[700],
+              display: 'flex',
+              alignItems: 'center',
+              // justifyContent: 'center',
+              height: '100%',
+              width: '100%',
             }}
           >
-            {formatted}
-          </Typography>
-        </Box>
-  )
+            <Typography
+              variant="body2"
+              sx={{
+                // fontWeight: 'bold',
+                textAlign: 'center',
+                color: brown[700],
+              }}
+            >
+              {formatted}
+            </Typography>
+          </Box>
+        )
       },
     },
 
@@ -277,7 +277,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
       ),
     },
 
-        {
+    {
       field: 'sf details',
       headerName: 'SF Details',
       width: 150,
@@ -335,7 +335,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
             height: '100%',
           }}
         >
-           <ActionButtonWithOptions row={params.row} onEditMenu={onEditMenu} menuId={params.row.id} />
+          <ActionButtonWithOptions row={params.row} onEditMenu={onEditMenu} menuId={params.row.id} />
         </Box>
       ),
     },
@@ -393,7 +393,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     });
     setFilteredRows(filteredData);
   };
-  
+
 
   return (
     <AppTheme>
@@ -424,8 +424,8 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
             <TextField
               label="Search"
               variant="outlined"
-             value={filterText}
-            onChange={handleSearch}
+              value={filterText}
+              onChange={handleSearch}
               sx={{ width: { xs: '100%', sm: '300px' } }}
               InputProps={{
                 sx: {
@@ -439,7 +439,7 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
           </Box>
           <div style={{ height: 700, width: '100%', overflow: 'auto' }}>
             <DataGridPro
-               rows={filteredRows}
+              rows={filteredRows}
               columns={columns}
               components={{ Toolbar: GridToolbar }}
               localeText={customLocaleText}
@@ -492,20 +492,20 @@ const [snackbarSeverity, setSnackbarSeverity] = useState('success');
         </Paper>
       </Box>
 
-            <DeleteMenuDialog
-              open={openDeleteDialog}
-              onClose={() => setOpenDeleteDialog(false)}
-              menuId={deleteId}
-              onConfirm={() => {
-                // Handle the actual deletion here, for example:
-                // Delete the item from the state
-                setRows(rows.filter(row => row.id !== deleteId));
-                setOpenDeleteDialog(false);
-              }}
-               setSnackbarOpen={setSnackbarOpen}
-  setSnackbarMessage={setSnackbarMessage}
-  setSnackbarSeverity={setSnackbarSeverity}
-            />
+      <DeleteMenuDialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        menuId={deleteId}
+        onConfirm={() => {
+          // Handle the actual deletion here, for example:
+          // Delete the item from the state
+          setRows(rows.filter(row => row.id !== deleteId));
+          setOpenDeleteDialog(false);
+        }}
+        setSnackbarOpen={setSnackbarOpen}
+        setSnackbarMessage={setSnackbarMessage}
+        setSnackbarSeverity={setSnackbarSeverity}
+      />
 
     </AppTheme>
   );

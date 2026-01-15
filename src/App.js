@@ -40,7 +40,7 @@ import Jaman from './pages/bookings/Jaman';
 import SalawatFateha from './pages/bookings/SalawatFateha';
 import MiqaatNiyaz from './pages/bookings/MiqaatNiyaz';
 // import MasoolHierarchy from './pages/masool_hierarchy/MasoolHierarchy';
-        
+
 // import SignUp from '.samples/pages/signup/SignUp';
 // import Mumeneen from './samples/pages/mumeneen/Mumeneen';
 // import MumeneenDetails from './samples/pages/mumeneen/MumeneenDetails';
@@ -70,49 +70,49 @@ function App() {
   return (
     <UserProvider>
       <ContextWrapper>
-         <PrimeReactProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LogInWithPassword />} />
-          <Route path="/login-with-otp" element={<LogInWithOtp />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/forgotpassword" element={<ForgotPassword />} />
-          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+        <PrimeReactProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<LogInWithPassword />} />
+              <Route path="/login-with-otp" element={<LogInWithOtp />} />
+              <Route path="/sign-up" element={<SignUp />} />
+              <Route path="/forgotpassword" element={<ForgotPassword />} />
+              {/* <Route path="/dashboard" element={<Dashboard />} /> */}
 
 
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/mumeneen" element={<MumeneenTable />} />
-            <Route path="/mumeneen/:family_id" element={<MumeneenDetailsTable />} />
-            <Route path="/receipts" element={<Receipts />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/sector" element={<Sector />} />
-            <Route path="/sub_sector" element={<SubSector />} />
-            <Route path="/transfers" element={<Transfers />} />
-            <Route path="/niyaz_date" element={<NiyazDate />} />
-            <Route path="/salawat_fateha" element={<SalawatFateha />} />
-            <Route path="/zabihat" element={<Zabihat />} />
-            {/* <Route path="/fateha" element={<Fateha />} /> */}
-            <Route path="/extra_niyaz_in_faiz_thaali" element={<Jaman />} />
-            <Route path="/feedback" element={<Feedback />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/roles" element={<Roles />} />
-            <Route path="/user_access" element={<UserAccess />} />
-            <Route path="/jamaat" element={<JamaatTable />} />
-            <Route path="/miqaat_niyaz" element={<MiqaatNiyaz />} />
-            <Route path="/menu" element={<Menu />} />
-            <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
-            <Route path="/hierarchy" element={<Hierarchy />} />
-            <Route path="/masool_hierarchy" element={<MasoolHierarchy />} />
+              <Route element={<Layout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/mumeneen" element={<MumeneenTable />} />
+                <Route path="/mumeneen/:family_id" element={<MumeneenDetailsTable />} />
+                <Route path="/receipts" element={<Receipts />} />
+                <Route path="/payments" element={<Payments />} />
+                <Route path="/expenses" element={<Expenses />} />
+                <Route path="/sector" element={<Sector />} />
+                <Route path="/sub_sector" element={<SubSector />} />
+                <Route path="/transfers" element={<Transfers />} />
+                <Route path="/niyaz_date" element={<NiyazDate />} />
+                <Route path="/salawat_fateha" element={<SalawatFateha />} />
+                <Route path="/zabihat" element={<Zabihat />} />
+                {/* <Route path="/fateha" element={<Fateha />} /> */}
+                <Route path="/extra_niyaz_in_faiz_thaali" element={<Jaman />} />
+                <Route path="/feedback" element={<Feedback />} />
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/roles" element={<Roles />} />
+                <Route path="/user_access" element={<UserAccess />} />
+                <Route path="/jamaat" element={<JamaatTable />} />
+                <Route path="/miqaat_niyaz" element={<MiqaatNiyaz />} />
+                <Route path="/menu" element={<Menu />} />
+                <Route path="/niyaz-calendar" element={<NiyazCalendar />} />
+                <Route path="/hierarchy" element={<Hierarchy />} />
+                <Route path="/masool_hierarchy" element={<MasoolHierarchy />} />
 
-          </Route>
-          {/* Optional: Catch-all for unknown routes */}
-          {/* <Route path="*" element={<NotFound />} /> */}
-        </Routes>
-      </Router>
-      </PrimeReactProvider>
+              </Route>
+              {/* Optional: Catch-all for unknown routes */}
+              {/* <Route path="*" element={<NotFound />} /> */}
+            </Routes>
+          </Router>
+        </PrimeReactProvider>
       </ContextWrapper>
 
     </UserProvider>
