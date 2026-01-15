@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     Box,
     Typography,
@@ -229,7 +229,7 @@ const StoreInTable = () => {
             {/* ✅ Same layout style as your newer tables */}
             <Box
                 sx={{
-                    mt: 2,
+                    // mt: 2,
                     pt: 2,
                     pb: 3,
                     pl: 3,

@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     Box,
     Typography,
-    Card,
     CardContent,
     CircularProgress,
     Table,
@@ -212,7 +211,6 @@ export default function StoreItemTable() {
             <CssBaseline />
             <Box
                 sx={{
-                    mt: 2,
                     pt: 2,
                     pb: 3,
                     pl: 3,

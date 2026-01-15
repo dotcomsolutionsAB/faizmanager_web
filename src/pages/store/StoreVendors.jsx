@@ -10,7 +10,7 @@ export default function StoreVendors() {
             <CssBaseline />
             <Box
                 sx={{
-                    mt: 12,
+                    mt: 8,
                     pb: 3,
                     mb: 1,
                 }}

@@ -294,7 +294,6 @@ export default function StoreOutTable() {
             <CssBaseline />
             <Box
                 sx={{
-                    mt: 2,
                     pt: 2,
                     pb: 3,
                     pl: 3,

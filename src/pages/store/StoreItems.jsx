@@ -10,7 +10,7 @@ export default function StoreItem() {
             <CssBaseline />
             <Box
                 sx={{
-                    mt: 12,
+                    mt: 8,
                     pb: 3,
                     // pl: 3,
                     // pr: 3,

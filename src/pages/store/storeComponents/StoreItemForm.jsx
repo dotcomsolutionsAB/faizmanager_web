@@ -182,7 +182,6 @@ const StoreItemForm = ({ onSuccess }) => {
             <Box
                 ref={formRef}
                 sx={{
-                    mt: 2,
                     pb: 3,
                     pl: 3,
                     pr: 3,
