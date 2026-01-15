@@ -60,7 +60,7 @@ import { yellow, brown } from "../../styles/ThemePrimitives";
 import MohallaWiseStats from "./MohallaWiseStats";
 
 const MumeneenDashboard = ({ year, sector, subSector, hofCount }) => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
 
   return (
@@ -68,15 +68,15 @@ const MumeneenDashboard = ({ year, sector, subSector, hofCount }) => {
       <CssBaseline />
       <Box sx={{ width: "100%", pr: 3, pb: 3 }}>
         <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6}>
+          <Grid item xs={12} sm={12} md={6}>
             <HubDistributionStats year={year} sector={sector} subSector={subSector} />
           </Grid>
-         
+
           <Grid item xs={12} sm={12} md={6}>
             <AccountStats year={year} sector={sector} subSector={subSector} />
           </Grid>
-         
-          
+
+
         </Grid>
       </Box>
     </AppTheme>

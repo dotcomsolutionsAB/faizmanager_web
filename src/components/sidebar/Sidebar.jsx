@@ -17,6 +17,7 @@ import MenuContentCoordinator from './MenuContentCoordinator';
 import MenuContentSectorAdmin from './MenuContentSectorAdmin';
 import MenuContentMasool from './MenuContentMasool';
 import MenuContentMusaid from './MenuContentMusaid';
+import MenuContentStore from './MenuContentStore';
 
 
 const drawerWidth = 240;
@@ -85,8 +86,8 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 export default function Sidebar() {
   const theme = useTheme();
   const open = useAppStore((state) => state.dopen);
-  const { roles, accessRoleId } = useUser();
-  
+  const { roles, accessRoleId, role } = useUser();
+
   const sidebarContentToShow = accessRoleId
   console.log(sidebarContentToShow)
 
@@ -100,7 +101,9 @@ export default function Sidebar() {
     // else if (role === "mumeneen") {
     //   return <MenuContentMumeneen open={open} />;
     // } 
-    if (sidebarContentToShow === 1) {
+    if (sidebarContentToShow === 5) {
+      return <MenuContentStore open={open} />;
+    } else if (sidebarContentToShow === 1) {
       return <MenuContentSectorAdmin open={open} />;
     } else if (sidebarContentToShow === 4) {
       return <MenuContentCoordinator open={open} />;
@@ -111,23 +114,23 @@ export default function Sidebar() {
     }
     else {
       return null; // Render nothing for unsupported roles
-    } 
+    }
 
   };
- 
+
 
 
   return (
     <AppTheme>
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <Drawer variant="permanent" open={open}>
-        <DrawerHeader>
-          <IconButton >
-            {theme.direction === 'rtl' ? <KeyboardDoubleArrowRightIcon /> : <KeyboardDoubleArrowLeftIcon />}
-          </IconButton>
-        </DrawerHeader>
-                <Box           sx={{
+      <Box sx={{ display: 'flex' }}>
+        <CssBaseline />
+        <Drawer variant="permanent" open={open}>
+          <DrawerHeader>
+            <IconButton >
+              {theme.direction === 'rtl' ? <KeyboardDoubleArrowRightIcon /> : <KeyboardDoubleArrowLeftIcon />}
+            </IconButton>
+          </DrawerHeader>
+          <Box sx={{
             overflowY: 'auto', // Allow vertical scrolling
             transition: 'padding 0.3s ease', // Smooth transition for padding
             '&::-webkit-scrollbar': {
@@ -146,10 +149,10 @@ export default function Sidebar() {
               backgroundColor: yellow[300], // Darker color when the thumb is hovered
             },
           }}>
-          {renderMenuContent()}
-        </Box>
-      </Drawer>
-    </Box>
+            {renderMenuContent()}
+          </Box>
+        </Drawer>
+      </Box>
     </AppTheme>
   );
 }

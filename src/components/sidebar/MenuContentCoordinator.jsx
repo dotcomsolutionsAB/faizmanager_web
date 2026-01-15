@@ -62,7 +62,7 @@
 //                 ...(user?.id === 473
 //           ? [{ label: "Expenses", path: "/expenses", icon: <AttachMoneyIcon /> }]
 //           : []),
-        
+
 //       ],
 //     },
 //     // {
@@ -89,7 +89,7 @@
 //     //     { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
 //     //   ],
 //     // },
- 
+
 //     // {
 //     //   label: "Notifications",
 //     //   icon: <NotificationsIcon />,
@@ -200,22 +200,22 @@ const MenuContentCoordinator = ({ open }) => {
         { label: "Salawat/Fateha", path: "/salawat_fateha", icon: <StarIcon /> },
         // { label: "Fateha", path: "/fateha", icon: <StarIcon /> },
         { label: "⁠Extra Niyaz in Faiz Thaali", path: "/extra_niyaz_in_faiz_thaali", icon: <StarIcon /> },
-        {label: "Miqaat Niyaz", path:"/miqaat_niyaz", icon: <StarIcon />},
+        { label: "Miqaat Niyaz", path: "/miqaat_niyaz", icon: <StarIcon /> },
 
         // { label: "Niyaz Date", path: "/niyaz_date", icon: <BookOnlineIcon /> },
       ],
     },
-            {
+    {
       label: "Niyaz Calendar",
       icon: <EventIcon />,
       path: "/niyaz-calendar",
     },
-        {
+    {
       label: "Hierarchy",
       icon: <AccountTreeIcon />,
       path: "/masool_hierarchy",
     },
-        {
+    {
       label: "Menu",
       icon: <RestaurantMenuIcon />,
       path: "/menu",

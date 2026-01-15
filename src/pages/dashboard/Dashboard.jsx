@@ -12,6 +12,7 @@ import CoordinatorDashboard from "../../components/dashboard/CoordinatorDashboar
 import SectorAdminDashboard from "../../components/dashboard/SectorAdminDashboard";
 import MasoolDashboard from "../../components/dashboard/MasoolDashboard";
 import MusaidDashboard from "../../components/dashboard/MusaidDashboard";
+import StoreDashboard from "../../components/dashboard/StoreDashboard";
 
 import { Snackbar, Alert, Button } from "@mui/material";
 
@@ -85,7 +86,7 @@ const Dashboard = () => {
           />
         );
         break;
-        
+
 
       case 3: // Musaid
         dashboardContent = (
@@ -131,6 +132,18 @@ const Dashboard = () => {
       case "jamiat_admin":
         dashboardContent = (
           <JamiatAdminDashboard
+            year={year}
+            sector={sector}
+            subSector={subSector}
+            hofCount={hofCount}
+          />
+        );
+        break;
+      case "store":
+      case "Store":
+      case "STORE":
+        dashboardContent = (
+          <StoreDashboard
             year={year}
             sector={sector}
             subSector={subSector}
