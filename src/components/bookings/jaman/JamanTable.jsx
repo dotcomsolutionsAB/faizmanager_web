@@ -94,7 +94,7 @@ const JamanTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     setAddReceiptOpen(true);
   };
 
-  // Handle printing single or multiple receipts
+  // Handle printing single or multiple receipts.
   // receiptIds can be a single ID, array of IDs, or comma-separated string
   const handlePrintReceipts = (receiptIds) => {
     if (!receiptIds) return;
