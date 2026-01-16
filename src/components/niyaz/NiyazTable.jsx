@@ -13,6 +13,7 @@ import AppTheme from "../../styles/AppTheme";
 import { useUser } from "../../contexts/UserContext";
 import { yellow, brown } from "../../styles/ThemePrimitives";
 import divider from '../../assets/divider.png';
+import { formatDateToDDMMYYYY } from "../../util";
 
 const NiyazTable = () => {
   const { token } = useUser(); // Assuming token is fetched from UserContext
@@ -68,7 +69,7 @@ const NiyazTable = () => {
       headerName: "Date",
       flex: 1,
       renderCell: (params) => (
- <span style={{ color: brown[700] }}>{params.value}</span>
+ <span style={{ color: brown[700] }}>{formatDateToDDMMYYYY(params.value)}</span>
       ),
     },
     

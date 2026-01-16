@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Typography,
   Box,
@@ -7,6 +7,7 @@ import {
   Menu,
   MenuItem,
   Tooltip,
+  TextField,
 } from "@mui/material";
 import { DataGridPro } from "@mui/x-data-grid-pro";
 import { yellow, brown } from "../../../styles/ThemePrimitives";
@@ -19,6 +20,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteBookings from "../DeleteBookings"; // ⬅️ new import (adjust path)
+import { formatDateToDDMMYYYY } from "../../../util";
 
 const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
   const { currency, token } = useUser(); // ⬅️ token for API (if available)
@@ -33,6 +35,7 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [addReceiptOpen, setAddReceiptOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const [deleteOpen, setDeleteOpen] = useState(false);      // ⬅️ dialog open
   const [deleteLoading, setDeleteLoading] = useState(false); // ⬅️ deleting?
@@ -49,41 +52,34 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     setDeleteOpen(true);
   };
 
-  // actually call API when user confirms delete in dialog
-  const handleConfirmDelete = async () => {
+  const handleDeleteConfirm = async () => {
     if (!selectedRow) return;
 
-    try {
-      setDeleteLoading(true);
+    setDeleteLoading(true);
+    const base = process.env.REACT_APP_API_BASE || "https://api.fmb52.com/api";
+    const url = `${base}/commitment/${selectedRow.id}`;
 
-      const res = await fetch(`https://api.fmb52.com/api/commitment/delete/${selectedRow.id}`, {
-        method: "POST",
+    try {
+      const response = await fetch(url, {
+        method: "DELETE",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 
-      const json = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(json?.message || "Failed to delete commitment");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Failed to delete commitment" }));
+        throw new Error(errorData.message || "Failed to delete commitment");
       }
 
-      showMsg?.(
-        json?.message ||
-          `Commitment deleted successfully for ${selectedRow.name || "record"}`,
-        "success"
-      );
-
+      showMsg?.("Miqaat Niyaz commitment deleted successfully", "success");
       setDeleteOpen(false);
-      refresh?.();
-    } catch (err) {
-      console.error(err);
-      showMsg?.(
-        err.message || "An error occurred while deleting commitment.",
-        "error"
-      );
+      setSelectedRow(null);
+      if (refresh) refresh();
+    } catch (error) {
+      console.error("Delete error:", error);
+      showMsg?.(error.message || "Failed to delete commitment. Please try again.", "error");
     } finally {
       setDeleteLoading(false);
     }
@@ -91,13 +87,54 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
 
   const handleAddReceipt = () => {
     handleMenuClose();
-    setAddReceiptOpen(true);
+    if (selectedRow) {
+      setAddReceiptOpen(true);
+    }
+  };
+
+  const handlePrintReceipts = (receiptIds) => {
+    if (!receiptIds) return;
+
+    let receiptIdsStr = '';
+    if (Array.isArray(receiptIds)) {
+      receiptIdsStr = receiptIds.join(',');
+    } else if (typeof receiptIds === 'string' && receiptIds.includes(',')) {
+      receiptIdsStr = receiptIds;
+    } else {
+      receiptIdsStr = String(receiptIds);
+    }
+    
+    if (!receiptIdsStr) return;
+    
+    // Open print URL in new tab - supports multiple receipts in multiple pages
+    const printUrl = `https://api.fmb52.com/api/commitment_receipt_print/${receiptIdsStr}`;
+    window.open(printUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handlePrintReceipt = () => {
     handleMenuClose();
-    const msg = "Print Receipt action clicked (wire print URL here).";
-    showMsg?.(msg, "info");
+    if (!selectedRow) return;
+
+    // Check if receipts object exists and has values
+    const receipts = selectedRow.receipts;
+    if (!receipts || (Array.isArray(receipts) && receipts.length === 0) || (typeof receipts === 'object' && Object.keys(receipts).length === 0)) {
+      return;
+    }
+
+    // Extract receipt IDs from receipts array/object
+    let receiptIds = [];
+    if (Array.isArray(receipts)) {
+      receiptIds = receipts.map(receipt => receipt.id || receipt).filter(id => id != null);
+    } else if (typeof receipts === 'object') {
+      // If it's an object, try to get IDs from values
+      receiptIds = Object.values(receipts)
+        .map(receipt => (receipt && receipt.id) ? receipt.id : receipt)
+        .filter(id => id != null);
+    }
+
+    if (receiptIds.length > 0) {
+      handlePrintReceipts(receiptIds);
+    }
   };
 
   const handleEditCommitment = () => {
@@ -113,23 +150,26 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     {
       field: "date",
       headerName: "Date",
-      flex: 0.9,
+      flex: 0.8,
+      minWidth: 100,
       renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
+        <span style={{ color: brown[700], fontSize: "0.875rem" }}>{formatDateToDDMMYYYY(params.value)}</span>
       ),
     },
     {
       field: "its",
       headerName: "ITS",
-      flex: 0.9,
+      flex: 0.8,
+      minWidth: 90,
       renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
+        <span style={{ color: brown[700], fontSize: "0.875rem" }}>{params.value || ""}</span>
       ),
     },
 {
   field: "name",
   headerName: "Name",
-  flex: 1.4,
+  flex: 1.5,
+  minWidth: 180,
   renderCell: (params) => (
     <Box
       sx={{
@@ -137,34 +177,45 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         color: brown[700],
         whiteSpace: "normal",
         wordBreak: "break-word",
-        lineHeight: "1.4",
+        lineHeight: 1.3,
         display: "flex",
-        justifyContent: "center",   // horizontal center
-        alignItems: "center",        // vertical center
-        textAlign: "center",         // center text alignment
+        alignItems: "center",
         height: "100%",
         width: "100%",
         px: 1,
+        py: 0.5,
       }}
     >
-      {params.value}
+      {params.value || ""}
     </Box>
   ),
 },
 
-
     {
       field: "mobile",
       headerName: "Mobile",
-      flex: 0.9,
+      flex: 1,
+      minWidth: 130,
       renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
+        <Box
+          sx={{
+            color: brown[700],
+            fontSize: "0.875rem",
+            whiteSpace: "nowrap",
+            overflow: "visible",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          {params.value || ""}
+        </Box>
       ),
     },
     {
       field: "amount",
       headerName: "Amount",
-      flex: 0.9,
+      flex: 1,
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -175,7 +226,8 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             alignItems: "center",
             justifyContent: "flex-end",
             height: "100%",
-            fontSize: "16px",
+            fontSize: "15px",
+            fontWeight: 500,
           }}
         >
           {formatCurrency(params.row.amount)}
@@ -185,7 +237,7 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     {
       field: "amount_paid",
       headerName: "Paid",
-      flex: 0.8,
+      flex: 0.9,
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -196,7 +248,8 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             alignItems: "center",
             justifyContent: "flex-end",
             height: "100%",
-            fontSize: "16px",
+            fontSize: "15px",
+            fontWeight: 500,
           }}
         >
           {formatCurrency(params.row.amount_paid)}
@@ -206,7 +259,7 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     {
       field: "amount_due",
       headerName: "Due",
-      flex: 0.8,
+      flex: 0.9,
       renderCell: (params) => (
         <Typography
           variant="body2"
@@ -217,44 +270,68 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
             alignItems: "center",
             justifyContent: "flex-end",
             height: "100%",
-            fontSize: "16px",
+            fontSize: "15px",
+            fontWeight: 500,
           }}
         >
           {formatCurrency(params.row.amount_due)}
         </Typography>
       ),
     },
- {
+{
   field: "remarks",
   headerName: "Remarks",
-  flex: 0.9,
-  renderCell: (params) => (
-    <Box
-      sx={{
-        color: brown[700],
-        whiteSpace: "normal",
-        wordBreak: "break-word",
-        lineHeight: "1.4",
-        display: "flex",
-        justifyContent: "center",   // horizontal center
-        alignItems: "center",        // vertical center
-        textAlign: "center",         // center text alignment
-        height: "100%",
-        width: "100%",
-        px: 1,
-      }}
-    >
-      {params.value}
-    </Box>
-  ),
+  flex: 1.2,
+  minWidth: 150,
+  renderCell: (params) => {
+    const remarks = params.value || "";
+    return (
+      <Tooltip 
+        title={remarks} 
+        arrow
+        placement="top"
+        enterDelay={300}
+        PopperProps={{
+          modifiers: [
+            {
+              name: 'offset',
+              options: {
+                offset: [0, -8],
+              },
+            },
+          ],
+        }}
+      >
+        <Box
+          sx={{
+            color: brown[700],
+            wordBreak: "break-word",
+            lineHeight: 1.3,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            width: "100%",
+            px: 1,
+            py: 0.5,
+            cursor: remarks.length > 100 ? "pointer" : "default",
+          }}
+        >
+          {remarks}
+        </Box>
+      </Tooltip>
+    );
+  },
 },
 
     {
       field: "created_by",
       headerName: "Created by",
-      flex: 0.9,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params) => (
-        <span style={{ color: brown[700] }}>{params.value}</span>
+        <span style={{ color: brown[700], fontSize: "0.875rem" }}>{params.value || ""}</span>
       ),
     },
     {
@@ -283,7 +360,9 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
       <CssBaseline />
       <Box
         sx={{
-          mt: 2,
+          width: "100%",
+          overflowX: "auto",
+          mt: 1,
           pt: 2,
           pb: 3,
           pl: 3,
@@ -297,17 +376,41 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
           boxShadow: 1,
         }}
       >
-        <Typography
-          variant="h6"
+        <Box
           sx={{
-            fontWeight: "bold",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             mb: 1,
-            p: "8px 16px",
-            borderRadius: 1,
+            flexWrap: "wrap",
+            gap: 2,
           }}
         >
-          Miqaat Niyaz
-        </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: "bold",
+              p: "8px 16px",
+              borderRadius: 1,
+            }}
+          >
+            Miqaat Niyaz
+          </Typography>
+
+          <TextField
+            label="Search"
+            variant="outlined"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            size="small"
+            sx={{
+              width: { xs: "100%", sm: "300px" },
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "#fff",
+              },
+            }}
+          />
+        </Box>
 
         <Box
           sx={{
@@ -326,23 +429,59 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
 
         <Box sx={{ width: "100%", height: 500 }}>
           <DataGridPro
-            rows={
-              Array.isArray(data)
+            rows={useMemo(() => {
+              const filteredByType = Array.isArray(data)
                 ? data.filter(
                     (row) => String(row.type).toLowerCase() === "miqaat_niyaz"
                   )
-                : []
-            }
+                : [];
+
+              if (!searchText.trim()) {
+                return filteredByType;
+              }
+
+              const searchLower = searchText.toLowerCase();
+              return filteredByType.filter((row) => {
+                return (
+                  String(row.name || "").toLowerCase().includes(searchLower) ||
+                  String(row.its || "").toLowerCase().includes(searchLower) ||
+                  String(row.mobile || "").toLowerCase().includes(searchLower) ||
+                  String(row.remarks || "").toLowerCase().includes(searchLower) ||
+                  String(row.created_by || "").toLowerCase().includes(searchLower) ||
+                  formatDateToDDMMYYYY(row.date).toLowerCase().includes(searchLower) ||
+                  String(row.amount || "").includes(searchText) ||
+                  String(row.amount_paid || "").includes(searchText) ||
+                  String(row.amount_due || "").includes(searchText)
+                );
+              });
+            }, [data, searchText])}
             columns={columns}
             getRowId={(row) => row.id ?? `${row.its}-${row.date}-${row.type}`}
-            rowHeight={100}
+            rowHeight={65}
             checkboxSelection
             pagination
             pageSizeOptions={[5, 10, 25]}
+            disableRowSelectionOnClick
             sx={{
+              "& .MuiDataGrid-cell": {
+                py: 0.5,
+                fontSize: "0.875rem",
+              },
+              "& .MuiDataGrid-cell[data-field='mobile']": {
+                overflow: "visible",
+                textOverflow: "clip",
+              },
               "& .MuiDataGrid-cell:hover": { backgroundColor: yellow[200] },
               "& .MuiDataGrid-row:hover": { backgroundColor: yellow[100] },
-              "& .MuiDataGrid-columnHeaderTitle": { color: yellow[400] },
+              "& .MuiDataGrid-columnHeaderTitle": { 
+                color: yellow[400],
+                fontWeight: 600,
+                fontSize: "0.9rem",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                backgroundColor: "#f5f5f5",
+                borderBottom: `2px solid ${yellow[400]}`,
+              },
             }}
           />
         </Box>
@@ -355,18 +494,22 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
-        <MenuItem onClick={handlePrintReceipt}>
-          <Tooltip title="Print miqaat niyaz commitment receipt" placement="left">
-            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-              <PrintIcon sx={{ color: brown[200] }} />
-              <Typography>Print Receipt</Typography>
-            </Box>
-          </Tooltip>
-        </MenuItem>
+        {selectedRow?.receipts && 
+         ((Array.isArray(selectedRow.receipts) && selectedRow.receipts.length > 0) || 
+          (typeof selectedRow.receipts === 'object' && Object.keys(selectedRow.receipts).length > 0)) && (
+          <MenuItem onClick={handlePrintReceipt}>
+            <Tooltip title="Print miqaat niyaz commitment receipt" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <PrintIcon sx={{ color: brown[200] }} />
+                <Typography>Print Receipt</Typography>
+              </Box>
+            </Tooltip>
+          </MenuItem>
+        )}
 
         <MenuItem onClick={handleAddReceipt}>
           <Tooltip
-            title="Add new receipt entry for this miqaat niyaz"
+            title="Add new receipt entry for this Miqaat Niyaz"
             placement="left"
           >
             <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
@@ -377,7 +520,7 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         </MenuItem>
 
         <MenuItem onClick={handleEditCommitment}>
-          <Tooltip title="Edit miqaat niyaz commitment details" placement="left">
+          <Tooltip title="Edit Miqaat Niyaz commitment details" placement="left">
             <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
               <EditIcon sx={{ color: brown[200] }} />
               <Typography>Edit</Typography>
@@ -386,7 +529,7 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         </MenuItem>
 
         <MenuItem onClick={handleDeleteClick}>
-          <Tooltip title="Delete this miqaat niyaz commitment" placement="left">
+          <Tooltip title="Delete this Miqaat Niyaz commitment" placement="left">
             <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
               <DeleteIcon sx={{ color: brown[200] }} />
               <Typography>Delete</Typography>
@@ -395,27 +538,23 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         </MenuItem>
       </Menu>
 
-      {/* Delete confirmation dialog */}
-      <DeleteBookings
-        open={deleteOpen}
-        loading={deleteLoading}
-        onClose={() => setDeleteOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Delete Miqaat Niyaz"
-        description={`Are you sure you want to delete this miqaat niyaz${
-          selectedRow?.name ? ` for ${selectedRow.name}` : ""
-        }?`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
-      />
-
       <AddBookingsReceipt
         open={addReceiptOpen}
         onClose={() => setAddReceiptOpen(false)}
         row={selectedRow}
-        onSuccess={() => {
-          refresh?.();
+        refresh={refresh}
+        showMsg={showMsg}
+      />
+
+      <DeleteBookings
+        open={deleteOpen}
+        onClose={() => {
+          setDeleteOpen(false);
+          setSelectedRow(null);
         }}
+        onConfirm={handleDeleteConfirm}
+        loading={deleteLoading}
+        commitmentName={selectedRow?.name || "this commitment"}
       />
     </AppTheme>
   );

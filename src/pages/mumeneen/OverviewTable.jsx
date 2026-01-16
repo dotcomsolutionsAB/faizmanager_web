@@ -15,6 +15,7 @@ import { yellow } from '../../styles/ThemePrimitives';
 import { useUser } from '../../contexts/UserContext';
 import { useOutletContext } from "react-router-dom";
 import { useAppStore } from '../../appStore';
+import { formatDateToDDMMYYYY } from '../../util';
 
 // Styled stat box
 const StatBox = styled(Box, {
@@ -44,11 +45,7 @@ const ReceiptCard = ({ data, compact = false, onPrint, checked, onCheckboxChange
     }).format(value);
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear());
-    return `${day}-${month}-${year}`;
+    return formatDateToDDMMYYYY(dateString);
   };
 
   return (

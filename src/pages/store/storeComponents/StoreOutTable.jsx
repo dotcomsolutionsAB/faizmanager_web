@@ -33,17 +33,13 @@ import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
+import { formatDateToDDMMYYYY } from "../../../util";
 
 const safeStr = (v) => String(v ?? "").trim();
 const normalize = (s) => safeStr(s).toLowerCase();
 
 const fmtDate = (iso) => {
-    if (!iso) return "-";
-    try {
-        return new Date(iso).toLocaleDateString();
-    } catch {
-        return iso;
-    }
+    return formatDateToDDMMYYYY(iso);
 };
 
 export default function StoreOutTable() {

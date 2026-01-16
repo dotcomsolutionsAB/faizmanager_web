@@ -34,6 +34,7 @@ import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
+import { formatDateToDDMMYYYY } from "../../../util";
 
 export default function MenuDishTable() {
     const { token } = useUser();
@@ -422,7 +423,7 @@ export default function MenuDishTable() {
                                                     </Typography>
                                                     {/* optional small line */}
                                                     <Typography variant="caption" color="text.secondary">
-                                                        Updated: {d.updated_at ? new Date(d.updated_at).toLocaleDateString() : "-"}
+                                                        Updated: {formatDateToDDMMYYYY(d.updated_at)}
                                                     </Typography>
                                                 </TableCell>
 

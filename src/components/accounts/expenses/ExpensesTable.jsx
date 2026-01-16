@@ -19,6 +19,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import DeleteExpenseDialog from './DeleteExpenseDialog';
+import { formatDateToDDMMYYYY } from '../../../util';
 
 import { Flip } from 'react-spring';
 const customLocaleText = {
@@ -247,7 +248,7 @@ const truncateText = (text, maxLength = 30) => {
               color: brown[700],
             }}
           >
-            {params.row.date}
+            {formatDateToDDMMYYYY(params.row.date)}
           </Typography>
         </Box>
       ),
