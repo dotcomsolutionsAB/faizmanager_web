@@ -42,7 +42,7 @@ const fmtDate = (iso) => {
     return formatDateToDDMMYYYY(iso);
 };
 
-export default function StoreOutTable() {
+export default function StoreOutTable({ refreshKey }) {
     const { token } = useUser();
     const base = process.env.REACT_APP_API_BASE || "https://api.fmb52.com/api";
 
@@ -213,7 +213,7 @@ export default function StoreOutTable() {
     useEffect(() => {
         if (token) fetchAll();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, base]);
+    }, [token, base, refreshKey]);
 
     // Reload on filters (debounced)
     useEffect(() => {
