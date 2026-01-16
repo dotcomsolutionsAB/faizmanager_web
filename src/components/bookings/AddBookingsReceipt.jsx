@@ -119,12 +119,12 @@ const AddBookingsReceipt = ({ open, onClose, row, onSuccess }) => {
             }
         }
 
-        // Validate neft fields if mode is neft
+        // Validate neft fields if mode is neft (transaction ID is optional)
         if (mode === "neft") {
-            if (!neftDetails.transactionId || !neftDetails.transactionDate) {
+            if (!neftDetails.transactionDate) {
                 setSnackbar({
                     open: true,
-                    message: "Transaction ID and transaction date are required for NEFT payment.",
+                    message: "Transaction date is required for NEFT payment.",
                     severity: "error",
                 });
                 return;
