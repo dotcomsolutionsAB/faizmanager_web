@@ -173,7 +173,7 @@ export default function StoreStats() {
                             display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 2,
                         }}
                     >
-                        <Box
+                        {/* <Box
                             sx={{
                                 display: "flex",
                                 justifyContent: "center",
@@ -194,7 +194,7 @@ export default function StoreStats() {
                                 ]}
                                 height={280}
                             />
-                        </Box>
+                        </Box> */}
 
                         {/* Legend (exact vibe like AccountStats) */}
                         <Box sx={{ display: "flex", justifyContent: "center", marginTop: 3 }}>
