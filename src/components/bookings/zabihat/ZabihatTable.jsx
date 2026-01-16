@@ -94,10 +94,72 @@ const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     setAddReceiptOpen(true);
   };
 
-  const handlePrintReceipt = () => {
+  // Handle printing single or multiple receipts
+  // receiptIds can be a single ID, array of IDs, or comma-separated string
+  const handlePrintReceipts = (receiptIds) => {
+    if (!receiptIds) return;
+    
+    // Normalize receiptIds to comma-separated string
+    let receiptIdsStr = '';
+    if (Array.isArray(receiptIds)) {
+      receiptIdsStr = receiptIds.join(',');
+    } else if (typeof receiptIds === 'string' && receiptIds.includes(',')) {
+      receiptIdsStr = receiptIds;
+    } else {
+      receiptIdsStr = String(receiptIds);
+    }
+    
+    if (!receiptIdsStr) return;
+    
+    // Open print URL in new tab - supports multiple receipts in multiple pages
+    const printUrl = `https://api.fmb52.com/api/commitment_receipt_print/${receiptIdsStr}`;
+    window.open(printUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handlePrintReceipt = async () => {
     handleMenuClose();
-    const msg = "Print Receipt action clicked (wire print URL here).";
-    showMsg?.(msg, "info");
+    if (!selectedRow) return;
+
+    try {
+      let receiptId = null;
+
+      // Check if row has receipt_id directly
+      if (selectedRow.receipt_id) {
+        receiptId = selectedRow.receipt_id;
+      } else if (selectedRow.latest_receipt_id) {
+        receiptId = selectedRow.latest_receipt_id;
+      } else {
+        // Fetch commitment receipts for this commitment
+        const response = await fetch(
+          `https://api.fmb52.com/api/commitment_receipt/list?commitment_id=${selectedRow.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }
+        );
+
+        const data = await response.json();
+        
+        if (response.ok && data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          // Get the latest receipt (most recent)
+          const latestReceipt = data.data[0];
+          receiptId = latestReceipt.id;
+        } else {
+          showMsg?.("No receipt found for this commitment.", "warning");
+          return;
+        }
+      }
+
+      if (receiptId) {
+        handlePrintReceipts(receiptId);
+      }
+    } catch (err) {
+      console.error("Error fetching receipt:", err);
+      showMsg?.("Error fetching receipt. Please try again.", "error");
+    }
   };
 
   const handleEditCommitment = () => {
