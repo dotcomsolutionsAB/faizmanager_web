@@ -36,7 +36,7 @@ import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
 import { formatDateToDDMMYYYY } from "../../../util";
 
-export default function MenuDishTable() {
+export default function MenuDishTable({ refreshKey }) {
     const { token } = useUser();
     const base = process.env.REACT_APP_API_BASE || "https://api.fmb52.com/api";
 
@@ -157,7 +157,8 @@ export default function MenuDishTable() {
             fetchPage({ reset: true });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, base]);
+    }, [token, base, refreshKey]);
+
 
     // Reload on filters (debounced)
     useEffect(() => {
