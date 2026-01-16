@@ -167,13 +167,13 @@ export default function StoreStats() {
             {/* Main Content */}
             <Grid container sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {/* Left: Chart */}
-                <Grid item xs={12} sm={6} md={8} sx={{ order: { xs: 2, sm: 1 } }}>
+                {/* <Grid item xs={12} sm={6} md={8} sx={{ order: { xs: 2, sm: 1 } }}>
                     <Card
                         sx={{
                             display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 2,
                         }}
                     >
-                        {/* <Box
+                        <Box
                             sx={{
                                 display: "flex",
                                 justifyContent: "center",
@@ -194,9 +194,8 @@ export default function StoreStats() {
                                 ]}
                                 height={280}
                             />
-                        </Box> */}
+                        </Box>
 
-                        {/* Legend (exact vibe like AccountStats) */}
                         <Box sx={{ display: "flex", justifyContent: "center", marginTop: 3 }}>
                             {chartData.map((entry, index) => (
                                 <Box key={index} sx={{ display: 'flex', marginRight: 3, alignItems: 'center' }}>
@@ -208,18 +207,18 @@ export default function StoreStats() {
                             ))}
                         </Box>
                     </Card>
-                </Grid>
+                </Grid> */}
 
                 {/* Right: Cards */}
-                <Grid item xs={12} sm={4} md={4} sx={{ order: { xs: 1, sm: 2 } }}>
-                    <CardContent sx={{ paddingRight: 0.5, paddingLeft: 3 }}>
-                        <Grid container direction="column">
+                <Grid item xs={12} sm={6} md={12} sx={{ order: { xs: 1, sm: 2 } }}>
+                    <CardContent sx={{ paddingRight: 0.5, paddingLeft: 0.5 }}>
+                        <Grid container direction="row" style={{ gap: '5px' }}>
                             {[
                                 { label: "Total Vendors", value: stats.vendors },
                                 { label: "Total Items", value: stats.items },
                                 { label: "Total Dishes", value: stats.dishes },
                             ].map((x, idx) => (
-                                <Grid item xs={12} sm={4} key={idx}>
+                                <Grid item xs={12} sm={3.5} key={idx}>
                                     <Card
                                         sx={{
                                             display: 'flex',
