@@ -116,49 +116,29 @@ const JamanTable = ({ data = [], refresh, showMsg, onEditRow }) => {
     window.open(printUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handlePrintReceipt = async () => {
+  const handlePrintReceipt = () => {
     handleMenuClose();
     if (!selectedRow) return;
 
-    try {
-      let receiptId = null;
+    // Check if receipts object exists and has values
+    const receipts = selectedRow.receipts;
+    if (!receipts || (Array.isArray(receipts) && receipts.length === 0) || (typeof receipts === 'object' && Object.keys(receipts).length === 0)) {
+      return;
+    }
 
-      // Check if row has receipt_id directly
-      if (selectedRow.receipt_id) {
-        receiptId = selectedRow.receipt_id;
-      } else if (selectedRow.latest_receipt_id) {
-        receiptId = selectedRow.latest_receipt_id;
-      } else {
-        // Fetch commitment receipts for this commitment
-        const response = await fetch(
-          `https://api.fmb52.com/api/commitment_receipt/list?commitment_id=${selectedRow.id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
+    // Extract receipt IDs from receipts array/object
+    let receiptIds = [];
+    if (Array.isArray(receipts)) {
+      receiptIds = receipts.map(receipt => receipt.id || receipt).filter(id => id != null);
+    } else if (typeof receipts === 'object') {
+      // If it's an object, try to get IDs from values
+      receiptIds = Object.values(receipts)
+        .map(receipt => (receipt && receipt.id) ? receipt.id : receipt)
+        .filter(id => id != null);
+    }
 
-        const data = await response.json();
-        
-        if (response.ok && data?.data && Array.isArray(data.data) && data.data.length > 0) {
-          // Get the latest receipt (most recent)
-          const latestReceipt = data.data[0];
-          receiptId = latestReceipt.id;
-        } else {
-          showMsg?.("No receipt found for this commitment.", "warning");
-          return;
-        }
-      }
-
-      if (receiptId) {
-        handlePrintReceipts(receiptId);
-      }
-    } catch (err) {
-      console.error("Error fetching receipt:", err);
-      showMsg?.("Error fetching receipt. Please try again.", "error");
+    if (receiptIds.length > 0) {
+      handlePrintReceipts(receiptIds);
     }
   };
 
@@ -427,14 +407,18 @@ const JamanTable = ({ data = [], refresh, showMsg, onEditRow }) => {
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
-        <MenuItem onClick={handlePrintReceipt}>
-          <Tooltip title="Print extra niyaz in faiz thali receipt" placement="left">
-            <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
-              <PrintIcon sx={{ color: brown[200] }} />
-              <Typography>Print Receipt</Typography>
-            </Box>
-          </Tooltip>
-        </MenuItem>
+        {selectedRow?.receipts && 
+         ((Array.isArray(selectedRow.receipts) && selectedRow.receipts.length > 0) || 
+          (typeof selectedRow.receipts === 'object' && Object.keys(selectedRow.receipts).length > 0)) && (
+          <MenuItem onClick={handlePrintReceipt}>
+            <Tooltip title="Print extra niyaz in faiz thali receipt" placement="left">
+              <Box display="flex" alignItems="center" gap={1} sx={{ pr: 2 }}>
+                <PrintIcon sx={{ color: brown[200] }} />
+                <Typography>Print Receipt</Typography>
+              </Box>
+            </Tooltip>
+          </MenuItem>
+        )}
 
         <MenuItem onClick={handleAddReceipt}>
           <Tooltip
