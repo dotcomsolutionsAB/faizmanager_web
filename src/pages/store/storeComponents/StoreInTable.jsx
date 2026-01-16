@@ -50,7 +50,7 @@ const safeText = (v, fallback = "—") => (v === null || v === undefined || v ==
 const normalize = (s) => String(s ?? "").trim().toLowerCase();
 const uniq = (arr) => Array.from(new Set(arr.filter(Boolean)));
 
-const StoreInTable = () => {
+const StoreInTable = ({ refreshKey }) => {
     const { token } = useUser();
     const base = process.env.REACT_APP_API_BASE || "https://api.fmb52.com/api";
 
@@ -138,7 +138,7 @@ const StoreInTable = () => {
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [offset, limit]);
+    }, [offset, limit, refreshKey]);
 
     // Re-fetch current page when filters change (debounced)
     useEffect(() => {
