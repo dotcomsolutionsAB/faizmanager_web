@@ -526,6 +526,7 @@ import bg1 from '../../assets/bg1.jpg';
 import Link from '@mui/material/Link';
 import { useUser } from '../../contexts/UserContext';
 import CircularProgress from '@mui/material/CircularProgress';
+import { formatDateToDDMMYYYY } from '../../util';
 
 
 
@@ -1286,11 +1287,7 @@ export default function SignUp(props) {
               </Typography>
               <Typography variant="body1"  component="ul" gutterBottom  sx={{color: brown[700]}}>
                 Your 1-month free trial starts today and lasts until{' '}
-                <strong>{new Date(trialEndDate).toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-          })}</strong>.
+                <strong>{formatDateToDDMMYYYY(trialEndDate)}</strong>.
               </Typography>
               <Typography variant="body1"  component="ul" gutterBottom  sx={{color: brown[700]}}>
                 Your login credentials have been sent to your registered email.

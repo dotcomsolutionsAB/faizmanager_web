@@ -17,6 +17,7 @@ import AppTheme from "../../../styles/AppTheme";
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ApprovePaymentDialog from './ApprovePaymentDialog';
+import { formatDateToDDMMYYYY } from '../../../util';
 
 const customLocaleText = {
   noRowsLabel: 'Please wait....',
@@ -324,7 +325,7 @@ const applyFilters = useCallback(() => {
               Mode: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.mode}</span>
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
-              Date: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.date}</span>
+              Date: <span style={{ fontWeight: 'normal', color: brown[700] }}> {formatDateToDDMMYYYY(params.row.date)}</span>
             </Typography>
             <Typography variant="body2" sx={{ fontWeight: 'bold', color: yellow[300] }}>
               Year: <span style={{ fontWeight: 'normal', color: brown[700] }}> {params.row.year}</span>

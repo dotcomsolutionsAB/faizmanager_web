@@ -32,18 +32,10 @@ import SearchIcon from "@mui/icons-material/Search";
 import AppTheme from "../../../styles/AppTheme";
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
+import { formatDateToDDMMYYYY } from "../../../util";
 
 const formatDate = (iso) => {
-    if (!iso) return "—";
-    try {
-        return new Date(iso).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "2-digit",
-        });
-    } catch {
-        return iso;
-    }
+    return formatDateToDDMMYYYY(iso);
 };
 
 const formatMoney = (val) => {

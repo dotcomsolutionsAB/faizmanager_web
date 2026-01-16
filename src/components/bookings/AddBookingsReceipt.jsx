@@ -109,10 +109,19 @@ const AddBookingsReceipt = ({ open, onClose, row, onSuccess }) => {
 
         // Validate cheque fields if mode is cheque
         if (mode === "cheque") {
-            if (!bankDetails.bankName || !bankDetails.chequeNumber || !bankDetails.chequeDate) {
+            if (!bankDetails.bankName || !bankDetails.chequeDate) {
                 setSnackbar({
                     open: true,
-                    message: "Bank name, cheque number, and cheque date are required for cheque payment.",
+                    message: "Bank name and cheque date are required for cheque payment.",
+                    severity: "error",
+                });
+                return;
+            }
+            // If cheque number is provided, it must be exactly 6 numeric digits
+            if (bankDetails.chequeNumber && (!/^\d{6}$/.test(bankDetails.chequeNumber))) {
+                setSnackbar({
+                    open: true,
+                    message: "Cheque number must be exactly 6 numeric digits.",
                     severity: "error",
                 });
                 return;
@@ -387,10 +396,14 @@ const AddBookingsReceipt = ({ open, onClose, row, onSuccess }) => {
                                         <TextField
                                             fullWidth
                                             value={bankDetails.chequeNumber}
-                                            onChange={(e) =>
-                                                setBankDetails({ ...bankDetails, chequeNumber: e.target.value })
-                                            }
-                                            placeholder="Enter cheque number"
+                                            onChange={(e) => {
+                                                // Only allow numeric input
+                                                const value = e.target.value.replace(/\D/g, '');
+                                                // Limit to 6 digits
+                                                const limitedValue = value.slice(0, 6);
+                                                setBankDetails({ ...bankDetails, chequeNumber: limitedValue });
+                                            }}
+                                            placeholder="Enter cheque number (optional, 6 digits)"
                                             inputProps={{ maxLength: 6 }}
                                         />
                                     </Grid>

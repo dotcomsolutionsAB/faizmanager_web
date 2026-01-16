@@ -19,6 +19,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import LocalPrintshopIcon from '@mui/icons-material/LocalPrintshop';
 import DeleteMenuDialog from './DeleteMenuDialog';
+import { formatDateToDDMMYYYY } from '../../util';
 
 import { Flip } from 'react-spring';
 const customLocaleText = {
@@ -135,8 +136,6 @@ function MenuTable({ onEditMenu, refreshTrigger }) {
       width: 150,
       sortable: true,
       renderCell: (params) => {
-        const d = params.row.date;
-        let formatted = d ? d.split('-').reverse().join('-') : '';
         return (
           <Box
             sx={{
@@ -155,7 +154,7 @@ function MenuTable({ onEditMenu, refreshTrigger }) {
                 color: brown[700],
               }}
             >
-              {formatted}
+              {formatDateToDDMMYYYY(params.row.date)}
             </Typography>
           </Box>
         )

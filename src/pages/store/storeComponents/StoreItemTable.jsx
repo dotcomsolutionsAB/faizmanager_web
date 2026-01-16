@@ -32,14 +32,10 @@ import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined
 import SearchIcon from "@mui/icons-material/Search";
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
+import { formatDateToDDMMYYYY } from "../../../util";
 
 const formatDate = (d) => {
-    if (!d) return "";
-    try {
-        return new Date(d).toLocaleDateString();
-    } catch {
-        return d;
-    }
+    return formatDateToDDMMYYYY(d);
 };
 
 export default function StoreItemTable() {

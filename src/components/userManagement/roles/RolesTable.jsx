@@ -12,6 +12,7 @@ import { yellow, brown } from "../../../styles/ThemePrimitives";
 import AppTheme from "../../../styles/AppTheme";
 import { useUser } from "../../../contexts/UserContext";
 import divider from "../../../assets/divider.png";
+import { formatDateToDDMMYYYY } from "../../../util";
 
 
 const RolesTable = () => {
@@ -97,10 +98,10 @@ const RolesTable = () => {
                 console.log("Row data for Validity:", params?.row);
                 if (!params?.row) return <span style={{ color: brown[700] }}>N/A</span>;
                 const createdAt = params.row.created_at
-                    ? new Date(params.row.created_at).toLocaleDateString()
+                    ? formatDateToDDMMYYYY(params.row.created_at)
                     : "N/A";
                 const updatedAt = params.row.updated_at
-                    ? new Date(params.row.updated_at).toLocaleDateString()
+                    ? formatDateToDDMMYYYY(params.row.updated_at)
                     : "N/A";
                 return (
                     <span style={{ color: brown[700] }}>

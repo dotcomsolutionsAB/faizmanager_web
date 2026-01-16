@@ -17,14 +17,10 @@ import {
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useUser } from "../../contexts/UserContext";
 import divider from "../../assets/divider.png";
+import { formatDateToDDMMYYYY } from "../../util";
 
 const formatDate = (d) => {
-    if (!d) return "";
-    try {
-        return new Date(d).toLocaleDateString();
-    } catch {
-        return d;
-    }
+    return formatDateToDDMMYYYY(d);
 };
 
 export default function StoreDashboardItemTable() {
