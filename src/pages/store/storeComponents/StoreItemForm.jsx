@@ -24,6 +24,7 @@ import { useUser } from "../../../contexts/UserContext";
 
 const StoreItemForm = ({ onSuccess }) => {
     const formRef = useRef(null);
+    const snackbarTimerRef = useRef(null);
     const { token } = useUser();
     const base = process.env.REACT_APP_API_BASE || "https://api.fmb52.com/api";
 
@@ -50,7 +51,15 @@ const StoreItemForm = ({ onSuccess }) => {
         severity: "success",
     });
 
-    const handleSnackbarClose = () => setSnackbar((p) => ({ ...p, open: false }));
+    const handleSnackbarClose = () => {
+        // prevent multiple timers
+        if (snackbarTimerRef.current) clearTimeout(snackbarTimerRef.current);
+
+        snackbarTimerRef.current = setTimeout(() => {
+            setSnackbar((p) => ({ ...p, open: false }));
+        }, 2000);
+    };
+
     const handleCollapseToggle = () => setCollapsed((prev) => !prev);
 
     // ✅ Fetch units + categories
@@ -101,6 +110,12 @@ const StoreItemForm = ({ onSuccess }) => {
         fetchMeta();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
+
+    useEffect(() => {
+        return () => {
+            if (snackbarTimerRef.current) clearTimeout(snackbarTimerRef.current);
+        };
+    }, []);
 
     const resetForm = () => {
         setName("");
@@ -182,6 +197,7 @@ const StoreItemForm = ({ onSuccess }) => {
             <Box
                 ref={formRef}
                 sx={{
+                    pt: 2,
                     pb: 3,
                     pl: 3,
                     pr: 3,
@@ -328,9 +344,8 @@ const StoreItemForm = ({ onSuccess }) => {
             {/* Snackbar */}
             <Snackbar
                 open={snackbar.open}
-                autoHideDuration={6000}
+                autoHideDuration={2000}
                 onClose={handleSnackbarClose}
-                sx={{ height: "100%" }}
                 anchorOrigin={{ vertical: "top", horizontal: "center" }}
             >
                 <Alert
@@ -342,6 +357,7 @@ const StoreItemForm = ({ onSuccess }) => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
         </>
     );
 };

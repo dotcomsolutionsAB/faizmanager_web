@@ -1,8 +1,8 @@
 import React from "react";
 import { CssBaseline, Box, Grid } from "@mui/material";
 import AppTheme from "../../styles/AppTheme";
-import StoreItemForm from "./storeComponents/StoreItemForm";
-import StoreItemTable from "./storeComponents/StoreItemTable";
+import StoreVendorTable from "./storeComponents/StoreVendorTable";
+import StoreVendorForm from "./storeComponents/StoreVendorForm";
 
 export default function StoreVendors() {
     return (
@@ -10,7 +10,7 @@ export default function StoreVendors() {
             <CssBaseline />
             <Box
                 sx={{
-                    mt: 8,
+                    mt: 10,
                     pb: 3,
                     mb: 1,
                 }}
@@ -19,12 +19,12 @@ export default function StoreVendors() {
                     <Grid container spacing={2}>
                         {/* ✅ Form Full Width */}
                         <Grid item xs={12}>
-                            {/* <StoreItemForm /> */}
+                            <StoreVendorForm />
                         </Grid>
 
                         {/* ✅ Table Full Width Below */}
                         <Grid item xs={12}>
-                            {/* <StoreItemTable /> */}
+                            <StoreVendorTable />
                         </Grid>
                     </Grid>
                 </Box>
