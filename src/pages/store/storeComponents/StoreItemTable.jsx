@@ -37,6 +37,7 @@ import ItemTableUpdateStock from "./Modal/ItemTableUpdateStock";
 import ItemTableStockHistory from "./Modal/ItemTableStockHistory";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import ItemTableUpdate from "./Modal/ItemTableUpdate";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 
 const formatDate = (d) => {
     return formatDateToDDMMYYYY(d);
@@ -59,6 +60,11 @@ export default function StoreItemTable() {
 
     const [updateOpen, setUpdateOpen] = useState(false);
     const [updateRow, setUpdateRow] = useState(null);
+
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteRow, setDeleteRow] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
 
     // Filters
     const [search, setSearch] = useState("");
@@ -146,6 +152,42 @@ export default function StoreItemTable() {
         window.open(url, "_blank");
     };
 
+    const confirmDelete = async () => {
+        if (!deleteRow?.id || !token) return;
+
+        setDeleting(true);
+        try {
+            const resp = await fetch(`${base}/store-items/${deleteRow.id}`, {
+                method: "DELETE",
+                headers: {
+                    Accept: "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await resp.json().catch(() => ({}));
+
+            if (!resp.ok || data?.success === false) {
+                alert(data?.message || "Delete failed");
+                return;
+            }
+
+            // ✅ remove from UI immediately
+            setItems((prev) => prev.filter((x) => x.id !== deleteRow.id));
+
+            // (optional) refresh from server to stay accurate
+            // handleRefresh();  // if you have refresh function
+
+            setDeleteOpen(false);
+            setDeleteRow(null);
+        } catch (e) {
+            console.error("Delete item error:", e);
+            alert("Something went wrong");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     const onHistory = (row) => {
         setHistoryRow(row);
         setHistoryOpen(true);
@@ -162,6 +204,13 @@ export default function StoreItemTable() {
         setStockModalOpen(true);
         closeMenu();
     };
+
+    const onDelete = (row) => {
+        setDeleteRow(row);
+        setDeleteOpen(true);
+        closeMenu();
+    };
+
 
     // Initial load
     useEffect(() => {
@@ -207,11 +256,6 @@ export default function StoreItemTable() {
     const closeMenu = () => {
         setMenuAnchorEl(null);
         setMenuRow(null);
-    };
-
-    const onDelete = (row) => {
-        console.log("Delete:", row);
-        closeMenu();
     };
 
     // Category options derived from loaded items (for now)
@@ -465,6 +509,46 @@ export default function StoreItemTable() {
                         <ListItemText>Delete</ListItemText>
                     </MenuItem>
                 </Menu>
+
+                <Dialog
+                    open={deleteOpen}
+                    onClose={() => (!deleting ? setDeleteOpen(false) : null)}
+                    maxWidth="xs"
+                    fullWidth
+                >
+                    <DialogTitle sx={{ fontWeight: 800 }}>Confirm Delete</DialogTitle>
+
+                    <DialogContent sx={{ pt: 1 }}>
+                        <Typography variant="body2">
+                            Are you sure you want to delete{" "}
+                            <b>{deleteRow?.name || "this item"}</b>?
+                        </Typography>
+                    </DialogContent>
+
+                    <DialogActions sx={{ p: 2 }}>
+                        <Button
+                            variant="outlined"
+                            disabled={deleting}
+                            onClick={() => {
+                                setDeleteOpen(false);
+                                setDeleteRow(null);
+                            }}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            variant="contained"
+                            color="error"
+                            disabled={deleting}
+                            onClick={confirmDelete}
+                            sx={{ minWidth: 120 }}
+                        >
+                            {deleting ? <CircularProgress size={20} color="inherit" /> : "Delete"}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
             </Box>
 
             <ItemTableUpdateStock
