@@ -22,6 +22,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DeleteBookings from "../DeleteBookings"; // ⬅️ new import (adjust path)
 import { formatDateToDDMMYYYY } from "../../../util";
 
+
 const ZabihatTable = ({ data = [], refresh, showMsg, onEditRow }) => {
   const { currency, token } = useUser(); // ⬅️ token for API (if available)
 
