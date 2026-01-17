@@ -34,6 +34,7 @@ import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
+import StoreVendorViewModal from "./Modal/StoreVendorViewModal";
 
 const safeText = (v, fallback = "—") => (v === null || v === undefined || v === "" ? fallback : v);
 const normalize = (s) => String(s ?? "").trim().toLowerCase();
@@ -48,6 +49,9 @@ export default function StoreVendorTable() {
     const [allRows, setAllRows] = useState([]); // keep all vendors
     const [rows, setRows] = useState([]); // filtered rows
     const [loading, setLoading] = useState(true);
+
+    const [viewOpen, setViewOpen] = useState(false);
+    const [viewVendorId, setViewVendorId] = useState(null);
 
     // filters
     const [search, setSearch] = useState("");
@@ -156,9 +160,11 @@ export default function StoreVendorTable() {
 
     // Placeholder actions
     const onView = (row) => {
-        console.log("View vendor:", row);
         closeMenu();
+        setViewVendorId(row?.id);
+        setViewOpen(true);
     };
+
     const onEdit = (row) => {
         console.log("Edit vendor:", row);
         closeMenu();
@@ -348,7 +354,7 @@ export default function StoreVendorTable() {
                         <ListItemIcon>
                             <VisibilityOutlinedIcon fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>View</ListItemText>
+                        <ListItemText>View Details</ListItemText>
                     </MenuItem>
 
                     <MenuItem onClick={() => onEdit(menuRow)}>
@@ -368,6 +374,15 @@ export default function StoreVendorTable() {
                     </MenuItem>
                 </Menu>
             </Box>
+
+            <StoreVendorViewModal
+                open={viewOpen}
+                onClose={() => setViewOpen(false)}
+                vendorId={viewVendorId}
+                token={token}
+                base={base}
+            />
+
         </>
     );
 }
