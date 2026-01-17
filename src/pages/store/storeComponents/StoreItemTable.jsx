@@ -510,45 +510,6 @@ export default function StoreItemTable() {
                     </MenuItem>
                 </Menu>
 
-                <Dialog
-                    open={deleteOpen}
-                    onClose={() => (!deleting ? setDeleteOpen(false) : null)}
-                    maxWidth="xs"
-                    fullWidth
-                >
-                    <DialogTitle sx={{ fontWeight: 800 }}>Confirm Delete</DialogTitle>
-
-                    <DialogContent sx={{ pt: 1 }}>
-                        <Typography variant="body2">
-                            Are you sure you want to delete{" "}
-                            <b>{deleteRow?.name || "this item"}</b>?
-                        </Typography>
-                    </DialogContent>
-
-                    <DialogActions sx={{ p: 2 }}>
-                        <Button
-                            variant="outlined"
-                            disabled={deleting}
-                            onClick={() => {
-                                setDeleteOpen(false);
-                                setDeleteRow(null);
-                            }}
-                        >
-                            Cancel
-                        </Button>
-
-                        <Button
-                            variant="contained"
-                            color="error"
-                            disabled={deleting}
-                            onClick={confirmDelete}
-                            sx={{ minWidth: 120 }}
-                        >
-                            {deleting ? <CircularProgress size={20} color="inherit" /> : "Delete"}
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-
             </Box>
 
             <ItemTableUpdateStock
@@ -593,6 +554,44 @@ export default function StoreItemTable() {
                 base={base}
             />
 
+            <Dialog
+                open={deleteOpen}
+                onClose={() => (!deleting ? setDeleteOpen(false) : null)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 800 }}>Confirm Delete</DialogTitle>
+
+                <DialogContent sx={{ pt: 1 }}>
+                    <Typography variant="body2">
+                        Are you sure you want to delete{" "}
+                        <b>{deleteRow?.name || "this item"}</b>?
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions sx={{ p: 2 }}>
+                    <Button
+                        variant="outlined"
+                        disabled={deleting}
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setDeleteRow(null);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        color="error"
+                        disabled={deleting}
+                        onClick={confirmDelete}
+                        sx={{ minWidth: 120 }}
+                    >
+                        {deleting ? <CircularProgress size={20} color="inherit" /> : "Delete"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 }

@@ -35,6 +35,9 @@ import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
 import { formatDateToDDMMYYYY } from "../../../util";
+import MenuDishViewDetailsModal from "./Modal/MenuDishViewDetailsModal";
+import MenuDishUpdateModal from "./Modal/MenuDishUpdateModal";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 
 export default function MenuDishTable({ refreshKey }) {
     const { token } = useUser();
@@ -45,10 +48,21 @@ export default function MenuDishTable({ refreshKey }) {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
 
+    const [updateOpen, setUpdateOpen] = useState(false);
+    const [updateDishId, setUpdateDishId] = useState(null);
+
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteRow, setDeleteRow] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
     // Filters
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("");
     const [itemFilter, setItemFilter] = useState(""); // item name for now
+
+    const [viewOpen, setViewOpen] = useState(false);
+    const [viewLoading, setViewLoading] = useState(false);
+    const [viewDish, setViewDish] = useState(null);
 
     const LIMIT = 30;
     const [offset, setOffset] = useState(0);
@@ -216,6 +230,39 @@ export default function MenuDishTable({ refreshKey }) {
         window.open(url, "_blank");
     };
 
+    const confirmDelete = async () => {
+        if (!deleteRow?.id || !token) return;
+
+        setDeleting(true);
+        try {
+            const resp = await fetch(`${base}/store-dishes/${deleteRow.id}`, {
+                method: "DELETE",
+                headers,
+            });
+
+            const json = await resp.json().catch(() => ({}));
+
+            if (!resp.ok || json?.success === false || json?.status === false) {
+                alert(json?.message || "Delete failed");
+                return;
+            }
+
+            setDeleteOpen(false);
+            setDeleteRow(null);
+
+            // ✅ reload table
+            setHasMore(true);
+            setOffset(0);
+            if (containerRef.current) containerRef.current.scrollTop = 0;
+            fetchPage({ reset: true });
+        } catch (e) {
+            console.error("Delete dish error:", e);
+            alert("Something went wrong");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     // Menu handlers
     const openMenu = (event, row) => {
         setMenuAnchorEl(event.currentTarget);
@@ -227,18 +274,46 @@ export default function MenuDishTable({ refreshKey }) {
     };
 
     // Placeholder actions
-    const onUpdateStock = (row) => {
-        console.log("Update Stock (Dish):", row);
+    const viewDetail = async (row) => {
+        if (!row?.id || !token) return;
+
         closeMenu();
+        setViewOpen(true);
+        setViewLoading(true);
+        setViewDish(null);
+
+        try {
+            const resp = await fetch(`${base}/store-dishes/${row.id}`, { method: "GET", headers });
+            const json = await resp.json();
+
+            if (!resp.ok || json?.success === false) {
+                alert(json?.message || "Failed to fetch dish details");
+                setViewOpen(false);
+                return;
+            }
+
+            setViewDish(json?.data || null);
+        } catch (e) {
+            console.error("Dish details error:", e);
+            alert("Something went wrong");
+            setViewOpen(false);
+        } finally {
+            setViewLoading(false);
+        }
     };
+
     const onUpdate = (row) => {
-        console.log("Update (Dish):", row);
         closeMenu();
+        setUpdateDishId(row?.id);
+        setUpdateOpen(true);
     };
+
     const onDelete = (row) => {
-        console.log("Delete (Dish):", row);
         closeMenu();
+        setDeleteRow(row);
+        setDeleteOpen(true);
     };
+
 
     return (
         <>
@@ -466,11 +541,11 @@ export default function MenuDishTable({ refreshKey }) {
                     anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                     transformOrigin={{ vertical: "top", horizontal: "right" }}
                 >
-                    <MenuItem onClick={() => onUpdateStock(menuRow)}>
+                    <MenuItem onClick={() => viewDetail(menuRow)}>
                         <ListItemIcon>
                             <Inventory2OutlinedIcon fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Update Stock</ListItemText>
+                        <ListItemText>View Detail</ListItemText>
                     </MenuItem>
 
                     <MenuItem onClick={() => onUpdate(menuRow)}>
@@ -490,6 +565,59 @@ export default function MenuDishTable({ refreshKey }) {
                     </MenuItem>
                 </Menu>
             </Box>
+            <MenuDishViewDetailsModal
+                open={viewOpen}
+                onClose={() => {
+                    setViewOpen(false);
+                    setViewDish(null);
+                }}
+                dish={
+                    viewLoading
+                        ? { name: "Loading...", items: [] }
+                        : viewDish
+                }
+            />
+
+            <MenuDishUpdateModal
+                open={updateOpen}
+                onClose={() => {
+                    setUpdateOpen(false);
+                    setUpdateDishId(null);
+                }}
+                token={token}
+                base={base}
+                dishId={updateDishId}
+                onSuccess={() => fetchPage({ reset: true })}
+            />
+
+            <Dialog open={deleteOpen} onClose={() => (!deleting ? setDeleteOpen(false) : null)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ fontWeight: 800 }}>Confirm Delete</DialogTitle>
+
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete dish{" "}
+                        <b>{deleteRow?.name || `#${deleteRow?.id}`}</b>?
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setDeleteRow(null);
+                        }}
+                        disabled={deleting}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button variant="contained" color="error" onClick={confirmDelete} disabled={deleting}>
+                        {deleting ? <CircularProgress size={18} color="inherit" /> : "Delete"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </>
     );
 }
