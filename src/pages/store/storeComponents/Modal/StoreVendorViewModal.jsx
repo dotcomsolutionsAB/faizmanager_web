@@ -9,7 +9,7 @@ import {
     IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import dividerImg from "../../../assets/divider.png";
+import dividerImg from "../../../../assets/divider.png";
 
 const safeText = (v, fallback = "—") =>
     v === null || v === undefined || v === "" ? fallback : v;

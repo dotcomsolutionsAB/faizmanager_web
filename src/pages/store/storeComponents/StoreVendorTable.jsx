@@ -35,6 +35,9 @@ import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
 import StoreVendorViewModal from "./Modal/StoreVendorViewModal";
+import StoreVendorUpdateModal from "./Modal/StoreVendorUpdateModal";
+import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+
 
 const safeText = (v, fallback = "—") => (v === null || v === undefined || v === "" ? fallback : v);
 const normalize = (s) => String(s ?? "").trim().toLowerCase();
@@ -52,6 +55,13 @@ export default function StoreVendorTable() {
 
     const [viewOpen, setViewOpen] = useState(false);
     const [viewVendorId, setViewVendorId] = useState(null);
+
+    const [editOpen, setEditOpen] = useState(false);
+    const [editVendor, setEditVendor] = useState(null);
+
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [deleteRow, setDeleteRow] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     // filters
     const [search, setSearch] = useState("");
@@ -166,12 +176,45 @@ export default function StoreVendorTable() {
     };
 
     const onEdit = (row) => {
-        console.log("Edit vendor:", row);
         closeMenu();
+        setEditVendor(row);
+        setEditOpen(true);
     };
+
+    const confirmDelete = async () => {
+        if (!deleteRow?.id || !token) return;
+
+        setDeleting(true);
+        try {
+            const resp = await fetch(`${base}/store-vendors/${deleteRow.id}`, {
+                method: "DELETE",
+                headers,
+            });
+
+            const json = await resp.json().catch(() => ({}));
+
+            if (!resp.ok || json?.success === false || json?.status === false) {
+                alert(json?.message || "Delete failed");
+                return;
+            }
+
+            setDeleteOpen(false);
+            setDeleteRow(null);
+
+            // ✅ reload list
+            fetchVendors();
+        } catch (e) {
+            console.error("Delete vendor error:", e);
+            alert("Something went wrong");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     const onDelete = (row) => {
-        console.log("Delete vendor:", row);
         closeMenu();
+        setDeleteRow(row);
+        setDeleteOpen(true);
     };
 
     return (
@@ -382,6 +425,54 @@ export default function StoreVendorTable() {
                 token={token}
                 base={base}
             />
+
+            <StoreVendorUpdateModal
+                open={editOpen}
+                onClose={() => setEditOpen(false)}
+                vendor={editVendor}
+                token={token}
+                base={base}
+                onSuccess={fetchVendors}
+            />
+
+            <Dialog
+                open={deleteOpen}
+                onClose={() => (!deleting ? setDeleteOpen(false) : null)}
+                maxWidth="xs"
+                fullWidth
+            >
+                <DialogTitle sx={{ fontWeight: 800 }}>Confirm Delete</DialogTitle>
+
+                <DialogContent>
+                    <Typography variant="body2">
+                        Are you sure you want to delete vendor{" "}
+                        <b>{deleteRow?.name || deleteRow?.vendor_code || `#${deleteRow?.id}`}</b>?
+                    </Typography>
+                </DialogContent>
+
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button
+                        variant="outlined"
+                        disabled={deleting}
+                        onClick={() => {
+                            setDeleteOpen(false);
+                            setDeleteRow(null);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        color="error"
+                        disabled={deleting}
+                        onClick={confirmDelete}
+                        sx={{ minWidth: 120 }}
+                    >
+                        {deleting ? <CircularProgress size={18} color="inherit" /> : "Delete"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
         </>
     );
