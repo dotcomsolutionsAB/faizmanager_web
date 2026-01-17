@@ -185,7 +185,7 @@ export default function StoreVendorUpdateModal({
             maxWidth="md"
             fullWidth
             scroll="body"
-            PaperProps={{ sx: { borderRadius: 3, overflow: "hidden" } }}
+            PaperProps={{ sx: { borderRadius: 3, overflow: "hidden", maxHeight: "none" } }}
         >
             {/* Header */}
             <Box
@@ -218,7 +218,7 @@ export default function StoreVendorUpdateModal({
                 }}
             />
 
-            <DialogContent sx={{ pt: 0, px: 3, pb: 3 }}>
+            <DialogContent sx={{ pt: 0, px: 3, pb: 3, overflow: "hidden" }}>
                 <Grid container spacing={2}>
                     {/* Row 1 (4 fields) */}
                     <Grid item xs={12} sm={6} md={3}>
@@ -303,7 +303,7 @@ export default function StoreVendorUpdateModal({
                         >
                             <Typography sx={{ fontWeight: 800, mb: 1 }}>Bank Details</Typography>
 
-                            <Grid container spacing={2}>
+                            <Grid container spacing={1}>
                                 <Grid item xs={12} sm={6} md={3}>
                                     <FormControl fullWidth>
                                         <InputLabel id="bank-name-label">Bank Name</InputLabel>
