@@ -33,6 +33,10 @@ import SearchIcon from "@mui/icons-material/Search";
 import dividerImg from "../../../assets/divider.png";
 import { useUser } from "../../../contexts/UserContext";
 import { formatDateToDDMMYYYY } from "../../../util";
+import ItemTableUpdateStock from "./Modal/ItemTableUpdateStock";
+import ItemTableStockHistory from "./Modal/ItemTableStockHistory";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import ItemTableUpdate from "./Modal/ItemTableUpdate";
 
 const formatDate = (d) => {
     return formatDateToDDMMYYYY(d);
@@ -46,6 +50,15 @@ export default function StoreItemTable() {
     const [loadingFirst, setLoadingFirst] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+
+    const [stockModalOpen, setStockModalOpen] = useState(false);
+    const [stockRow, setStockRow] = useState(null);
+
+    const [historyOpen, setHistoryOpen] = useState(false);
+    const [historyRow, setHistoryRow] = useState(null);
+
+    const [updateOpen, setUpdateOpen] = useState(false);
+    const [updateRow, setUpdateRow] = useState(null);
 
     // Filters
     const [search, setSearch] = useState("");
@@ -133,6 +146,23 @@ export default function StoreItemTable() {
         window.open(url, "_blank");
     };
 
+    const onHistory = (row) => {
+        setHistoryRow(row);
+        setHistoryOpen(true);
+        closeMenu();
+    };
+    const onUpdate = (row) => {
+        setUpdateRow(row);
+        setUpdateOpen(true);
+        closeMenu();
+    };
+    // Placeholder actions (wire APIs later)
+    const onUpdateStock = (row) => {
+        setStockRow(row);
+        setStockModalOpen(true);
+        closeMenu();
+    };
+
     // Initial load
     useEffect(() => {
         if (token) {
@@ -179,15 +209,6 @@ export default function StoreItemTable() {
         setMenuRow(null);
     };
 
-    // Placeholder actions (wire APIs later)
-    const onUpdateStock = (row) => {
-        console.log("Update Stock:", row);
-        closeMenu();
-    };
-    const onUpdate = (row) => {
-        console.log("Update:", row);
-        closeMenu();
-    };
     const onDelete = (row) => {
         console.log("Delete:", row);
         closeMenu();
@@ -415,7 +436,7 @@ export default function StoreItemTable() {
                         <ListItemIcon>
                             <Inventory2OutlinedIcon fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Update Stock</ListItemText>
+                        <ListItemText>Update Current Stock</ListItemText>
                     </MenuItem>
 
                     <MenuItem onClick={() => onUpdate(menuRow)}>
@@ -423,6 +444,13 @@ export default function StoreItemTable() {
                             <EditOutlinedIcon fontSize="small" />
                         </ListItemIcon>
                         <ListItemText>Update</ListItemText>
+                    </MenuItem>
+
+                    <MenuItem onClick={() => onHistory(menuRow)}>
+                        <ListItemIcon>
+                            <HistoryOutlinedIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>History</ListItemText>
                     </MenuItem>
 
                     <Divider />
@@ -438,6 +466,49 @@ export default function StoreItemTable() {
                     </MenuItem>
                 </Menu>
             </Box>
+
+            <ItemTableUpdateStock
+                open={stockModalOpen}
+                onClose={() => setStockModalOpen(false)}
+                item={stockRow}
+                token={token}
+                onSuccess={() => {
+                    // ✅ reload table after update
+                    setHasMore(true);
+                    setOffset(0);
+                    if (containerRef.current) containerRef.current.scrollTop = 0;
+                    fetchPage({ reset: true });
+                }}
+            />
+
+            <ItemTableUpdate
+                open={updateOpen}
+                onClose={() => {
+                    setUpdateOpen(false);
+                    setUpdateRow(null);
+                }}
+                item={updateRow}
+                token={token}
+                base={base}
+                onSuccess={() => {
+                    setHasMore(true);
+                    setOffset(0);
+                    if (containerRef.current) containerRef.current.scrollTop = 0;
+                    fetchPage({ reset: true });
+                }}
+            />
+
+            <ItemTableStockHistory
+                open={historyOpen}
+                onClose={() => {
+                    setHistoryOpen(false);
+                    setHistoryRow(null);
+                }}
+                item={historyRow}
+                token={token}
+                base={base}
+            />
+
         </>
     );
 }
