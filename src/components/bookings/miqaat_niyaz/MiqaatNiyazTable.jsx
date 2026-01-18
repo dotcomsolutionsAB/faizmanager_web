@@ -57,11 +57,11 @@ const MiqaatNiyazTable = ({ data = [], refresh, showMsg, onEditRow }) => {
 
     setDeleteLoading(true);
     const base = process.env.REACT_APP_API_BASE || "https://api.fmb52.com/api";
-    const url = `${base}/commitment/${selectedRow.id}`;
+    const url = `${base}/commitment/delete/${selectedRow.id}`;
 
     try {
       const response = await fetch(url, {
-        method: "DELETE",
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
